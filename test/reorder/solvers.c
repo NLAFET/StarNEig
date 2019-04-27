@@ -509,7 +509,7 @@ static int scalapack_run(hook_solver_state_t state)
     // pdtrsen writes to iwork when it computes the workspace size!
     int *iwork = malloc(n*sizeof(int));
 
-    int m, info, lwork = -1, liwork = -1;
+    int m, info = -1, lwork = -1, liwork = -1;
     double _work;
 
     if (pencil->mat_b != NULL) {

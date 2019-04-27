@@ -253,7 +253,7 @@ void extract_eigenvalues(
     };
 
     crawl_matrices(CRAWLER_R, CRAWLER_DIAG_WINDOW,
-        &eigenvalue_crawler, &arg, 0, A, B, 0);
+        &eigenvalue_crawler, &arg, 0, A, B, NULL);
 
 #ifdef STARNEIG_ENABLE_MPI
     if (A->type == STARNEIG_MATRIX || A->type == BLACS_MATRIX) {

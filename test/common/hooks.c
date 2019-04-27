@@ -477,7 +477,7 @@ static hook_return_t hessenberg_test_after_solver_run(
     int error = 0;
     crawl_matrices(CRAWLER_R, CRAWLER_PANEL,
         &crawl_hessenberg, &error, sizeof(error), pencil->mat_a,
-        pencil->mat_b, 0);
+        pencil->mat_b, NULL);
 
     if (0 < error) {
         (*((int *) state))++;
@@ -736,7 +736,7 @@ static hook_return_t schur_test_after_solver_run(
 
     pencil_t pencil = env->data;
     crawl_matrices(CRAWLER_R, CRAWLER_PANEL,
-        &crawl_schur, &arg, sizeof(arg), pencil->mat_a, pencil->mat_b, 0);
+        &crawl_schur, &arg, sizeof(arg), pencil->mat_a, pencil->mat_b, NULL);
 
     if (0 < arg.errors) {
         (*((int *) state))++;

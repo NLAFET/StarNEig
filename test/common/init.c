@@ -423,25 +423,26 @@ matrix_t init_matrix(int m, int n, init_helper_t helper)
 void init_zero(matrix_t matrix)
 {
     crawl_matrices(
-        CRAWLER_W, CRAWLER_PANEL, &crawl_zero_dr, NULL, 0, matrix, 0);
+        CRAWLER_W, CRAWLER_PANEL, &crawl_zero_dr, NULL, 0, matrix, NULL);
 }
 
 void init_identity(matrix_t matrix)
 {
     crawl_matrices(
-        CRAWLER_W, CRAWLER_PANEL, &crawl_identity_dr, NULL, 0, matrix, 0);
+        CRAWLER_W, CRAWLER_PANEL, &crawl_identity_dr, NULL, 0, matrix, NULL);
 }
 
 void init_random_full(matrix_t matrix)
 {
     crawl_matrices(
-        CRAWLER_W, CRAWLER_PANEL, &crawl_random_full_dr, NULL, 0, matrix, 0);
+        CRAWLER_W, CRAWLER_PANEL, &crawl_random_full_dr, NULL, 0, matrix, NULL);
 }
 
 void init_random_fullpos(matrix_t matrix)
 {
     crawl_matrices(
-        CRAWLER_W, CRAWLER_PANEL, &crawl_random_fullpos_dr, NULL, 0, matrix, 0);
+        CRAWLER_W, CRAWLER_PANEL, &crawl_random_fullpos_dr, NULL, 0, matrix,
+        NULL);
 }
 
 matrix_t generate_zero(int m, int n, init_helper_t helper)
@@ -487,7 +488,8 @@ matrix_t generate_random_uptriag(int m, int n, init_helper_t helper)
     matrix_t desc = init_matrix(m, n, helper);
 
     crawl_matrices(
-        CRAWLER_W, CRAWLER_PANEL, &crawl_random_uptriag_dr, NULL, 0, desc, 0);
+        CRAWLER_W, CRAWLER_PANEL, &crawl_random_uptriag_dr, NULL, 0, desc,
+        NULL);
 
     return desc;
 }
@@ -500,7 +502,7 @@ matrix_t generate_random_uptriagpos(int m, int n, init_helper_t helper)
 
     crawl_matrices(
         CRAWLER_W, CRAWLER_PANEL, &crawl_random_uptriagpos_dr, NULL, 0, desc,
-        0);
+        NULL);
 
     return desc;
 }
@@ -513,7 +515,7 @@ matrix_t generate_random_hessenberg(int m, int n, init_helper_t helper)
 
     crawl_matrices(
         CRAWLER_W, CRAWLER_PANEL, &crawl_random_hessenberg_dr, NULL, 0, desc,
-        0);
+        NULL);
 
     return desc;
 }
@@ -531,7 +533,7 @@ matrix_t generate_random_householder(int n, init_helper_t helper)
 
     crawl_matrices(
         CRAWLER_W, CRAWLER_PANEL, &crawl_householder_dr,
-        vec_v, 0, desc, 0);
+        vec_v, 0, desc, NULL);
 
     free(vec_v);
 

@@ -251,7 +251,7 @@ void write_raw_matrix_to_file(char const *name, matrix_t matrix)
     }
 
     crawl_matrices(CRAWLER_R, CRAWLER_PANEL,
-        &write_raw_crawler, file, 0, matrix, 0);
+        &write_raw_crawler, file, 0, matrix, NULL);
 
     fclose(file);
 }

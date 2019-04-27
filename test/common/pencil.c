@@ -157,7 +157,7 @@ static int is_identity(const matrix_t matrix)
     int ret = 1;
     crawl_matrices(
         CRAWLER_R, CRAWLER_PANEL, &identity_crawler,
-        &ret, sizeof(ret), matrix, 0);
+        &ret, sizeof(ret), matrix, NULL);
 
     return ret;
 }
@@ -239,7 +239,8 @@ double norm_C(const matrix_t matrix)
     struct norm_crawler_arg arg = { .scale = 0.0, .sumsq = 1.0 };
 
     crawl_matrices(
-        CRAWLER_R, CRAWLER_PANEL, &norm_crawler, &arg, sizeof(arg), matrix, 0);
+        CRAWLER_R, CRAWLER_PANEL, &norm_crawler, &arg, sizeof(arg), matrix,
+        NULL);
 
     return arg.scale * sqrt(arg.sumsq);
 }
@@ -247,7 +248,7 @@ double norm_C(const matrix_t matrix)
 void print_matrix_descr(const matrix_t matrix, FILE * stream)
 {
     crawl_matrices(
-        CRAWLER_R, CRAWLER_HPANEL, &print_crawler, stream, 0, matrix, 0);
+        CRAWLER_R, CRAWLER_HPANEL, &print_crawler, stream, 0, matrix, NULL);
 }
 
 pencil_t init_pencil()

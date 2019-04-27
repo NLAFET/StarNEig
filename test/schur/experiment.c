@@ -123,7 +123,7 @@ static void deflate_and_place_infinities(
 
     crawl_matrices(CRAWLER_RW, CRAWLER_DIAG_WINDOW,
         &deflate_and_place_infinities_crawler, sub, 0,
-        pencil->mat_a, pencil->mat_b, 0);
+        pencil->mat_a, pencil->mat_b, NULL);
 
     free(sub);
 
@@ -346,7 +346,7 @@ static struct hook_data_env* hessrand_initializer_init(
 
     crawl_matrices(
         CRAWLER_W, CRAWLER_PANEL, &hessrand_crawler, r, 0,
-        data->mat_a, data->mat_b, 0);
+        data->mat_a, data->mat_b, NULL);
 
     gsl_rng_free(r);
 

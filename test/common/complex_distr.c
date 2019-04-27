@@ -269,7 +269,7 @@ static int uniform_complex_distr_init(
         generate_special_cases(n, complex_ratio, zero_ratio, inf_ratio, &arg);
 
     crawl_matrices(CRAWLER_RW, CRAWLER_DIAG_WINDOW,
-        &complex_crawler, &arg, 0, A, B, 0);
+        &complex_crawler, &arg, 0, A, B, NULL);
 
     free(arg.real);
     free(arg.imag);
@@ -463,7 +463,7 @@ static int bulk_complex_distr_init(
         generate_special_cases(n, complex_ratio, zero_ratio, inf_ratio, &arg);
 
     crawl_matrices(CRAWLER_RW, CRAWLER_DIAG_WINDOW,
-        &complex_crawler, &arg, 0, A, B, 0);
+        &complex_crawler, &arg, 0, A, B, NULL);
 
     free(arg.real);
     free(arg.imag);

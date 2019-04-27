@@ -336,7 +336,7 @@ static double protect_update_scalar(double t, double x, double y)
     // Protect p = x * y.
     double alpha1 = protect_mul(x, t);
     double p = t * (alpha1 * x);
-    if (fabs(ilogb(y) - ilogb(p)) > 52) {
+    if (abs(ilogb(y) - ilogb(p)) > 52) {
         // The factors are far apart. Either y or p is the final result.
         if (ilogb(p) > ilogb(y))
             scale = alpha1;

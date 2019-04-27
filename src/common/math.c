@@ -151,8 +151,8 @@ void starneig_compute_complex_eigenvalue(
 {
     if (B != NULL) {
         extern void dlag2_(double const *, int const *, double const *,
-            int const *, double const *, double const *, double *,
-            double *, double *, double *);
+            int const *, double const *, double*, double *, double *, double *,
+            double *);
 
         extern double dlamch_(char const *);
         const double safmin = dlamch_("S");

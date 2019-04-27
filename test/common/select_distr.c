@@ -92,7 +92,7 @@ static int * find_blocks(const pencil_t pencil)
     int n = GENERIC_MATRIX_M(pencil->mat_a);
     int *blocks = malloc(n*sizeof(int));
     crawl_matrices(CRAWLER_R, CRAWLER_DIAG_WINDOW,
-        &find_blocks_crawler, blocks, n*sizeof(int), pencil->mat_a, 0);
+        &find_blocks_crawler, blocks, n*sizeof(int), pencil->mat_a, NULL);
 
     return blocks;
 }
