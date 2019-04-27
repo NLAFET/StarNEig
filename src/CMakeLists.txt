@@ -508,8 +508,8 @@ endif ()
 
 if (STARNEIG_ENABLE_BLACS)
     set (PUBLIC_HEADER_FILES ${PUBLIC_HEADER_FILES}
-        ${CMAKE_CURRENT_BINARY_DIR}/include/starneig/blacs_helpers.h
-        ${CMAKE_CURRENT_BINARY_DIR}/include/starneig/blacs_matrix.h)
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/starneig/blacs_helpers.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/starneig/blacs_matrix.h)
 endif ()
 
 #
