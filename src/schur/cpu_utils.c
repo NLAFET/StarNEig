@@ -930,8 +930,7 @@ inline static void create_bulge(
 ///
 /// @return The first row of H * A * e_1.
 ///
-inline static double create_left_reflector(
-    int n, double const * restrict A, double * restrict v)
+inline static double create_left_reflector(int n, double const *A, double * v)
 {
     // LAPACK routine that generates a real elementary reflector H
     extern void dlarfg_(int const *, double *, double *, int const *, double *);
