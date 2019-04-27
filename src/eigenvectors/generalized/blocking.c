@@ -51,7 +51,7 @@
 /// @param[in] lda leading dimension of array a
 ///
 /// @return  the number of 1-by-1 and 2-by-2 blocks found along the main diagonal
-int CountBlocks(int m, double *a, size_t lda)
+int starneig_CountBlocks(int m, double *a, size_t lda)
 {
   // Column index
   int j=0;
@@ -90,7 +90,7 @@ int CountBlocks(int m, double *a, size_t lda)
 /// @param[in] numBlocks maximum number of blocks to find
 ///
 /// @return the number of 1-by-1 and 2-by-2 blocks mapped along the main diagonal
-int FindBlocks(int m, double *a, size_t lda, int *blocks, int numBlocks)
+int starneig_FindBlocks(int m, double *a, size_t lda, int *blocks, int numBlocks)
 {
 
   // Column pointer

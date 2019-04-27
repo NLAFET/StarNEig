@@ -42,17 +42,17 @@
 #include <stddef.h>
 
 // Protect a scalar division against overflow
-int IntProtectDivision(double b, double t);
+int starneig_IntProtectDivision(double b, double t);
 
 // Protect a linear update againt overflow
-int IntProtectUpdate(double t, double x, double y);
+int starneig_IntProtectUpdate(double t, double x, double y);
 
 // Robust scaling of a matrix
-void IntRobustScaling(double alpha, int m, int n,
+void starneig_IntRobustScaling(double alpha, int m, int n,
 		      double *x, size_t ldx, int *xscal, double *xnorm);
 
 // Robust linear update Y:=alpha*A*X+beta*Y
-void IntRobustUpdate(int m, int n, int k,
+void starneig_IntRobustUpdate(int m, int n, int k,
 		     double alpha,
 		     double *a, size_t lda, double anorm,
 		     double *x, size_t ldx, int *xscal, double *xnorm,

@@ -40,25 +40,25 @@
 #define TILING_GUARD_H_
 
 // Remove duplicates from a increasing list
-int RemoveDuplicates(int m, int *l);
+int starneig_RemoveDuplicates(int m, int *l);
 
 // Map the structure of a quasi-upper triangular structure matrix
-void FindLeft(int m, double *a, size_t lda, int *l);
+void starneig_FindLeft(int m, double *a, size_t lda, int *l);
 
 // Count the number of selected eigenvectors
-int CountSelected(int m, int *l, int *select);
+int starneig_CountSelected(int m, int *l, int *select);
 
 // Find global index of all selected eigenvectors
-int FindSelected(int m, int *l, int *select, int *map)  ;
+int starneig_FindSelected(int m, int *l, int *select, int *map)  ;
 
 // Find tiling of matrix S, T
-int PracticalRowTiling(int m, int mb, int *l, int *ap);
+int starneig_PracticalRowTiling(int m, int mb, int *l, int *ap);
 
 // Find natural tiling of the columns of X, Y
-int InducedColumnTiling(int m, int *select, int *l,
+int starneig_InducedColumnTiling(int m, int *select, int *l,
 			int M, int *ap, int *cp);
 
 // Find practical tiling of the columns of X, Y
-int PracticalColumnTiling(int n, int nb, int *map, int *l, int *cp);
+int starneig_PracticalColumnTiling(int n, int nb, int *map, int *l, int *cp);
 
 #endif

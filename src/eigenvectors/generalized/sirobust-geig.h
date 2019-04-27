@@ -42,7 +42,7 @@
 #include <stddef.h>
 
 // STARPU, robust computation of user's selection of generalised eigenvectors.
-int sinew(int m,
+int starneig_sinew(int m,
 	  double *s, size_t lds,
 	  double *t, size_t ldt,
 	  int *select, double *y, size_t ldy,

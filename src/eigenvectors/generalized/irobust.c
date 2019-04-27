@@ -63,9 +63,9 @@
 ///
 /// @return integer k s.t. (alpha*b)/t is bounded by Omega where alpha=2^k.
 ///
-inline int IntProtectDivision(double b, double t)
+inline int starneig_IntProtectDivision(double b, double t)
 {
-  double alpha = ProtectDivision(b, t);
+  double alpha = starneig_ProtectDivision(b, t);
   return ilogb(alpha);
 }
 
@@ -80,9 +80,9 @@ inline int IntProtectDivision(double b, double t)
 /// @return integer k such that the calculation of Y:=(alpha*Y) - T*(alpha*X)
 /// cannot exceed Omega where alpha = 2^k.
 ///
-inline int IntProtectUpdate(double t, double x, double y)
+inline int starneig_IntProtectUpdate(double t, double x, double y)
 {
-  double alpha = ProtectUpdate(t, x, y);
+  double alpha = starneig_ProtectUpdate(t, x, y);
   return ilogb(alpha);
 }
 
@@ -103,7 +103,7 @@ inline int IntProtectUpdate(double t, double x, double y)
 ///         On entry, xnorm[j] bounds the infinity norm of the jth column of X.
 ///         On exit, xnorm[j] bounds the infinity norm of the jth column of X.
 ///
-void IntRobustScaling(double alpha, int m, int n,
+void starneig_IntRobustScaling(double alpha, int m, int n,
 		      double *x, size_t ldx, int *xscal, double *xnorm)
 
 /* TODO: Determine if it is safe to combine the two scalings into one.
@@ -117,7 +117,7 @@ void IntRobustScaling(double alpha, int m, int n,
 {
   for (int j=0; j<n; j++) {
     // Compute scaling to survive scaling of jth column
-    int k=IntProtectUpdate(fabs(alpha),xnorm[j],0);
+    int k=starneig_IntProtectUpdate(fabs(alpha),xnorm[j],0);
     if (k<0) {
       // Construct the scaling factor gamma = 2^k<1
       double gamma=scalbn(1,k);
@@ -164,7 +164,7 @@ void IntRobustScaling(double alpha, int m, int n,
 ///         On entry, ynorm[j] bounds the infinity norm of the jth column.
 ///         On exit, unchanged and therefore unrelated to the new matrix Y.
 ///
-void IntRobustUpdate(int m, int n, int k,
+void starneig_IntRobustUpdate(int m, int n, int k,
 		     double alpha,
 		     double *a, size_t lda, double anorm,
 		     double *x, size_t ldx, int *xscal, double *xnorm,
@@ -192,7 +192,7 @@ void IntRobustUpdate(int m, int n, int k,
 
   // Create a copy Z = X: k by n matrix
   size_t ldz=max(k,1); double *z=malloc(ldz*n*sizeof(double));
-  dlacpy("A", k, n, x, ldx, z, ldz);
+  starneig_dlacpy("A", k, n, x, ldx, z, ldz);
 
   // Copy norms and scalings
   int *zscal=(int *)malloc(n*sizeof(double));
@@ -206,13 +206,13 @@ void IntRobustUpdate(int m, int n, int k,
   // STEP 1: Robust computation of Y:=beta*Y
   // ************************************************************************
   if (beta!=1)
-    IntRobustScaling(beta, m, n, y, ldy, yscal, ynorm);
+    starneig_IntRobustScaling(beta, m, n, y, ldy, yscal, ynorm);
 
   // ************************************************************************
   // STEP 2: Robust computation of Z:=alpha*Z
   // ************************************************************************
   if (alpha!=1)
-    IntRobustScaling(alpha, k, n, z, ldz, zscal, znorm);
+    starneig_IntRobustScaling(alpha, k, n, z, ldz, zscal, znorm);
 
   // ************************************************************************
   // STEP 3 Robust computation of Y:=Y+A*Z
@@ -231,7 +231,7 @@ void IntRobustUpdate(int m, int n, int k,
     ynorm[j]=ynorm[j]*aux1;
     znorm[j]=znorm[j]*aux2;
     // Determine scaling needed to survive update Y(:,j)=Y(:,j)+A*Z(:,j)
-    int q=IntProtectUpdate(anorm, znorm[j], ynorm[j]);
+    int q=starneig_IntProtectUpdate(anorm, znorm[j], ynorm[j]);
     double delta=scalbn(1,q);
     // Update rescaling factors to include overflow protection
     double aux3=aux1*delta;
@@ -246,7 +246,7 @@ void IntRobustUpdate(int m, int n, int k,
     zscal[j]=yscal[j];
   }
   // Do the linear update Y:=A*Z+Y
-  dgemm("N", "N", m, n, k,
+  starneig_dgemm("N", "N", m, n, k,
 	 double_one, a, lda, z, ldz,
 	 double_one, y, ldy);
 

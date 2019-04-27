@@ -77,7 +77,7 @@ static void sZeros(void **buffers , void *args)
   size_t lda=STARPU_MATRIX_GET_LD(a_i);
 
   // Fill the matrix with the given value
-  zeros(m, n, a, lda);
+  starneig_zeros(m, n, a, lda);
 }
 
 static struct starpu_codelet sZeros_cl = {
@@ -121,7 +121,7 @@ static void ComputeEigenvalues(void **buffers, void *args)
   double *beta=(double *)STARPU_VECTOR_GET_PTR(beta_i);
 
   // Compute the selected eigenvalues
-  GeneralisedEigenvalues(m, s, lds, t, ldt, select, alphar, alphai, beta);
+  starneig_GeneralisedEigenvalues(m, s, lds, t, ldt, select, alphar, alphai, beta);
 }
 
 static struct starpu_codelet ComputeEigenvalues_cl = {
@@ -155,7 +155,7 @@ static void sIntConsistentScaling(void **buffers, void *args)
   int idx; starpu_codelet_unpack_args(args, &idx);
 
   // Enforce consistent scaling on the tile
-  IntConsistentScaling(m, n, k, a, lda, scal, lds, idx);
+  starneig_IntConsistentScaling(m, n, k, a, lda, scal, lds, idx);
 
 }
 
@@ -230,7 +230,7 @@ static void infnorm(void *buffers[], void *args)
   double *work=(double *)STARPU_VECTOR_GET_PTR(work_i);
 
   // Compute the norm
-  *anorm=dlange("I", m, n, a, lda, work);
+  *anorm=starneig_dlange("I", m, n, a, lda, work);
 }
 
 
@@ -338,7 +338,7 @@ static void solve(void *buffers[], void *args)
 			     &ap0, &ap1, &bp0, &bp1, &cp0, &cp1);
 
   // Do the actual solve
-  irobust_solve_task(m, n,
+  starneig_irobust_solve_task(m, n,
 		     s, lds, cs,
 		     t, ldt, ct,
 		     blocks, numBlocks,
@@ -429,7 +429,7 @@ static void update2(void *buffers[], void *args)
   double *ynorm=(double *)STARPU_VECTOR_GET_PTR(ynorm_i);
 
   // Do the actual update
-  irobust_update_task(m, n, k,
+  starneig_irobust_update_task(m, n, k,
 		      s, lds, snorm,
 		      t, ldt, tnorm,
 		      alphar, alphai, beta,
@@ -484,14 +484,14 @@ static void ProcessDiagonalTile(void *buffers[], void *args)
   double *ct=(double *)STARPU_VECTOR_GET_PTR(ct_i);
 
   // Count actual number of mini-blocks
-  *numBlocks=CountBlocks(m, s, lds);
+  *numBlocks=starneig_CountBlocks(m, s, lds);
 
   // Find the location of the mini-blocks
-  *numBlocks=FindBlocks(m, s, lds, blocks, *numBlocks);
+  *numBlocks=starneig_FindBlocks(m, s, lds, blocks, *numBlocks);
 
   // Compute generalised column majorants based on the mini-block structure
-  GeneralisedColumnMajorants(m, s, lds, blocks, *numBlocks, cs);
-  GeneralisedColumnMajorants(m, t, ldt, blocks, *numBlocks, ct);
+  starneig_GeneralisedColumnMajorants(m, s, lds, blocks, *numBlocks, cs);
+  starneig_GeneralisedColumnMajorants(m, t, ldt, blocks, *numBlocks, ct);
 
 }
 
@@ -512,7 +512,7 @@ static struct starpu_codelet ProcessDiagonalTile_cl = {
 // ************************************************************************
 
 // Allocate and register handles into a submatrix
-void AR_MatrixHandles(void *a, size_t lda, int size,
+void starneig_AR_MatrixHandles(void *a, size_t lda, int size,
 		      int *p, int m, int *q, int n,
 		      starpu_data_handle_t ***ptr)
 {
@@ -537,7 +537,7 @@ void AR_MatrixHandles(void *a, size_t lda, int size,
 }
 
 // Unregister and free 2D array of handles
-void UF_MatrixHandles(starpu_data_handle_t **a_h, int m, int n) {
+void starneig_UF_MatrixHandles(starpu_data_handle_t **a_h, int m, int n) {
 
   for (int i=0; i<m; i++) {
     for (int j=0; j<n; j++)
@@ -549,7 +549,7 @@ void UF_MatrixHandles(starpu_data_handle_t **a_h, int m, int n) {
 
 
 // Allocate and register handles into an array
-void AR_ArrayHandles(void *array, int size, int *p, int n,
+void starneig_AR_ArrayHandles(void *array, int size, int *p, int n,
 		     starpu_data_handle_t **ptr)
 {
   // Allocate handles
@@ -572,7 +572,7 @@ void AR_ArrayHandles(void *array, int size, int *p, int n,
 }
 
 // Unregister and free an array of handles
-void UF_ArrayHandles(starpu_data_handle_t *array_h, int n)
+void starneig_UF_ArrayHandles(starpu_data_handle_t *array_h, int n)
 {
   // Unregister all handles
   for (int j=0; j<n; j++) {
@@ -585,7 +585,7 @@ void UF_ArrayHandles(starpu_data_handle_t *array_h, int n)
 
 
 // Allocate and Register tile handes (i<=j)
-void AR_TileHandles(double *a, size_t lda, int *ap, int m,
+void starneig_AR_TileHandles(double *a, size_t lda, int *ap, int m,
 		    starpu_data_handle_t ***ptr)
 {
 
@@ -609,7 +609,7 @@ void AR_TileHandles(double *a, size_t lda, int *ap, int m,
 }
 
 // Unregister and Free tile handles (i<=j)
-void UF_TileHandles(starpu_data_handle_t **a_h, int M) {
+void starneig_UF_TileHandles(starpu_data_handle_t **a_h, int M) {
 
   // Unregister all tiles A(i,j) i<=j
   for (int i=0; i<M; i++) {
@@ -621,7 +621,7 @@ void UF_TileHandles(starpu_data_handle_t **a_h, int M) {
 }
 
 // Specialized routine for setting up handles into the matrix Y, yscal, ynorm
-void AR_TilesY(int *ap, int *cp, int numRows, int numCols, int n,
+void starneig_AR_TilesY(int *ap, int *cp, int numRows, int numCols, int n,
 	       double *y, size_t ldy, int *yscal, double *ynorm,
 	       starpu_data_handle_t ***ptr1,
 	       starpu_data_handle_t ***ptr2,
@@ -682,7 +682,7 @@ void AR_TilesY(int *ap, int *cp, int numRows, int numCols, int n,
 }
 
 // Unregister and free tiles of Y
-void UF_TilesY(starpu_data_handle_t **y_h,
+void starneig_UF_TilesY(starpu_data_handle_t **y_h,
 	       starpu_data_handle_t **yscal_h,
 	       starpu_data_handle_t **ynorm_h, int numRows, int numCols)
 {
@@ -699,7 +699,7 @@ void UF_TilesY(starpu_data_handle_t **y_h,
 
 
 // Compute infinity norm of all tiles (i<=j)
-void ComputeTileNorms(starpu_data_handle_t **a_h,
+void starneig_ComputeTileNorms(starpu_data_handle_t **a_h,
 		      starpu_data_handle_t anorm_h, int M,
 		      starpu_data_handle_t work)
 {
@@ -740,7 +740,7 @@ void ComputeTileNorms(starpu_data_handle_t **a_h,
 }
 
 // Scale all tiles (i<=j) by a constant alpha
-void ScaleTiles(double alpha, starpu_data_handle_t **a_h, int M)
+void starneig_ScaleTiles(double alpha, starpu_data_handle_t **a_h, int M)
 {
   // Insert tasks which scales each tile by alpha
   for (int i=0; i<M; i++)
@@ -777,7 +777,7 @@ void ScaleTiles(double alpha, starpu_data_handle_t **a_h, int M)
 /// a 2-by-2 block or the separationg of the real and imaginary part of a
 /// complex eigenvector.
 
-int sinew(int m,
+int starneig_sinew(int m,
 	  double *s, size_t lds,
 	  double *t, size_t ldt,
 	  int *select, double *y, size_t ldy,
@@ -799,7 +799,7 @@ int sinew(int m,
   int numRows; int numCols;
 
   // Find all relevant information
-  FindTilings(m, mb, nb, s, lds, select,
+  starneig_FindTilings(m, mb, nb, s, lds, select,
 	      &l, &map, &ap, &bp, &cp, &numRows, &numCols);
 
   // Isolate the number of selected eigenvectors
@@ -822,8 +822,8 @@ int sinew(int m,
   starpu_data_handle_t **t_h;
 
   // Allocate (malloc) and register StarPU-handles to tiles of S, T
-  AR_TileHandles(s, lds, ap, numRows, &s_h);
-  AR_TileHandles(t, ldt, ap, numRows, &t_h);
+  starneig_AR_TileHandles(s, lds, ap, numRows, &s_h);
+  starneig_AR_TileHandles(t, ldt, ap, numRows, &t_h);
 
 
   // ***********************************************************************
@@ -835,8 +835,8 @@ int sinew(int m,
   double *tnorm=(double *)malloc(numRows*numRows*sizeof(double));
 
   // Nullification must be done here. See the calls to dlange below.
-  zeros(numRows, numRows, snorm, numRows);
-  zeros(numRows, numRows, tnorm, numRows);
+  starneig_zeros(numRows, numRows, snorm, numRows);
+  starneig_zeros(numRows, numRows, tnorm, numRows);
 
   // Data handles to matrices of tile norms
   starpu_data_handle_t snorm_h;
@@ -854,8 +854,8 @@ int sinew(int m,
 
 
   // Computer norms of all tiles (i<=j)
-  ComputeTileNorms(s_h, snorm_h, numRows, work);
-  ComputeTileNorms(t_h, tnorm_h, numRows, work);
+  starneig_ComputeTileNorms(s_h, snorm_h, numRows, work);
+  starneig_ComputeTileNorms(t_h, tnorm_h, numRows, work);
 
   // Unregister snorm_h, tnorm_h forcing data to be written to memory
   // All tile norms are passed as parameters when inserting update task
@@ -876,8 +876,8 @@ int sinew(int m,
     // Scaling *is* necessary
     aux=Omega/aux;
     // Apply scaling to all tiles of S, T  (i<=j)
-    ScaleTiles(aux, s_h, numRows);
-    ScaleTiles(aux, t_h, numRows);
+    starneig_ScaleTiles(aux, s_h, numRows);
+    starneig_ScaleTiles(aux, t_h, numRows);
   }
 
 
@@ -968,7 +968,7 @@ int sinew(int m,
 
   // Unregister handles forcing write back to main memory.
   // numBlocks will be passed to solve tasks as a parameter
-  UF_ArrayHandles(numBlocks_h, numRows);
+  starneig_UF_ArrayHandles(numBlocks_h, numRows);
 
   // ***********************************************************************
   //    Eigenvalues
@@ -989,12 +989,12 @@ int sinew(int m,
   starpu_data_handle_t *select_h;
 
   // Allocate and register handles into select using ap
-  AR_ArrayHandles((void *)select, sizeof(int), ap, numRows, &select_h);
+  starneig_AR_ArrayHandles((void *)select, sizeof(int), ap, numRows, &select_h);
 
   // Allocate and register handles to eigenv using bp
-  AR_ArrayHandles((void *)alphar, sizeof(double), bp, numRows, &alphar_h);
-  AR_ArrayHandles((void *)alphai, sizeof(double), bp, numRows, &alphai_h);
-  AR_ArrayHandles((void *)beta, sizeof(double), bp, numRows, &beta_h);
+  starneig_AR_ArrayHandles((void *)alphar, sizeof(double), bp, numRows, &alphar_h);
+  starneig_AR_ArrayHandles((void *)alphai, sizeof(double), bp, numRows, &alphai_h);
+  starneig_AR_ArrayHandles((void *)beta, sizeof(double), bp, numRows, &beta_h);
 
   // Insert tasks to compute select eigenvalue of diagonal tasks
   for (int i=0; i<numRows; i++) {
@@ -1014,18 +1014,18 @@ int sinew(int m,
   }
 
   // Unregister and free array handles for eigenvalues forcing write back
-  UF_ArrayHandles(alphar_h, numRows);
-  UF_ArrayHandles(alphai_h, numRows);
-  UF_ArrayHandles(beta_h, numRows);
+  starneig_UF_ArrayHandles(alphar_h, numRows);
+  starneig_UF_ArrayHandles(alphai_h, numRows);
+  starneig_UF_ArrayHandles(beta_h, numRows);
 
   // Allocate and register *new* handles for e.v. using cp (practical part.)
-  AR_ArrayHandles((void *)alphar, sizeof(double), cp, numCols, &alphar_h);
-  AR_ArrayHandles((void *)alphai, sizeof(double), cp, numCols, &alphai_h);
-  AR_ArrayHandles((void *)beta, sizeof(double), cp, numCols, &beta_h);
+  starneig_AR_ArrayHandles((void *)alphar, sizeof(double), cp, numCols, &alphar_h);
+  starneig_AR_ArrayHandles((void *)alphai, sizeof(double), cp, numCols, &alphai_h);
+  starneig_AR_ArrayHandles((void *)beta, sizeof(double), cp, numCols, &beta_h);
 
   // Allocate and register handles into the map of e.v. using cp
   starpu_data_handle_t *map_h;
-  AR_ArrayHandles((void *)map, sizeof(int), cp, numCols, &map_h);
+  starneig_AR_ArrayHandles((void *)map, sizeof(int), cp, numCols, &map_h);
 
   // ************************************************************************
   //    Initialize eigenvectors
@@ -1044,7 +1044,7 @@ int sinew(int m,
   starpu_data_handle_t **y_h;
   starpu_data_handle_t **yscal_h;
   starpu_data_handle_t **ynorm_h;
-  AR_TilesY(ap, cp, numRows, numCols, n, y, ldy, yscal, ynorm,
+  starneig_AR_TilesY(ap, cp, numRows, numCols, n, y, ldy, yscal, ynorm,
 	    &y_h, &yscal_h, &ynorm_h);
 
   // Nullify Y in using task
@@ -1058,7 +1058,7 @@ int sinew(int m,
 
   // TODO: This as tasks
   // Initialize the norms of Y
-  zeros(1,numRows*n,ynorm,1);
+  starneig_zeros(1,numRows*n,ynorm,1);
 
 
   // ************************************************************************
@@ -1139,29 +1139,29 @@ int sinew(int m,
   // **********************************************************************
 
   // Handles into select
-  UF_ArrayHandles(select_h, numRows);
+  starneig_UF_ArrayHandles(select_h, numRows);
 
   // Handles into eigenvalues
-  UF_ArrayHandles(alphar_h, numCols);
-  UF_ArrayHandles(alphai_h, numCols);
-  UF_ArrayHandles(beta_h, numCols);
+  starneig_UF_ArrayHandles(alphar_h, numCols);
+  starneig_UF_ArrayHandles(alphai_h, numCols);
+  starneig_UF_ArrayHandles(beta_h, numCols);
 
   // Handles into maps
-  UF_ArrayHandles(map_h, numCols);
+  starneig_UF_ArrayHandles(map_h, numCols);
 
   // Unregister and free tiles handles
-  UF_TileHandles(s_h, numRows);
-  UF_TileHandles(t_h, numRows);
+  starneig_UF_TileHandles(s_h, numRows);
+  starneig_UF_TileHandles(t_h, numRows);
 
   // Unregister datahandles to scratch space
   starpu_data_unregister(work);
 
   // Handles for mini-block structure
-  UF_ArrayHandles(blocks_h, numRows);
+  starneig_UF_ArrayHandles(blocks_h, numRows);
 
   // Handles for column majorants
-  UF_ArrayHandles(cs_h, numRows);
-  UF_ArrayHandles(ct_h, numRows);
+  starneig_UF_ArrayHandles(cs_h, numRows);
+  starneig_UF_ArrayHandles(ct_h, numRows);
 
   // **********************************************************************
   //   Final scaling
@@ -1217,13 +1217,13 @@ int sinew(int m,
   }
 
   // Unregister and free handles zscal_h
-  UF_ArrayHandles(zscal_h, numCols);
+  starneig_UF_ArrayHandles(zscal_h, numCols);
 
   // Unregister handles into ynorm
-  UF_MatrixHandles(ynorm_h, numRows, numCols);
+  starneig_UF_MatrixHandles(ynorm_h, numRows, numCols);
 
   // Unregister handles into Y
-  UF_MatrixHandles(y_h, numRows, numCols);
+  starneig_UF_MatrixHandles(y_h, numRows, numCols);
 
   // *************************************************************************
   // Deallocation of memory follows here

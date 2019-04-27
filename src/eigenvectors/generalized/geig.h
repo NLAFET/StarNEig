@@ -42,24 +42,24 @@
 #include <stddef.h>
 
 // Find all tilings needed for generalized eigenvector computation
-void FindTilings(int m, int mb, int nb,
+void starneig_FindTilings(int m, int mb, int nb,
 		 double *s, size_t lds, int *select,
 		 int **ptr1, int **ptr2,
 		 int **ptr3, int **ptr4, int **ptr5, int *num1, int *num2);
 
 // Compute infinity norms of the mini-block columns of a matrix.
-void MiniBlockColumnNorms(int m, int n, double *alphai,
+void starneig_MiniBlockColumnNorms(int m, int n, double *alphai,
 			  double *x, size_t ldx, double *xnorm);
 
 // Compute eigenvalues from generalised real Schur form.
-int GeneralisedEigenvalues(int m,
+int starneig_GeneralisedEigenvalues(int m,
 			   double *s, size_t lds,
 			   double *t, size_t ldt,
 			   int *select,
 			   double *alphar, double *alphai, double *beta);
 
 // Multishift linear update needed by Relative Residual
-int MultiShiftUpdate(int m, int n, int k,
+int starneig_MultiShiftUpdate(int m, int n, int k,
 		     double *s, size_t lds,
 		     double *t, size_t ldt,
 		     double *alphar, double *alphai, double *beta,
@@ -67,7 +67,7 @@ int MultiShiftUpdate(int m, int n, int k,
 		     double *y, size_t ldy);
 
 // Infinity norm relative residual for each mini-block column
-double RelativeResidual(int m, int n,
+double starneig_RelativeResidual(int m, int n,
 			double *s, size_t lds,
 			double *t, size_t ldt,
 			double *alphar, double *alphai, double *beta,

@@ -80,7 +80,7 @@
 /// @param[in] numBlocks number of mini-blocks
 /// @param[out] ca generalised column majorants for mini-block colmuns of A
 ///
-void GeneralisedColumnMajorants(int m, double *a, size_t lda,
+void starneig_GeneralisedColumnMajorants(int m, double *a, size_t lda,
 				int *blocks, int numBlocks, double *ac)
 {
 
@@ -97,7 +97,7 @@ void GeneralisedColumnMajorants(int m, double *a, size_t lda,
     // Determine the number of rows above the current mini-blocks
     int lm=blocks[k];
     // Compute infinity norm
-    ac[k]=dlange("I", lm, ln, &_a(0,lm), lda, work);
+    ac[k]=starneig_dlange("I", lm, ln, &_a(0,lm), lda, work);
   }
   // Free workspace
   free(work);

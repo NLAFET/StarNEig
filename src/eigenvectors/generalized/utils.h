@@ -46,15 +46,15 @@
 #define maxcol 12
 
 // Prints a dense array nicely on the screen.
-void ddm(int m, int n, double *a, size_t lda, char *format);
+void starneig_ddm(int m, int n, double *a, size_t lda, char *format);
 
 // Prints a dense array of integers nicely on the screen
-void ddmi(int m, int n, int *a, size_t lda, char *format);
+void starneig_ddmi(int m, int n, int *a, size_t lda, char *format);
 
 // Fill dense matrix with zeros
-void zeros(int m, int n, double *a, size_t lda);
+void starneig_zeros(int m, int n, double *a, size_t lda);
 
 // Fill dense matrix with ones
-void ones(int m, int n, double *a, size_t lda);
+void starneig_ones(int m, int n, double *a, size_t lda);
 
 #endif

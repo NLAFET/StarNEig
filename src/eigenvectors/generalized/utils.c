@@ -55,7 +55,7 @@
 /// @param[in] lda leading dimension of matrix A
 /// @param[in] format valid C format specification
 ///
-void ddm(int m, int n, double *a, size_t lda, char *format) {
+void starneig_ddm(int m, int n, double *a, size_t lda, char *format) {
 
   for (int i=0; i<min(m,maxrow); i++) {
     for (int j=0; j<min(n,maxcol); j++) {
@@ -74,7 +74,7 @@ void ddm(int m, int n, double *a, size_t lda, char *format) {
 /// @param[in] a  array containing matrix A
 /// @param[in] lda  leading dimension of matrix A
 /// @param[in] format  valid C format specification
-void ddmi(int m, int n, int *a, size_t lda, char *format) {
+void starneig_ddmi(int m, int n, int *a, size_t lda, char *format) {
 
   for (int i=0; i<min(m,maxrow); i++) {
     for (int j=0; j<min(n,maxcol); j++) {
@@ -92,7 +92,7 @@ void ddmi(int m, int n, int *a, size_t lda, char *format) {
 /// @param[in] n  number of columns of matrix
 /// @param[in] a  array containing matrix
 /// @param[in] lda  leading dimension of array a
-void zeros(int m, int n, double *a, size_t lda) {
+void starneig_zeros(int m, int n, double *a, size_t lda) {
 
   for (int j=0; j<n; j++)
     for (int i=0; i<m; i++)
@@ -106,7 +106,7 @@ void zeros(int m, int n, double *a, size_t lda) {
 /// @param[in] n  number of columns of matrix
 /// @param[in] a  array containing matrix
 /// @param[in] lda  leading dimension of array a
-void ones(int m, int n, double *a, size_t lda) {
+void starneig_ones(int m, int n, double *a, size_t lda) {
 
   for (int j=0; j<n; j++)
     for (int i=0; i<m; i++)

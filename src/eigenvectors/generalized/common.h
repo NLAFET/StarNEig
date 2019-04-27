@@ -64,27 +64,27 @@ static double const smin = 1e-300;
 // These wrappers cast the leading dimension as int and then call LAPACK.
 
 // Solver for small shifted linear systems
-void dlaln2(int ltrans, int na, int nw, double smin, double ca,
+void starneig_dlaln2(int ltrans, int na, int nw, double smin, double ca,
 	    double *a, size_t lda, double d1, double d2,
 	    double *b, size_t ldb, double wr, double wi,
 	    double *x, size_t ldx, double *scale, double *xnorm,
 	    int *info);
 
 // Copy matrices
-void dlacpy(char *uplo, int m, int n,
+void starneig_dlacpy(char *uplo, int m, int n,
 	    double *a, size_t lda, double *b, size_t ldb);
 
 // Compute norms
-double dlange(char *norm, int m, int n, double *a, size_t lda, double *work);
+double starneig_dlange(char *norm, int m, int n, double *a, size_t lda, double *work);
 
 // Matrix matrix multiplication
-void dgemm(char *transa, char *transb, int m, int n, int k, double alpha,
+void starneig_dgemm(char *transa, char *transb, int m, int n, int k, double alpha,
 	   double *a, size_t lda,
 	   double* b, size_t ldb, double beta,
 	   double* c, size_t ldc);
 
 // Reduction to upper Hessenberg and triangular form
-void dgghrd(char *compq, char *compz, int m, int ilo, int ilh,
+void starneig_dgghrd(char *compq, char *compz, int m, int ilo, int ilh,
 	    double *a, size_t lda,
 	    double *b, size_t ldb,
 	    double *q, size_t ldq,
@@ -92,7 +92,7 @@ void dgghrd(char *compq, char *compz, int m, int ilo, int ilh,
 	    int *info);
 
 // Reduction to generalised real Schur form using QZ algorithm
-void dhgeqz(char *job, char *compq, char *compz, int n, int ilo, int iho,
+void starneig_dhgeqz(char *job, char *compq, char *compz, int n, int ilo, int iho,
 	    double *h, size_t ldh,
 	    double *t, size_t ldt,
 	    double *alphar,
@@ -105,7 +105,7 @@ void dhgeqz(char *job, char *compq, char *compz, int n, int ilo, int iho,
 	    int *info);
 
 // Generalised eigenvalues of 2-by-2 matrices
-void dlag2(double *a, size_t lda,
+void starneig_dlag2(double *a, size_t lda,
 	   double *b, size_t ldb,
 	   double safemin,
 	   double *scale1,
@@ -115,7 +115,7 @@ void dlag2(double *a, size_t lda,
 	   double *wi);
 
 // Generalized eigenvectors
-void dtgevc(char *side, char *howmany, int *select, int m,
+void starneig_dtgevc(char *side, char *howmany, int *select, int m,
 	    double *s, size_t lds,
 	    double *t, size_t ldt,
 	    double *x, size_t ldx,
@@ -278,6 +278,6 @@ static inline double minf(double x, double y)
 /// @param[in] t0 first timespec (tic)
 /// @param[in] t1 second timespec (toc)
 ///
-double elapsed(struct timespec t0, struct timespec t1);
+double starneig_elapsed(struct timespec t0, struct timespec t1);
 
 #endif

@@ -40,7 +40,7 @@
 #define ROBUST_GEIG_H_
 
 // Generalization of Edward Anderson's column majorants for triangular matrices
-void GeneralisedColumnMajorants(int m, double *a, size_t lda,
+void starneig_GeneralisedColumnMajorants(int m, double *a, size_t lda,
 				int *blocks, int numBlocks, double *ac);
 
 #endif

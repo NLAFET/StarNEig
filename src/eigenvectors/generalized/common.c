@@ -37,7 +37,7 @@
 #include <time.h>
 #include "common.h"
 
-double elapsed(struct timespec t0, struct timespec t1)
+double starneig_elapsed(struct timespec t0, struct timespec t1)
 {
   // Computes the seconds elapsed from t0 to t1
   double dt =  t1.tv_sec - t0.tv_sec + 1.0E-9*(t1.tv_nsec - t0.tv_nsec);
@@ -45,7 +45,7 @@ double elapsed(struct timespec t0, struct timespec t1)
 }
 
 // Solver for small shifted linear systems
-void dlaln2(int ltrans, int na, int nw, double smin, double ca,
+void starneig_dlaln2(int ltrans, int na, int nw, double smin, double ca,
 	    double *a, size_t lda, double d1, double d2,
 	    double *b, size_t ldb, double wr, double wi,
 	    double *x, size_t ldx, double *scale, double *xnorm,
@@ -62,7 +62,7 @@ void dlaln2(int ltrans, int na, int nw, double smin, double ca,
 
 
 // Copy matrices
-void dlacpy(char *uplo, int m, int n,
+void starneig_dlacpy(char *uplo, int m, int n,
 	    double *a, size_t lda, double *b, size_t ldb)
 {
   int ilda=(int)lda;
@@ -73,14 +73,14 @@ void dlacpy(char *uplo, int m, int n,
 }
 
 // Compute norms
-double dlange(char *norm, int m, int n, double *a, size_t lda, double *work)
+double starneig_dlange(char *norm, int m, int n, double *a, size_t lda, double *work)
 {
   int ilda=(int)lda;
   return dlange_(norm, &m, &n, a, &ilda, work);
 }
 
 // Matrix matrix multiplication
-void dgemm(char *transa, char *transb, int m, int n, int k, double alpha,
+void starneig_dgemm(char *transa, char *transb, int m, int n, int k, double alpha,
 	   double *a, size_t lda,
 	   double *b, size_t ldb, double beta,
 	   double *c, size_t ldc)
@@ -97,7 +97,7 @@ void dgemm(char *transa, char *transb, int m, int n, int k, double alpha,
 }
 
 // Reduction to upper Hessenberg and triangular form
-void dgghrd(char *compq, char *compz, int m, int ilo, int ilh,
+void starneig_dgghrd(char *compq, char *compz, int m, int ilo, int ilh,
 	    double *a, size_t lda,
 	    double *b, size_t ldb,
 	    double *q, size_t ldq,
@@ -118,7 +118,7 @@ void dgghrd(char *compq, char *compz, int m, int ilo, int ilh,
 }
 
 // Reduction to generalised real Schur form using QZ algorithm
-void dhgeqz(char *job, char *compq, char *compz, int n, int ilo, int iho,
+void starneig_dhgeqz(char *job, char *compq, char *compz, int n, int ilo, int iho,
 	    double *h, size_t ldh,
 	    double *t, size_t ldt,
 	    double *alphar,
@@ -145,7 +145,7 @@ void dhgeqz(char *job, char *compq, char *compz, int n, int ilo, int iho,
 }
 
 // Generalised eigenvalues of 2-by-2 matrices
-void dlag2(double *a, size_t lda,
+void starneig_dlag2(double *a, size_t lda,
 	   double *b, size_t ldb,
 	   double safemin,
 	   double *scale1,
@@ -161,7 +161,7 @@ void dlag2(double *a, size_t lda,
 }
 
 // Generalized eigenvectors
-void dtgevc(char *side, char *howmany, int *select, int m,
+void starneig_dtgevc(char *side, char *howmany, int *select, int m,
 	    double *s, size_t lds,
 	    double *t, size_t ldt,
 	    double *x, size_t ldx,

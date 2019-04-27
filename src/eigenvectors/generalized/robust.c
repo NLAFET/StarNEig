@@ -51,7 +51,7 @@
 ///
 /// @param[in] k integer
 ///
-void InitializeOmega(int k)
+void starneig_InitializeOmega(int k)
 {
   Omega = pow(2, k); OmegaInv = pow(2, -k);
 }
@@ -65,7 +65,7 @@ void InitializeOmega(int k)
 ///
 /// @return scaling alpha, such that (alpha*b)/t is bounded by Omega
 ///
-double ProtectDivision(double b, double t)
+double starneig_ProtectDivision(double b, double t)
 {
   /* Returns a scaling alpha such that y = (alpha*b)/t can not overflow
 
@@ -108,7 +108,7 @@ double ProtectDivision(double b, double t)
 /// @return scaling factor alpha, such that the calculation of
 /// Y:=(alpha*Y) - T*(alpha*X) cannot exceed Omega
 ///
-double ProtectUpdate(double t, double x, double y)
+double starneig_ProtectUpdate(double t, double x, double y)
 {
   /* Returns a scaling alpha such that y := (alpha*y) - t*(alpha*x)
      can does not exceed Omega

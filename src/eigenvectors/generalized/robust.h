@@ -44,7 +44,7 @@
 #define log2_Omega 1000
 
 // Initialize overflow threshold
-void InitializeOmega(int k);
+void starneig_InitializeOmega(int k);
 
 // --------------------------------------------------------------------------
 // WARNING: Remember to assign values to Omega and OmegaInv.
@@ -53,9 +53,9 @@ double Omega;
 double OmegaInv;
 
 // Protect a scalar division against overflow
-double ProtectDivision(double b, double t);
+double starneig_ProtectDivision(double b, double t);
 
 // Protect a linear update againt overflow
-double ProtectUpdate(double t, double x, double b);
+double starneig_ProtectUpdate(double t, double x, double b);
 
 #endif

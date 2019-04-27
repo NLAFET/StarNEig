@@ -65,33 +65,33 @@
 /// @param[out] ptr4 pointer to induced column tiling
 /// @param[out] ptr5 pointer to practical column tiling
 ///
-void FindTilings(int m, int mb, int nb,
+void starneig_FindTilings(int m, int mb, int nb,
 		 double *s, size_t lds, int *select,
 		 int **ptr1, int **ptr2,
 		 int **ptr3, int **ptr4, int **ptr5, int *num1, int *num2)
 {
 
   // MEM's left looking array
-  int *l=(int *)malloc(m*sizeof(int)); FindLeft(m, s, lds, l);
+  int *l=(int *)malloc(m*sizeof(int)); starneig_FindLeft(m, s, lds, l);
 
   // Global index of all selected eigenvalues
-  int n=CountSelected(m, l, select);
+  int n=starneig_CountSelected(m, l, select);
   int *map=(int *)malloc(n*sizeof(int));
-  n=FindSelected(m, l, select, map);
+  n=starneig_FindSelected(m, l, select, map);
 
   // Practical tiling of S, T
   int M=divceil(m,mb);
   int *ap=(int *)malloc((M+1)*sizeof(int));
-  int numRows=PracticalRowTiling(m, mb, l, ap);
+  int numRows=starneig_PracticalRowTiling(m, mb, l, ap);
 
   // Induced column tiling of X, Y
   int *bp=(int *)malloc((numRows+1)*sizeof(int));
-  InducedColumnTiling(m, select, l, numRows, ap, bp);
+  starneig_InducedColumnTiling(m, select, l, numRows, ap, bp);
 
   // Practical column tiling of X, Y
   int N=divceil(n,nb);
   int *cp=(int *)malloc((N+1)*sizeof(int *));
-  int numCols=PracticalColumnTiling(n, nb, map, l, cp);
+  int numCols=starneig_PracticalColumnTiling(n, nb, map, l, cp);
 
   // Set return variables
   *ptr1=l; *ptr2=map;
@@ -111,7 +111,7 @@ void FindTilings(int m, int mb, int nb,
 /// @param[in] ldx leading dimension of the array x
 /// @param[out] xnorm array of infinity norms of the mini-block columns of X
 ///
-void MiniBlockColumnNorms(int m, int n, double *alphai,
+void starneig_MiniBlockColumnNorms(int m, int n, double *alphai,
 			  double *x, size_t ldx, double *xnorm)
 {
 
@@ -125,12 +125,12 @@ void MiniBlockColumnNorms(int m, int n, double *alphai,
   while (j<n) {
     if (alphai[j]==0) {
       // Real shift, i.e., single column processing
-      xnorm[j]=dlange("I", m, int_one, &_x(0,j), ldx, work);
+      xnorm[j]=starneig_dlange("I", m, int_one, &_x(0,j), ldx, work);
       // Move forward a single column
       j++;
     } else {
       // Complex shift, i.e., compute infinity norm of two adjacent columns
-      xnorm[j]=dlange("I", m, int_two, &_x(0,j), ldx, work);
+      xnorm[j]=starneig_dlange("I", m, int_two, &_x(0,j), ldx, work);
       // Dublicate the result
       xnorm[j+1]=xnorm[j];
       // Move forward two columns,
@@ -163,7 +163,7 @@ void MiniBlockColumnNorms(int m, int n, double *alphai,
 /// @param[out]  alphai array of length m
 /// @param[out]  beta array of length m
 ///
-int GeneralisedEigenvalues(int m,
+int starneig_GeneralisedEigenvalues(int m,
 			   double *s, size_t lds,
 			   double *t, size_t ldt,
 			   int *select,
@@ -196,7 +196,7 @@ int GeneralisedEigenvalues(int m,
 	if ((select[j]==1) || (select[j+1]==1)) {
 	  // Find eigenvalues with DLAG2
 	  sjj=&_s(j,j); tjj=&_t(j,j);
-	  dlag2(sjj, lds, tjj, ldt,
+	  starneig_dlag2(sjj, lds, tjj, ldt,
 		smin, &scale1, &scale2, &wr1, &wr2, &wi);
 
 	  // Copy values into output arrays
@@ -255,7 +255,7 @@ int GeneralisedEigenvalues(int m,
 ///         On exit, overwritten by the updated value of Y.
 /// @param[in] ldy leading dimension of array y.
 ///
-int MultiShiftUpdate(int m, int n, int k,
+int starneig_MultiShiftUpdate(int m, int n, int k,
 		     double *s, size_t lds,
 		     double *t, size_t  ldt,
 		     double *alphar, double *alphai, double *beta,
@@ -311,7 +311,7 @@ int MultiShiftUpdate(int m, int n, int k,
   size_t ldz=max(k,1); double *z=(double *)malloc(ldz*n*sizeof(double));
 
   // Copy X into Z
-  dlacpy("A", k, n, x, ldx, z, ldz);
+  starneig_dlacpy("A", k, n, x, ldx, z, ldz);
 
   // Start at the first column of Z
   int j=0;
@@ -323,13 +323,13 @@ int MultiShiftUpdate(int m, int n, int k,
   }
 
   // Compute Y=Y-S*Z
-  dgemm("N", "N", m, n, k, double_minus_one,
+  starneig_dgemm("N", "N", m, n, k, double_minus_one,
 	s, lds,
 	z, ldz, double_one,
 	y, ldy);
 
   // Copy X into Z
-  dlacpy("A", k, n, x, ldx, z, ldz);
+  starneig_dlacpy("A", k, n, x, ldx, z, ldz);
 
   // Compute Z=Z*B:
   // Start at first column of Z
@@ -341,7 +341,7 @@ int MultiShiftUpdate(int m, int n, int k,
       b[0]= alphar[j]; b[2]=alphai[j];
       b[1]=-alphai[j]; b[3]=alphar[j];
       // Update columns j and j+1 using the complex shift
-      dgemm("N", "N", k, ln, ln,
+      starneig_dgemm("N", "N", k, ln, ln,
 	    double_one, &_x(0,j), ldx, b, ldb,
 	    double_zero, &_z(0,j), ldz);
       // Advance +2 columns
@@ -355,7 +355,7 @@ int MultiShiftUpdate(int m, int n, int k,
   }
 
   // Compute Y=Y+T*Z
-  dgemm("N", "N", m, n, k,
+  starneig_dgemm("N", "N", m, n, k,
 	 double_one,
 	t, ldt,
 	z, ldz, double_one,
@@ -369,7 +369,7 @@ int MultiShiftUpdate(int m, int n, int k,
 }
 
 
-double RelativeResidual(int m, int n,
+double starneig_RelativeResidual(int m, int n,
 			double *s, size_t lds,
 			double *t, size_t ldt,
 			double *alphar, double *alphai, double *beta,
@@ -381,36 +381,36 @@ double RelativeResidual(int m, int n,
   double *work=(double *)malloc(m*sizeof(double));
 
   // Compute infinity norms of matrices S, T
-  double snorm=dlange("I", m, m, s, lds, work);
-  double tnorm=dlange("I", m, m, t, ldt, work);
+  double snorm=starneig_dlange("I", m, m, s, lds, work);
+  double tnorm=starneig_dlange("I", m, m, t, ldt, work);
 
   // Allocate space for residual R
   size_t ldr=m; double* r=(double *)malloc(ldr*n*sizeof(double));
 
   // Copy F into R
-  dlacpy("A", m, n, f, ldf, r, ldr);
+  starneig_dlacpy("A", m, n, f, ldf, r, ldr);
 
   // Calculate residual
-  MultiShiftUpdate(m, n, m, s, lds, t, ldt, alphar, alphai, beta,
+  starneig_MultiShiftUpdate(m, n, m, s, lds, t, ldt, alphar, alphai, beta,
 		   x, ldx, r, ldr);
 
   // Allocate space for mini-block column norms
   double *rnorm=(double *)malloc(n*sizeof(double));
 
   // Compute mini-block norms
-  MiniBlockColumnNorms(m, n, alphai, r, ldr, rnorm);
+  starneig_MiniBlockColumnNorms(m, n, alphai, r, ldr, rnorm);
 
   // Allocate space for mini-block column norms of X
   double *xnorm=(double *)malloc(n*sizeof(double));
 
   // Compute mini-block norms
-  MiniBlockColumnNorms(m, n, alphai, x, ldx, xnorm);
+  starneig_MiniBlockColumnNorms(m, n, alphai, x, ldx, xnorm);
 
   // Allocate space for mini-block column norms of F
   double *fnorm=(double *)malloc(n*sizeof(double));
 
   // Compute mini-block norms
-  MiniBlockColumnNorms(m, n, alphai, f, ldf, fnorm);
+  starneig_MiniBlockColumnNorms(m, n, alphai, f, ldf, fnorm);
 
   // Loop over all columns calculating the relative residual
   double rc=0;

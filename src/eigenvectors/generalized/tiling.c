@@ -62,7 +62,7 @@
 /// @param[in,out] l - the array
 ///
 /// @return the number of distinct entries in the array
-int RemoveDuplicates(int m, int *l) {
+int starneig_RemoveDuplicates(int m, int *l) {
 
   int i=0; int j=1;
   while (j<m) {
@@ -93,7 +93,7 @@ int RemoveDuplicates(int m, int *l) {
 /// @param[in] a  array containing the matrix A
 /// @param[in] lda  the leading dimension of the array a
 /// @param[out] l  array of length at least m
-void FindLeft(int m, double *a, size_t lda, int *l) {
+void starneig_FindLeft(int m, double *a, size_t lda, int *l) {
 
   // By definition, the entry to the left of the matrix is zero
   l[0]=0;
@@ -152,7 +152,7 @@ void FindLeft(int m, double *a, size_t lda, int *l) {
 ///
 /// @return the number M of diagonal tiles necessary
 ///
-int PracticalRowTiling(int m, int mb, int *l, int *ap) {
+int starneig_PracticalRowTiling(int m, int mb, int *l, int *ap) {
 
   // Maximum number of tiles
   int M=divceil(m,mb);
@@ -179,7 +179,7 @@ int PracticalRowTiling(int m, int mb, int *l, int *ap) {
   */
 
   // Remove any tiles which have collapsed
-  int numTiles=RemoveDuplicates(M+1,ap);
+  int numTiles=starneig_RemoveDuplicates(M+1,ap);
 
   return numTiles;
 }
@@ -232,7 +232,7 @@ int PracticalRowTiling(int m, int mb, int *l, int *ap) {
 ///         On exit, bp[j] is the starting index of the jth partition.
 ///
 /// @return the number of selected eigenvalues
-int InducedColumnTiling(int m, int *select, int *l,
+int starneig_InducedColumnTiling(int m, int *select, int *l,
 			int M, int *ap, int *bp) {
 
   // Used to accumulate the width of the current tile column.
@@ -329,7 +329,7 @@ int InducedColumnTiling(int m, int *select, int *l,
 ///         On exit, cp[j] is the starting index of the jth partition.
 ///
 /// @return the number of tile columns, N <= divceil(n,nb)+1
-int PracticalColumnTiling(int n, int nb, int *map, int *l, int *cp) {
+int starneig_PracticalColumnTiling(int n, int nb, int *map, int *l, int *cp) {
 
   // Compute maximum number of columns needed
   int N=divceil(n,nb);
@@ -357,7 +357,7 @@ int PracticalColumnTiling(int n, int nb, int *map, int *l, int *cp) {
   */
 
   // Remove any tile columns which have collapsed
-  N=RemoveDuplicates(N+1,cp);
+  N=starneig_RemoveDuplicates(N+1,cp);
 
   // Return the number of tile columns necessary
   return N;
@@ -373,7 +373,7 @@ int PracticalColumnTiling(int n, int nb, int *map, int *l, int *cp) {
 ///
 /// @return the number of selected eigenvalues
 ///
-int CountSelected(int m, int *l, int *select)
+int starneig_CountSelected(int m, int *l, int *select)
 {
 
   // Index into selection array and left-looking array.
@@ -423,7 +423,7 @@ int CountSelected(int m, int *l, int *select)
 ///
 /// @return the number n of selected eigenvalues
 ///
-int FindSelected(int m, int *l, int *select, int *map)
+int starneig_FindSelected(int m, int *l, int *select, int *map)
 {
   // Index into selection array and left-looking array.
   int j=0;

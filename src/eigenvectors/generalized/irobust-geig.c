@@ -73,7 +73,7 @@
 /// @param[in] lds leading dimension of array scal
 /// @param[in] idx the scaling factors of tile A are stored in SCAL(:,idx)
 ///
-void IntConsistentScaling(int m, int n, int k, double *a, size_t lda,
+void starneig_IntConsistentScaling(int m, int n, int k, double *a, size_t lda,
 			  int *scal, size_t lds, int idx) {
 
   // Loop over the columns of tile A, matrix SCAL
@@ -127,7 +127,7 @@ void IntConsistentScaling(int m, int n, int k, double *a, size_t lda,
 ///
 /// @param[in,out] work workspace
 ///
-void irobust_solve_task(int m, int n,
+void starneig_irobust_solve_task(int m, int n,
 			double *s, size_t lds, double *cs,
 			double *t, size_t ldt, double *ct,
 			int *blocks, int numBlocks,
@@ -169,12 +169,12 @@ void irobust_solve_task(int m, int n,
     int k=p1-p0;
 
     // Initialize k eigenvectors in columns idx:idx+k-1
-    dtgevc("R", "S", select, m, s, lds, t, ldt,
+    starneig_dtgevc("R", "S", select, m, s, lds, t, ldt,
 	   &_y(0,idx), ldy, &_y(0,idx), ldy,
 	    n1, &l, work, &info);
 
     // Apply scalings as needed
-    IntMiniBlockColumnNormsAndScalings(m, k, &alphai[idx],
+    starneig_IntMiniBlockColumnNormsAndScalings(m, k, &alphai[idx],
 				       &_y(0,idx), ldy,
 				       &yscal[idx], &ynorm[idx]);
   }
@@ -192,7 +192,7 @@ void irobust_solve_task(int m, int n,
     // Determine start of the multi-shift region relative to tile
     int idx=q0-cp0;
     // Do the multi-shift linear solve
-    IntRobustMultiShiftSolve(m, k,
+    starneig_IntRobustMultiShiftSolve(m, k,
 			     s, lds, cs,
 			     t, ldt, ct,
 			     blocks, numBlocks,
@@ -256,7 +256,7 @@ void irobust_solve_task(int m, int n,
 /// @param[in,out] yscal array of scaling factors for columns of Y
 /// @param[in,out] ynorm array of mini-block column nors for columns of Y
 ///
-void irobust_update_task(int m, int n, int k,
+void starneig_irobust_update_task(int m, int n, int k,
 			 double *s, size_t lds, double snorm,
 			 double *t, size_t ldt, double tnorm,
 			 double *alphar, double *alphai, double *beta,
@@ -275,7 +275,7 @@ void irobust_update_task(int m, int n, int k,
     // Determine start of update region relative to start of tile
     int idx=p0-cp0;
     // Do the multi-shift update
-    IntRobustMultiShiftUpdate(m, num, k,
+    starneig_IntRobustMultiShiftUpdate(m, num, k,
 			      s, lds, snorm,
 			      t, ldt, tnorm,
 			      &alphar[idx], &alphai[idx], &beta[idx],
@@ -304,13 +304,13 @@ void irobust_update_task(int m, int n, int k,
 ///        On exit, xnorm[j] is the infinity norm of the mini-block column
 ///        which contains the jth column.
 ///
-void IntMiniBlockColumnNormsAndScalings(int m, int n, double *alphai,
+void starneig_IntMiniBlockColumnNormsAndScalings(int m, int n, double *alphai,
 					double *x, size_t ldx,
 					int *xscal, double *xnorm)
 
 {
   // Compute mini-block column norms of X on entry
-  MiniBlockColumnNorms(m, n, alphai, x, ldx, xnorm);
+  starneig_MiniBlockColumnNorms(m, n, alphai, x, ldx, xnorm);
 
   // Loop over the columns of X scaling as needed.
   // Recall: norms are replicated if two columns form a mini-block column.
@@ -355,7 +355,7 @@ void IntMiniBlockColumnNormsAndScalings(int m, int n, double *alphai,
 ///         On exit, norm[j] bounds infinity norm of jth column of solution.
 /// @param[out] work scratch buffer of length at least max(4,m).
 ///         On exit, the original content has been overwritten
-int IntRobustSingleShiftSolve(int m,
+int starneig_IntRobustSingleShiftSolve(int m,
 			      double *s, size_t lds, double *cs,
 			      double *t, size_t ldt, double *ct,
 			      int *blocks, int numBlocks,
@@ -441,7 +441,7 @@ int IntRobustSingleShiftSolve(int m,
     }
 
     // Solve for F(k)
-    dlaln2(int_zero, dim, ln, smin, beta,
+    starneig_dlaln2(int_zero, dim, ln, smin, beta,
 	   &_s(col,col), lds, t11, t22,
 	   &f[col], ldf,
 	   alphar, alphai,
@@ -483,7 +483,7 @@ int IntRobustSingleShiftSolve(int m,
     }
 
     // Copy X into F. Note: X has already been scaled above
-    dlacpy("A", dim, ln, x, ldx, &f[col], ldf);
+    starneig_dlacpy("A", dim, ln, x, ldx, &f[col], ldf);
 
     if (k>0) {
       // **************************************************************
@@ -494,10 +494,10 @@ int IntRobustSingleShiftSolve(int m,
       int lm=blocks[k];
 
       // Determine infinity norm of F(0:k-1)
-      fnorm=dlange("I", lm, ln, f, ldf, work);
+      fnorm=starneig_dlange("I", lm, ln, f, ldf, work);
 
       // Protect Y=beta*X against overflow
-      int p1=IntProtectUpdate(beta, xnorm, 0);
+      int p1=starneig_IntProtectUpdate(beta, xnorm, 0);
       if (p1<0) {
 	// Scale X and xnorm by gamma1=2^p1
 	gamma1=scalbn(1,p1);
@@ -521,7 +521,7 @@ int IntRobustSingleShiftSolve(int m,
       ynorm=xnorm*beta;
 
       // Protect update F(0:k-1) = F(0:k-1) - S(0:k-1,k)*Y
-      int p2=IntProtectUpdate(cs[k],ynorm,fnorm);
+      int p2=starneig_IntProtectUpdate(cs[k],ynorm,fnorm);
       if (p2<0) {
 	// Scale Y by gamma2 = 2^p2
 	gamma2=scalbn(1,p2);
@@ -543,15 +543,15 @@ int IntRobustSingleShiftSolve(int m,
 	xnorm=xnorm*gamma2;
       }
       // Do linear update F(1:k-1) = F(1:k-1) - S(1:k-1,k)*Y without fear
-      dgemm("N", "N", lm, ln, dim,
+      starneig_dgemm("N", "N", lm, ln, dim,
 	    double_minus_one, &_s(0,col), lds,
 	     y, ldy, double_one, f, ldf);
 
       // Recompute fnorm
-      fnorm=dlange("I", lm, ln, f, ldf, work);
+      fnorm=starneig_dlange("I", lm, ln, f, ldf, work);
 
       // Protect Z=X*B
-      int p3=IntProtectUpdate(xnorm, bnorm, 0);
+      int p3=starneig_IntProtectUpdate(xnorm, bnorm, 0);
       if (p3<0) {
 	// Scale X, xnorm by gamma3 = 2^p3
 	gamma3=scalbn(1,p3);
@@ -569,13 +569,13 @@ int IntRobustSingleShiftSolve(int m,
       }
 
       // Compute Z=X*B without fear of overflow
-      dgemm("N", "N", dim, ln, ln,
+      starneig_dgemm("N", "N", dim, ln, ln,
 	     double_one, x, ldx, b, ldb, double_zero, z, ldz);
       // Compute the norm of Z. The scaling of Z is identical to X
-      znorm=dlange("I", dim, ln, z, ldz, work);
+      znorm=starneig_dlange("I", dim, ln, z, ldz, work);
 
       // Protect F(0:k-1) = F(0:k-1) + T(0:k-1,k)*Z
-      int p4=IntProtectUpdate(ct[k], znorm, fnorm);
+      int p4=starneig_IntProtectUpdate(ct[k], znorm, fnorm);
       if (p4<0) {
 	// Scale Z by gamma4 = 2^p4
 	gamma4=scalbn(1,p4);
@@ -589,13 +589,13 @@ int IntRobustSingleShiftSolve(int m,
 	fscal=fscal+p4;
       }
       // Do update F(0:k-1) = F(0:k-1) + T(0:k-1,k)*Z without fear of overflow
-      dgemm("N", "N", lm, ln, dim, double_one,
+      starneig_dgemm("N", "N", lm, ln, dim, double_one,
 	    &_t(0,col), ldt, z, ldz, double_one, f, ldf);
 
     }
   }
   // Compute the norm of F.
-  fnorm=dlange("I", m, ln, f, ldf, work);
+  fnorm=starneig_dlange("I", m, ln, f, ldf, work);
 
   // Set return variables, dublicating results iff the shift was complex.
   for (int j=0; j<ln; j++) {
@@ -645,7 +645,7 @@ int IntRobustSingleShiftSolve(int m,
 /// @param[out] work scratch buffer of length at least max(4,m).
 ///         On exit, overwritten by intermediate calculations.
 ///
-int IntRobustMultiShiftSolve(int m, int n,
+int starneig_IntRobustMultiShiftSolve(int m, int n,
 			     double *s, size_t lds, double *cs,
 			     double *t, size_t ldt, double *ct,
 			     int *blocks, int numBlocks,
@@ -662,7 +662,7 @@ int IntRobustMultiShiftSolve(int m, int n,
   int j=0;
   while (j<n) {
     // Solve for 1 or 2 columns of the RHS
-    IntRobustSingleShiftSolve(m,
+    starneig_IntRobustSingleShiftSolve(m,
 			      s, lds, cs,
 			      t, ldt, ct,
 			      blocks, numBlocks,
@@ -722,7 +722,7 @@ int IntRobustMultiShiftSolve(int m, int n,
 ///         On exit, yscal[j] is the infinity norm of the mini-block column
 ///         which contains the jth column.
 ///
-int IntRobustMultiShiftUpdate(int m, int n, int k,
+int starneig_IntRobustMultiShiftUpdate(int m, int n, int k,
 			      double *s, size_t lds, double snorm,
 			      double *t, size_t ldt, double tnorm,
 			      double *alphar, double *alphai, double *beta,
@@ -751,17 +751,17 @@ int IntRobustMultiShiftUpdate(int m, int n, int k,
   double *znorm=(double *)malloc(n*sizeof(double));
 
   // Copy X into Z
-  dlacpy("A", k, n, x, ldx, z, ldz);
+  starneig_dlacpy("A", k, n, x, ldx, z, ldz);
   for (int j=0; j<n; j++) {
     zscal[j]=xscal[j]; znorm[j]=xnorm[j];
   }
 
   // Scale jth column of Z by beta[j]; beta[j+1] = beta[j] for c.c. shifts
   for (int j=0; j<n; j++)
-    IntRobustScaling(beta[j], k, 1, &_z(0,j), ldz, &zscal[j], &znorm[j]);
+    starneig_IntRobustScaling(beta[j], k, 1, &_z(0,j), ldz, &zscal[j], &znorm[j]);
 
   // Compute Y:=Y-S*Z robustly
-  IntRobustUpdate(m, n, k,
+  starneig_IntRobustUpdate(m, n, k,
 		  double_minus_one,
 		  s, lds, snorm,
 		  z, ldz, zscal, znorm,
@@ -769,14 +769,14 @@ int IntRobustMultiShiftUpdate(int m, int n, int k,
 		  y, ldy, yscal, ynorm);
 
   // Compute norms of mini-block columns of Y
-  MiniBlockColumnNorms(m, n, alphai, y, ldy, ynorm);
+  starneig_MiniBlockColumnNorms(m, n, alphai, y, ldy, ynorm);
 
   // ************************************************************************
   //  This is the midpoint of the computation
   // ************************************************************************
 
   // Obtain a fresh copy of X. Z:=X
-  dlacpy("A", k, n, x, ldx, z, ldz);
+  starneig_dlacpy("A", k, n, x, ldx, z, ldz);
   for (int j=0; j<n; j++) {
     zscal[j]=xscal[j]; znorm[j]=xnorm[j];
   }
@@ -786,7 +786,7 @@ int IntRobustMultiShiftUpdate(int m, int n, int k,
     bnorm=fabs(alphar[j])+fabs(alphai[j]);
 
     // Determine scaling needed to survive multiplication by B
-    int p=IntProtectUpdate(znorm[j],bnorm,0);
+    int p=starneig_IntProtectUpdate(znorm[j],bnorm,0);
     double gamma=scalbn(1,p);
 
     // Apply scaling
@@ -812,27 +812,27 @@ int IntRobustMultiShiftUpdate(int m, int n, int k,
       ln=2;
     }
     // Update ln columns
-    dgemm("N", "N", k, ln, ln,
+    starneig_dgemm("N", "N", k, ln, ln,
 	  double_one, &_z(0,col), ldz, b, ldb,
 	  double_zero, &_r(0,col), ldr);
     // Advance ln columns; ln is either 1 (real shift) or 2 (complex shift)
     col=col+ln;
   }
   // Copy R into Z and continue
-  dlacpy("A", k, n, r, ldr, z, ldz);
+  starneig_dlacpy("A", k, n, r, ldr, z, ldz);
 
   // Compute norms of mini-block columns of Z
-  MiniBlockColumnNorms(k, n, alphai, z, ldz, znorm);
+  starneig_MiniBlockColumnNorms(k, n, alphai, z, ldz, znorm);
 
   // Compute Y = Y + T*Z robustly
-  IntRobustUpdate(m, n, k, double_one,
+  starneig_IntRobustUpdate(m, n, k, double_one,
 		  t, ldt, tnorm,
 		  z, ldz, zscal, znorm,
 		  double_one,
 		  y, ldy, yscal, ynorm);
 
   // Compute norms of mini-block columns of Y
-  MiniBlockColumnNorms(m, n, alphai, y, ldy, ynorm);
+  starneig_MiniBlockColumnNorms(m, n, alphai, y, ldy, ynorm);
 
   // Free the workspace
   free(z); free(zscal); free(znorm); free(r);

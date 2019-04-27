@@ -40,9 +40,9 @@
 #define BLOCKING_GUARD_H_
 
 // Count the number of mini-blocks in a quasi-upper triangular matrix
-int CountBlocks(int m, double *a, size_t lda);
+int starneig_CountBlocks(int m, double *a, size_t lda);
 
 // Find mini-blocks in a quasi-upper triangular matrix
-int FindBlocks(int m, double *a, size_t lda, int *bp, int numBlocks);
+int starneig_FindBlocks(int m, double *a, size_t lda, int *bp, int numBlocks);
 
 #endif

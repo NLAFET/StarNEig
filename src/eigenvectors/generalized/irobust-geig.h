@@ -42,17 +42,17 @@
 #include <stddef.h>
 
 // Obtain a consist scaling of a tile of matrix
-void IntConsistentScaling(int m, int n, int k,
+void starneig_IntConsistentScaling(int m, int n, int k,
 			  double *a, size_t lda,
 			  int *scal, size_t lds, int idx);
 
 // Scale matrix to ensure mini-block columns are less than Omega.
-void IntMiniBlockColumnNormsAndScalings(int m, int n, double *alphai,
+void starneig_IntMiniBlockColumnNormsAndScalings(int m, int n, double *alphai,
 					double *x, size_t ldx,
 					int *xscal, double *xnorm);
 
 // Robust solution of a specialize linear system with a "single" right-hand side
-int IntRobustSingleShiftSolve(int m,
+int starneig_IntRobustSingleShiftSolve(int m,
 			      double *s, size_t lds, double *cs,
 			      double *t, size_t ldt, double *ct,
 			      int *blocks, int numBlocks,
@@ -61,7 +61,7 @@ int IntRobustSingleShiftSolve(int m,
 			      double *work);
 
 // Wrapper for RobustSingleShiftSolve
-int IntRobustMultiShiftSolve(int m, int n,
+int starneig_IntRobustMultiShiftSolve(int m, int n,
 			     double *s, size_t lds, double *cs,
 			     double *t, size_t ldt, double *ct,
 			     int *blocks, int numBlocks,
@@ -69,7 +69,7 @@ int IntRobustMultiShiftSolve(int m, int n,
 			     double *f, size_t ldf, int *scal, double *norm);
 
 // Robust linear update Y:=Y-(S*X*D-T*X*B)
-int IntRobustMultiShiftUpdate(int m, int n, int k,
+int starneig_IntRobustMultiShiftUpdate(int m, int n, int k,
 			      double *s, size_t lds, double snorm,
 			      double *t, size_t ldt, double tnorm,
 			      double *alphar, double *alphai, double *beta,
@@ -78,7 +78,7 @@ int IntRobustMultiShiftUpdate(int m, int n, int k,
 
 
 // Needed for StarPU
-void irobust_solve_task(int m, int n,
+void starneig_irobust_solve_task(int m, int n,
 			double *s, size_t lds, double *cs,
 			double *t, size_t ldt, double *ct,
 			int *blocks, int numBlocks,
@@ -89,7 +89,7 @@ void irobust_solve_task(int m, int n,
 
 
 // Needed for StarPU
-void irobust_update_task(int m, int n, int k,
+void starneig_irobust_update_task(int m, int n, int k,
 			 double *s, size_t lds, double snorm,
 			 double *t, size_t ldt, double tnorm,
 			 double *alphar, double *alphai, double *beta,
