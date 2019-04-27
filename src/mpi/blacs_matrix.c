@@ -43,6 +43,7 @@
 #include <starneig/blacs_helpers.h>
 #include "distr_matrix_internal.h"
 #include "../common/node_internal.h"
+#include <math.h>
 
 __attribute__ ((visibility ("default")))
 starneig_blacs_context_t starneig_distr_to_blacs_context(starneig_distr_t distr)
