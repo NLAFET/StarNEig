@@ -144,7 +144,7 @@ starneig_vector_descr_t starneig_extract_subdiagonals(
 
     starneig_insert_scan_diagonal(
         0, STARNEIG_MATRIX_M(descr), 0, 0, 0, 1, 0, STARPU_MAX_PRIO,
-        extract_subdiagonals_func, NULL, descr, NULL, mpi, ret, 0);
+        extract_subdiagonals_func, NULL, descr, NULL, mpi, ret, NULL);
 
     return ret;
 }

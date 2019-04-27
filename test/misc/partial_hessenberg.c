@@ -70,12 +70,12 @@ void partial_hessenberg_print_args(
     printf(" --n %d", read_int("--n", argc, argv, NULL, -1));
     printf(" --begin %d", read_int("--begin", argc, argv, NULL, -1));
     printf(" --end %d", read_int("--end", argc, argv, NULL, -1));
-    print_multiarg("--cores", argc, argv, "default", 0);
-    print_multiarg("--gpus", argc, argv, "default", 0);
-    print_multiarg("--tile-size", argc, argv, "default", 0);
-    print_multiarg("--panel-width", argc, argv, "default", 0);
+    print_multiarg("--cores", argc, argv, "default", NULL);
+    print_multiarg("--gpus", argc, argv, "default", NULL);
+    print_multiarg("--tile-size", argc, argv, "default", NULL);
+    print_multiarg("--panel-width", argc, argv, "default", NULL);
     print_multiarg(
-        "--parallel-worker-size", argc, argv, "default", 0);
+        "--parallel-worker-size", argc, argv, "default", NULL);
 }
 
 int partial_hessenberg_check_args(
@@ -86,15 +86,15 @@ int partial_hessenberg_check_args(
     int end = read_int("--end", argc, argv, argr, -1);
 
     struct multiarg_t arg_cores = read_multiarg(
-        "--cores", argc, argv, argr, "default", 0);
+        "--cores", argc, argv, argr, "default", NULL);
     struct multiarg_t arg_gpus = read_multiarg(
-        "--gpus", argc, argv, argr, "default", 0);
+        "--gpus", argc, argv, argr, "default", NULL);
     struct multiarg_t tile_size = read_multiarg(
-        "--tile-size", argc, argv, argr, "default", 0);
+        "--tile-size", argc, argv, argr, "default", NULL);
     struct multiarg_t panel_width = read_multiarg(
-        "--panel-width", argc, argv, argr, "default", 0);
+        "--panel-width", argc, argv, argr, "default", NULL);
     struct multiarg_t parallel_worker_size = read_multiarg(
-        "--parallel-worker-size", argc, argv, argr, "default", 0);
+        "--parallel-worker-size", argc, argv, argr, "default", NULL);
 
     if (n < 1 || begin < 0 || end < begin || n < end)
         return 1;
@@ -134,15 +134,15 @@ int partial_hessenberg_run(
     int begin = read_int("--begin", argc, argv, NULL, -1);
     int end = read_int("--end", argc, argv, NULL, -1);
     struct multiarg_t arg_cores = read_multiarg(
-        "--cores", argc, argv, NULL, "default", 0);
+        "--cores", argc, argv, NULL, "default", NULL);
     struct multiarg_t arg_gpus = read_multiarg(
-        "--gpus", argc, argv, NULL, "default", 0);
+        "--gpus", argc, argv, NULL, "default", NULL);
     struct multiarg_t tile_size = read_multiarg(
-        "--tile-size", argc, argv, NULL, "default", 0);
+        "--tile-size", argc, argv, NULL, "default", NULL);
     struct multiarg_t panel_width = read_multiarg(
-        "--panel-width", argc, argv, NULL, "default", 0);
+        "--panel-width", argc, argv, NULL, "default", NULL);
     struct multiarg_t parallel_worker_size = read_multiarg(
-        "--parallel-worker-size", argc, argv, NULL, "default", 0);
+        "--parallel-worker-size", argc, argv, NULL, "default", NULL);
 
     int cores = -1;
     if (arg_cores.type == integer)

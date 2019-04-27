@@ -160,9 +160,9 @@ static int bulk_select_check_args(
     int argc, char * const *argv, int *argr)
 {
     struct multiarg_t begin = read_multiarg(
-        "--bulk-select-begin", argc, argv, argr, "middle", 0);
+        "--bulk-select-begin", argc, argv, argr, "middle", NULL);
     struct multiarg_t end = read_multiarg(
-        "--bulk-select-end", argc, argv, argr, "bottom", 0);
+        "--bulk-select-end", argc, argv, argr, "bottom", NULL);
 
     if (begin.type == invalid ||
     (begin.type == integer && begin.int_value < 0)) {
@@ -181,8 +181,8 @@ static int bulk_select_check_args(
 
 static void bulk_select_print_args(int argc, char * const *argv)
 {
-    print_multiarg("--bulk-select-begin", argc, argv, "middle", 0);
-    print_multiarg("--bulk-select-end", argc, argv, "bottom", 0);
+    print_multiarg("--bulk-select-begin", argc, argv, "middle", NULL);
+    print_multiarg("--bulk-select-end", argc, argv, "bottom", NULL);
 }
 
 static int bulk_select_init(
@@ -193,9 +193,9 @@ static int bulk_select_init(
     int begin = 0, end = n;
 
     struct multiarg_t begin_arg = read_multiarg(
-        "--bulk-select-begin", argc, argv, NULL, "middle", 0);
+        "--bulk-select-begin", argc, argv, NULL, "middle", NULL);
     struct multiarg_t end_arg = read_multiarg(
-        "--bulk-select-end", argc, argv, NULL, "bottom", 0);
+        "--bulk-select-end", argc, argv, NULL, "bottom", NULL);
 
     if (begin_arg.type == str && strcmp("middle", begin_arg.str_value) == 0)
         begin = n/2;

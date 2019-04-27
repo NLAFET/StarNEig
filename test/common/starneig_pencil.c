@@ -718,8 +718,8 @@ static void local_starneig_print_args(int argc, char * const *argv)
         "--data-distr", argc, argv, NULL);
     printf(" --data-distr %s", data_distr->name);
 
-    print_multiarg("--section-height", argc, argv, "default", 0);
-    print_multiarg("--section-width", argc, argv, "default", 0);
+    print_multiarg("--section-height", argc, argv, "default", NULL);
+    print_multiarg("--section-width", argc, argv, "default", NULL);
 }
 
 static int local_starneig_check_args(int argc, char * const *argv, int *argr)
@@ -730,7 +730,7 @@ static int local_starneig_check_args(int argc, char * const *argv, int *argr)
     }
 
     struct multiarg_t section_height = read_multiarg(
-        "--section-height", argc, argv, argr, "default", 0);
+        "--section-height", argc, argv, argr, "default", NULL);
 
     if (section_height.type == invalid || (section_height.type == integer &&
     section_height.int_value < 8)) {
@@ -739,7 +739,7 @@ static int local_starneig_check_args(int argc, char * const *argv, int *argr)
     }
 
     struct multiarg_t section_width = read_multiarg(
-        "--section-width", argc, argv, argr, "default", 0);
+        "--section-width", argc, argv, argr, "default", NULL);
 
     if (section_width.type == invalid || (section_width.type == integer &&
     section_width.int_value < 8)) {
@@ -768,10 +768,10 @@ static int local_starneig_convert(
 
     if (my_rank == 0) {
         struct multiarg_t section_height = read_multiarg(
-            "--section-height", argc, argv, NULL, "default", 0);
+            "--section-height", argc, argv, NULL, "default", NULL);
 
         struct multiarg_t section_width = read_multiarg(
-            "--section-width", argc, argv, NULL, "default", 0);
+            "--section-width", argc, argv, NULL, "default", NULL);
 
         int sm;
         if (section_height.type == str)
@@ -852,14 +852,14 @@ static void local_blacs_print_usage(int argc, char * const *argv)
 
 static void local_blacs_print_args(int argc, char * const *argv)
 {
-    print_multiarg("--section-height", argc, argv, "default", 0);
-    print_multiarg("--section-width", argc, argv, "default", 0);
+    print_multiarg("--section-height", argc, argv, "default", NULL);
+    print_multiarg("--section-width", argc, argv, "default", NULL);
 }
 
 static int local_blacs_check_args(int argc, char * const *argv, int *argr)
 {
     struct multiarg_t section_height = read_multiarg(
-        "--section-height", argc, argv, argr, "default", 0);
+        "--section-height", argc, argv, argr, "default", NULL);
 
     if (section_height.type == invalid || (section_height.type == integer &&
     section_height.int_value < 8)) {
@@ -868,7 +868,7 @@ static int local_blacs_check_args(int argc, char * const *argv, int *argr)
     }
 
     struct multiarg_t section_width = read_multiarg(
-        "--section-width", argc, argv, argr, "default", 0);
+        "--section-width", argc, argv, argr, "default", NULL);
 
     if (section_width.type == invalid || (section_width.type == integer &&
     section_width.int_value < 8)) {
@@ -894,10 +894,10 @@ static int local_blacs_convert(
 
     if (my_rank == 0) {
         struct multiarg_t section_height = read_multiarg(
-            "--section-height", argc, argv, NULL, "default", 0);
+            "--section-height", argc, argv, NULL, "default", NULL);
 
         struct multiarg_t section_width = read_multiarg(
-            "--section-width", argc, argv, NULL, "default", 0);
+            "--section-width", argc, argv, NULL, "default", NULL);
 
         int sm;
         if (section_height.type == str)

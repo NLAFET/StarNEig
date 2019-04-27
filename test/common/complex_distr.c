@@ -308,7 +308,7 @@ static int bulk_complex_distr_check_args(
         return 0;
 
     struct multiarg_t begin = read_multiarg(
-        "--bulk-complex-begin", argc, argv, argr, "top", "middle", 0);
+        "--bulk-complex-begin", argc, argv, argr, "top", "middle", NULL);
 
     if (begin.type == invalid ||
     (begin.type == integer && begin.int_value < 0)) {
@@ -317,7 +317,7 @@ static int bulk_complex_distr_check_args(
     }
 
     struct multiarg_t end = read_multiarg(
-        "--bulk-complex-end", argc, argv, argr, "middle", "bottom", 0);
+        "--bulk-complex-end", argc, argv, argr, "middle", "bottom", NULL);
 
     if (end.type == invalid ||
     (end.type == integer && end.int_value < 0)) {
@@ -367,8 +367,8 @@ static void bulk_complex_distr_print_args(int argc, char * const *argv)
         return;
     }
 
-    print_multiarg("--bulk-complex-begin", argc, argv, "top", "middle", 0);
-    print_multiarg("--bulk-complex-end", argc, argv, "middle", "bottom", 0);
+    print_multiarg("--bulk-complex-begin", argc, argv, "top", "middle", NULL);
+    print_multiarg("--bulk-complex-end", argc, argv, "middle", "bottom", NULL);
 
     printf(" --zero-ratio %f",
         read_double("--zero-ratio", argc, argv, NULL, default_zero_ratio));
@@ -395,9 +395,9 @@ static int bulk_complex_distr_init(
     }
     else {
         struct multiarg_t begin_arg = read_multiarg(
-            "--bulk-complex-begin", argc, argv, NULL, "top", "middle", 0);
+            "--bulk-complex-begin", argc, argv, NULL, "top", "middle", NULL);
         struct multiarg_t end_arg = read_multiarg(
-            "--bulk-complex-end", argc, argv, NULL, "middle", "bottom", 0);
+            "--bulk-complex-end", argc, argv, NULL, "middle", "bottom", NULL);
 
         if (begin_arg.type == str && strcmp("top", begin_arg.str_value) == 0)
             begin = 0;

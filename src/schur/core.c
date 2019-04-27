@@ -1786,7 +1786,7 @@ static enum segment_status process_segment_bootstrap(
     starneig_insert_scan_diagonal(
         0, STARNEIG_MATRIX_M(args->matrix_a), 0, 0, 0, 1, 0, args->max_prio,
         extract_aftermath, NULL, args->matrix_a, args->matrix_b, args->mpi,
-        segment->bulges_aftermath, 0);
+        segment->bulges_aftermath, NULL);
 
 #ifdef STARNEIG_ENABLE_MPI
     // gather the deflation check vector to all MPI nodes

@@ -200,28 +200,28 @@ static void scalapack_print_usage(int argc, char * const *argv)
 
 static void scalapack_print_args(int argc, char * const *argv)
 {
-    print_multiarg("--parallel-windows", argc, argv, "max", 0);
-    print_multiarg("--values-per-window", argc, argv, "half", 0);
-    print_multiarg("--window-size", argc, argv, "half", 0);
+    print_multiarg("--parallel-windows", argc, argv, "max", NULL);
+    print_multiarg("--values-per-window", argc, argv, "half", NULL);
+    print_multiarg("--window-size", argc, argv, "half", NULL);
     printf(" --flops %d", read_int("--flops", argc, argv, NULL,
         scalapack_default_flops));
     printf(" --width %d",  read_int("--width", argc, argv, NULL,
         scalapack_default_width));
-    print_multiarg("--move-together", argc, argv, "default", 0);
+    print_multiarg("--move-together", argc, argv, "default", NULL);
 }
 
 static int scalapack_check_args(int argc, char * const *argv, int *argr)
 {
     struct multiarg_t parallel_windows = read_multiarg(
-        "--parallel-windows", argc, argv, argr, "max", 0);
+        "--parallel-windows", argc, argv, argr, "max", NULL);
     struct multiarg_t values_per_window = read_multiarg(
-        "--values-per-window", argc, argv, argr, "half", 0);
+        "--values-per-window", argc, argv, argr, "half", NULL);
     struct multiarg_t window_size = read_multiarg(
-        "--window-size", argc, argv, argr, "half", 0);
+        "--window-size", argc, argv, argr, "half", NULL);
     int flops = read_int("--flops", argc, argv, argr, scalapack_default_flops);
     int width = read_int("--width", argc, argv, argr, scalapack_default_width);
     struct multiarg_t move_together = read_multiarg(
-        "--move-together", argc, argv, argr, "default", 0);
+        "--move-together", argc, argv, argr, "default", NULL);
 
     if (parallel_windows.type == invalid || (parallel_windows.type == integer &&
     parallel_windows.int_value < 1)) {
@@ -362,15 +362,15 @@ static int scalapack_run(hook_solver_state_t state)
     pencil_t pencil = env->data;
 
     struct multiarg_t parallel_windows = read_multiarg(
-        "--parallel-windows", argc, argv, NULL, "max", 0);
+        "--parallel-windows", argc, argv, NULL, "max", NULL);
     struct multiarg_t values_per_window = read_multiarg(
-        "--values-per-window", argc, argv, NULL, "half", 0);
+        "--values-per-window", argc, argv, NULL, "half", NULL);
     struct multiarg_t window_size = read_multiarg(
-        "--window-size", argc, argv, NULL, "half", 0);
+        "--window-size", argc, argv, NULL, "half", NULL);
     int flops = read_int("--flops", argc, argv, NULL, scalapack_default_flops);
     int width = read_int("--width", argc, argv, NULL, scalapack_default_width);
     struct multiarg_t move_together = read_multiarg(
-        "--move-together", argc, argv, NULL, "half", 0);
+        "--move-together", argc, argv, NULL, "half", NULL);
 
     if (pencil->mat_a == NULL) {
         fprintf(stderr, "Missing matrix A.\n");
@@ -706,16 +706,16 @@ static void starpu_print_usage(int argc, char * const *argv)
 
 static void starpu_print_args(int argc, char * const *argv)
 {
-    print_multiarg("--cores", argc, argv, "default", 0);
-    print_multiarg("--gpus", argc, argv, "default", 0);
-    print_multiarg("--tile-size", argc, argv, "default", 0);
-    print_multiarg("--window-size", argc, argv, "default", "rounded", 0);
-    print_multiarg("--values-per-chain", argc, argv, "default", 0);
-    print_multiarg("--small-window-size", argc, argv, "default", 0);
-    print_multiarg("--small-window-threshold", argc, argv, "default", 0);
+    print_multiarg("--cores", argc, argv, "default", NULL);
+    print_multiarg("--gpus", argc, argv, "default", NULL);
+    print_multiarg("--tile-size", argc, argv, "default", NULL);
+    print_multiarg("--window-size", argc, argv, "default", "rounded", NULL);
+    print_multiarg("--values-per-chain", argc, argv, "default", NULL);
+    print_multiarg("--small-window-size", argc, argv, "default", NULL);
+    print_multiarg("--small-window-threshold", argc, argv, "default", NULL);
 
-    print_multiarg("--update-width", argc, argv, "default", 0);
-    print_multiarg("--update-height", argc, argv, "default", 0);
+    print_multiarg("--update-width", argc, argv, "default", NULL);
+    print_multiarg("--update-height", argc, argv, "default", NULL);
 
     printf(" --plan %s --blueprint %s",
         read_plan("--plan", argc, argv, NULL)->name,
@@ -725,24 +725,24 @@ static void starpu_print_args(int argc, char * const *argv)
 static int starpu_check_args(int argc, char * const *argv, int *argr)
 {
     struct multiarg_t arg_cores = read_multiarg(
-        "--cores", argc, argv, argr, "default", 0);
+        "--cores", argc, argv, argr, "default", NULL);
     struct multiarg_t arg_gpus = read_multiarg(
-        "--gpus", argc, argv, argr, "default", 0);
+        "--gpus", argc, argv, argr, "default", NULL);
     struct multiarg_t tile_size = read_multiarg(
-        "--tile-size", argc, argv, argr, "default", 0);
+        "--tile-size", argc, argv, argr, "default", NULL);
     struct multiarg_t window_size = read_multiarg(
-        "--window-size", argc, argv, argr, "default", "rounded", 0);
+        "--window-size", argc, argv, argr, "default", "rounded", NULL);
     struct multiarg_t values_per_chain = read_multiarg(
-        "--values-per-chain", argc, argv, argr, "default", 0);
+        "--values-per-chain", argc, argv, argr, "default", NULL);
     struct multiarg_t small_window_size = read_multiarg(
-        "--small-window-size", argc, argv, argr, "default", 0);
+        "--small-window-size", argc, argv, argr, "default", NULL);
     struct multiarg_t small_window_threshold = read_multiarg(
-        "--small-window-threshold", argc, argv, argr, "default", 0);
+        "--small-window-threshold", argc, argv, argr, "default", NULL);
 
     struct multiarg_t update_width = read_multiarg(
-        "--update-width", argc, argv, argr, "default", 0);
+        "--update-width", argc, argv, argr, "default", NULL);
     struct multiarg_t update_height = read_multiarg(
-        "--update-height", argc, argv, argr, "default", 0);
+        "--update-height", argc, argv, argr, "default", NULL);
 
     if (arg_cores.type == invalid)
         return -1;
@@ -841,9 +841,9 @@ static hook_solver_state_t starpu_prepare(
     state->env = env;
 
     struct multiarg_t arg_cores = read_multiarg(
-        "--cores", argc, argv, NULL, "default", 0);
+        "--cores", argc, argv, NULL, "default", NULL);
     struct multiarg_t arg_gpus = read_multiarg(
-        "--gpus", argc, argv, NULL, "default", 0);
+        "--gpus", argc, argv, NULL, "default", NULL);
 
     int cores = -1;
     if (arg_cores.type == integer)
@@ -890,39 +890,39 @@ static int starpu_run(hook_solver_state_t state)
     conf.blueprint = read_blueprint("--blueprint", argc, argv, NULL)->value;
 
     struct multiarg_t tile_size = read_multiarg(
-        "--tile-size", argc, argv, NULL, "default", 0);
+        "--tile-size", argc, argv, NULL, "default", NULL);
     if (tile_size.type == integer)
         conf.tile_size = tile_size.int_value;
 
     struct multiarg_t window_size = read_multiarg(
-        "--window-size", argc, argv, NULL, "default", "rounded", 0);
+        "--window-size", argc, argv, NULL, "default", "rounded", NULL);
     if (window_size.type == str && !strcmp("rounded", window_size.str_value))
         conf.window_size = STARNEIG_REORDER_ROUNDED_WINDOW_SIZE;
     if (window_size.type == integer)
         conf.window_size = window_size.int_value;
 
     struct multiarg_t values_per_chain = read_multiarg(
-        "--values-per-chain", argc, argv, NULL, "default", 0);
+        "--values-per-chain", argc, argv, NULL, "default", NULL);
     if (values_per_chain.type == integer)
         conf.values_per_chain = values_per_chain.int_value;
 
     struct multiarg_t small_window_size = read_multiarg(
-        "--small-window-size", argc, argv, NULL, "default", 0);
+        "--small-window-size", argc, argv, NULL, "default", NULL);
     if (small_window_size.type == integer)
         conf.small_window_size = small_window_size.int_value;
 
     struct multiarg_t small_window_threshold = read_multiarg(
-        "--small-window-threshold", argc, argv, NULL, "default", 0);
+        "--small-window-threshold", argc, argv, NULL, "default", NULL);
     if (small_window_threshold.type == integer)
         conf.small_window_threshold = small_window_threshold.int_value;
 
     struct multiarg_t update_width = read_multiarg(
-        "--update-width", argc, argv, NULL, "default", 0);
+        "--update-width", argc, argv, NULL, "default", NULL);
     if (update_width.type == integer)
         conf.update_width = update_width.int_value;
 
     struct multiarg_t update_height = read_multiarg(
-        "--update-height", argc, argv, NULL, "default", 0);
+        "--update-height", argc, argv, NULL, "default", NULL);
     if (update_height.type == integer)
         conf.update_height = update_height.int_value;
 
@@ -1010,16 +1010,16 @@ static void starpu_simple_print_usage(int argc, char * const *argv)
 
 static void starpu_simple_print_args(int argc, char * const *argv)
 {
-    print_multiarg("--cores", argc, argv, "default", 0);
-    print_multiarg("--gpus", argc, argv, "default", 0);
+    print_multiarg("--cores", argc, argv, "default", NULL);
+    print_multiarg("--gpus", argc, argv, "default", NULL);
 }
 
 static int starpu_simple_check_args(int argc, char * const *argv, int *argr)
 {
     struct multiarg_t arg_cores = read_multiarg(
-        "--cores", argc, argv, argr, "default", 0);
+        "--cores", argc, argv, argr, "default", NULL);
     struct multiarg_t arg_gpus = read_multiarg(
-        "--gpus", argc, argv, argr, "default", 0);
+        "--gpus", argc, argv, argr, "default", NULL);
 
     if (arg_cores.type == invalid)
         return -1;
@@ -1034,9 +1034,9 @@ static hook_solver_state_t starpu_simple_prepare(
     int argc, char * const *argv, struct hook_data_env *env)
 {
     struct multiarg_t arg_cores = read_multiarg(
-        "--cores", argc, argv, NULL, "default", 0);
+        "--cores", argc, argv, NULL, "default", NULL);
     struct multiarg_t arg_gpus = read_multiarg(
-        "--gpus", argc, argv, NULL, "default", 0);
+        "--gpus", argc, argv, NULL, "default", NULL);
 
     int cores = -1;
     if (arg_cores.type == integer)

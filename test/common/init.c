@@ -264,8 +264,8 @@ void init_helper_print_args(
         printf(" %s", data_distr->name);
     }
 
-    print_multiarg(str2, argc, argv, "default", 0);
-    print_multiarg(str3, argc, argv, "default", 0);
+    print_multiarg(str2, argc, argv, "default", NULL);
+    print_multiarg(str3, argc, argv, "default", NULL);
 
     free(str1); free(str2); free(str3);
 #endif
@@ -288,7 +288,7 @@ int init_helper_check_args(
     }
 
     struct multiarg_t section_height = read_multiarg(
-        str2, argc, argv, argr, "default", 0);
+        str2, argc, argv, argr, "default", NULL);
 
     if (section_height.type == invalid || (section_height.type == integer &&
     section_height.int_value < 8)) {
@@ -297,7 +297,7 @@ int init_helper_check_args(
     }
 
     struct multiarg_t section_width = read_multiarg(
-        str3, argc, argv, argr, "default", 0);
+        str3, argc, argv, argr, "default", NULL);
 
     if (section_width.type == invalid || (section_width.type == integer &&
     section_width.int_value < 8)) {
@@ -369,9 +369,9 @@ init_helper_t init_helper_init(
         }
 
         struct multiarg_t section_height = read_multiarg(
-            str2, argc, argv, NULL, "default", 0);
+            str2, argc, argv, NULL, "default", NULL);
         struct multiarg_t section_width = read_multiarg(
-            str3, argc, argv, NULL, "default", 0);
+            str3, argc, argv, NULL, "default", NULL);
 
         if (section_height.type == str)
             helper->section_height = -1;

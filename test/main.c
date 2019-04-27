@@ -238,7 +238,7 @@ int main(int argc, char * const *argv)
 
     if (mpi) {
         struct multiarg_t mpi_mode = read_multiarg(
-            "--mpi-mode", argc, argv, argr, "serialized", "multiple", 0);
+            "--mpi-mode", argc, argv, argr, "serialized", "multiple", NULL);
 
         if (mpi_mode.type != str) {
             fprintf(stderr, "Invalid MPI mode.\n");
@@ -292,7 +292,7 @@ int main(int argc, char * const *argv)
     //
 
     struct multiarg_t worker_threads =
-        read_multiarg("--test-workers", argc, argv, argr, "default", 0);
+        read_multiarg("--test-workers", argc, argv, argr, "default", NULL);
 
     if (worker_threads.type == invalid ||
     (worker_threads.type == integer && worker_threads.int_value < 1)) {
@@ -302,7 +302,7 @@ int main(int argc, char * const *argv)
     }
 
     struct multiarg_t blas_threads =
-        read_multiarg("--test-threads", argc, argv, argr, "default", 0);
+        read_multiarg("--test-threads", argc, argv, argr, "default", NULL);
 
     if (blas_threads.type == invalid ||
     (blas_threads.type == integer && blas_threads.int_value < 1)) {
@@ -352,12 +352,13 @@ int main(int argc, char * const *argv)
 #ifdef STARNEIG_ENABLE_MPI
     if (mpi) {
         printf(" --mpi");
-        print_multiarg("--mpi-mode", argc, argv, "serialized", "multiple", 0);
+        print_multiarg(
+            "--mpi-mode", argc, argv, "serialized", "multiple", NULL);
     }
 #endif
     printf(" --seed %d --experiment %s", seed, experiment->name);
-    print_multiarg("--test-workers", argc, argv, "default", 0);
-    print_multiarg("--test-threads", argc, argv, "default", 0);
+    print_multiarg("--test-workers", argc, argv, "default", NULL);
+    print_multiarg("--test-threads", argc, argv, "default", NULL);
 
     if (experiment->print_args != NULL)
         experiment->print_args(argc, argv, experiment->info);

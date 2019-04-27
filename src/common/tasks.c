@@ -1049,7 +1049,7 @@ void starneig_insert_extract_eigenvalues(
 {
     starneig_insert_scan_diagonal(
         0, STARNEIG_MATRIX_N(A), 0, 1, 1, 1, 1, prio,
-        extract_eigenvalues_func, NULL, A, B, mpi, real, imag, beta, 0);
+        extract_eigenvalues_func, NULL, A, B, mpi, real, imag, beta, NULL);
 }
 
 void starneig_insert_set_to_zero(int prio, starpu_data_handle_t tile)

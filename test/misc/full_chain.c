@@ -142,16 +142,16 @@ static void starpu_print_usage(int argc, char * const *argv)
 
 static void starpu_print_args(int argc, char * const *argv)
 {
-    print_multiarg("--cores", argc, argv, "default", 0);
-    print_multiarg("--gpus", argc, argv, "default", 0);
+    print_multiarg("--cores", argc, argv, "default", NULL);
+    print_multiarg("--gpus", argc, argv, "default", NULL);
 }
 
 static int starpu_check_args(int argc, char * const *argv, int *argr)
 {
     struct multiarg_t arg_cores = read_multiarg(
-        "--cores", argc, argv, argr, "default", 0);
+        "--cores", argc, argv, argr, "default", NULL);
     struct multiarg_t arg_gpus = read_multiarg(
-        "--gpus", argc, argv, argr, "default", 0);
+        "--gpus", argc, argv, argr, "default", NULL);
 
     if (arg_cores.type == invalid)
         return -1;
@@ -166,9 +166,9 @@ static hook_solver_state_t starpu_prepare(
     int argc, char * const *argv, struct hook_data_env *env)
 {
     struct multiarg_t arg_cores = read_multiarg(
-        "--cores", argc, argv, NULL, "default", 0);
+        "--cores", argc, argv, NULL, "default", NULL);
     struct multiarg_t arg_gpus = read_multiarg(
-        "--gpus", argc, argv, NULL, "default", 0);
+        "--gpus", argc, argv, NULL, "default", NULL);
 
     int cores = -1;
     if (arg_cores.type == integer)

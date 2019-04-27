@@ -208,7 +208,7 @@ starneig_error_t starneig_SEP_DM_Select(
 
     starneig_insert_scan_diagonal(
         0, m, 0, 1, 1, 1, 1, STARPU_MAX_PRIO, apply_predicate_sep,
-        &args, S_d, NULL, mpi, selected_d, 0);
+        &args, S_d, NULL, mpi, selected_d, NULL);
 
     int world_size = starneig_mpi_get_comm_size();
     for (int i = 0; i < world_size; i++)
@@ -279,7 +279,7 @@ starneig_error_t starneig_GEP_DM_Select(
 
     starneig_insert_scan_diagonal(
         0, m, 0, 1, 1, 1, 1, STARPU_MAX_PRIO, apply_predicate_gep,
-        &args, S_d, T_d, mpi, selected_d, 0);
+        &args, S_d, T_d, mpi, selected_d, NULL);
 
     int world_size = starneig_mpi_get_comm_size();
     for (int i = 0; i < world_size; i++)
