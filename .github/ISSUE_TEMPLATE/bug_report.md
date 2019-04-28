@@ -18,13 +18,13 @@ A clear and concise description of what you expected to happen.
 
 **Please complete the following information:**
  - Linux distribution and version
- - Compiler version / vendor
- - StarNEig version / commit
+ - Compiler vendor and version
+ - StarNEig vendor and version
  - StarPU version
- - BLAS version / vendor
- - LAPACK version / vendor
- - ScaLAPACK version / vendor
- - MPI library version / vendor
+ - BLAS vendor and version
+ - LAPACK vendor and version
+ - ScaLAPACK vendor and version
+ - MPI vendor and version
  - CUDA version
 
 **Additional context**
