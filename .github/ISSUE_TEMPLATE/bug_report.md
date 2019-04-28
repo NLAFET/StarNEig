@@ -17,9 +17,9 @@ Steps to reproduce the behavior.
 A clear and concise description of what you expected to happen.
 
 **Please complete the following information:**
+ - StarNEig version
  - Linux distribution and version
  - Compiler vendor and version
- - StarNEig vendor and version
  - StarPU version
  - BLAS vendor and version
  - LAPACK vendor and version
