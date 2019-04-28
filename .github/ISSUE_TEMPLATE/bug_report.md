@@ -26,9 +26,10 @@ A clear and concise description of what you expected to happen.
  - ScaLAPACK version / vendor
  - MPI library version / vendor
  - CUDA version
- - `CMakeFiles/CMakeOutput.log` and `CMakeFiles/CMakeError.log`
- - `src/starneig_config.h`
- - `src/starneig.pc`
 
 **Additional context**
-Add any other context about the problem here.
+Add any other context about the problem here. Also, consider providing the following:
+ - `CMakeFiles/CMakeOutput.log`
+ - `CMakeFiles/CMakeError.log`
+ - `src/starneig_config.h`
+ - `src/starneig.pc`
