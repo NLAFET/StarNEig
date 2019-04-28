@@ -28,9 +28,12 @@ A clear and concise description of what you expected to happen.
  - CUDA version
 
 **Additional context**
-Add any other context about the problem here. Consider providing the following:
+Add any other context about the problem here. 
+
+Consider providing the following from the `build` directory:
  - `CMakeFiles/CMakeOutput.log`
  - `CMakeFiles/CMakeError.log`
+ - `src/include/starneig/configuration.h`
  - `src/starneig_config.h`
  - `src/starneig.pc`
  - `Testing/Temporary/LastTest.log` or `Testing/Temporary/LastTest.log.tmp`
