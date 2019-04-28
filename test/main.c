@@ -282,8 +282,10 @@ int main(int argc, char * const *argv)
 
     unsigned seed = read_uint("--seed", argc, argv, argr, (unsigned)time(NULL));
 
+#ifdef STARNEIG_ENABLE_MPI
     if (mpi_initialized)
         MPI_Bcast(&seed, 1, MPI_UNSIGNED, 0, MPI_COMM_WORLD);
+#endif
 
     init_prand(seed);
 
