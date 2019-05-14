@@ -29,19 +29,14 @@ The library is currently in a beta state and only real arithmetic is supported.
 In addition, some interface functions are implemented as LAPACK and ScaLAPACK
 wrappers.
 
-Current status with standard eigenvalue problems:
-
-| Component              |   Shared memory  | Distributed memory | Accelerators (GPUs)  |
-|------------------------|:----------------:|:------------------:|:--------------------:|
-| Hessenberg reduction   |   **Complete**   | ScaLAPACK wrapper  |     **Single GPU**   |
-| Schur reduction        |   **Complete**   |    *Experimental*  |     *Experimental*   |
-| Eigenvalue reordering  |   **Complete**   |    **Complete**    |     *Experimental*   |
-| Eigenvectors           |   **Complete**   |Waiting integration |      Not planned     |
-
-Current status with generalized eigenvalue problems:
+Current status:
 
 | Component                         |      Shared memory     | Distributed memory | Accelerators (GPUs)  |
 |-----------------------------------|:----------------------:|:------------------:|:--------------------:|
+| Hessenberg reduction              |      **Complete**      | ScaLAPACK wrapper  |     **Single GPU**   |
+| Schur reduction                   |      **Complete**      |    *Experimental*  |     *Experimental*   |
+| Eigenvalue reordering             |      **Complete**      |    **Complete**    |     *Experimental*   |
+| Eigenvectors                      |      **Complete**      |Waiting integration |      Not planned     |
 | Hessenberg-triangular reduction   |LAPACK wrapper / Planned| ScaLAPACK wrapper  |      Not planned     |
 | Generalized Schur reduction       |      **Complete**      |    *Experimental*  |     *Experimental*   |
 | Generalized eigenvalue reordering |      **Complete**      |    **Complete**    |     *Experimental*   |
