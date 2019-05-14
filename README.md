@@ -51,23 +51,23 @@ Current status with generalized eigenvalue problems:
 
 ### Research papers
 
+ - Mirko Myllykoski, Carl Christian Kjelgaard Mikkelsen: *Introduction to StarNEig — A Task-based Library for Solving Nonsymmetric Eigenvalue Problems*, Submitted to PPAM 2019, [arXiv:1905.04975](https://arxiv.org/abs/1905.04975)
  - Mirko Myllykoski: *A Task-Based Algorithm for Reordering the Eigenvalues of a Matrix in Real Schur Form*, In Parallel Processing and Applied Mathematics, 12th International Conference, PPAM 2017, Lublin, Poland, September 10-13, 2017, Revised Selected Papers, Part I, Lecture Notes in Computer Science, Vol. 10777, Wyrzykowski R., Dongarra J., Deelman E., Karczewski K. (eds), Springer International Publishing, pp. 207-216, 2018, doi: 10.1007/978-3-319-78024-5_19 
- - Carl Christian Kjelgaard Mikkelsen, Lars Karlsson. *Blocked algorithms for robust solution of triangular linear systems*, In Parallel Processing and Applied Mathematics, 12th International Conference, PPAM 2017, Lublin, Poland, September 10-13, 2017, Revised Selected Papers, Part I, Lecture Notes in Computer Science, Vol. 10777, Wyrzykowski R., Dongarra J., Deelman E., Karczewski K. (eds), Springer International Publishing, pp. 207-216, 2018
- - Carl Christian Kjelgaard Mikkelsen, Angelika Schwarz, and Lars Karlsson. *Parallel robust solution of triangular linear systems. Concurrency and Computation: Practice and Experience*, 0(0):1–19, 2018
+ - Carl Christian Kjelgaard Mikkelsen, Lars Karlsson. *Blocked Algorithms for Robust Solution of Triangular Linear Systems*, In Parallel Processing and Applied Mathematics, 12th International Conference, PPAM 2017, Lublin, Poland, September 10-13, 2017, Revised Selected Papers, Part I, Lecture Notes in Computer Science, Vol. 10777, Wyrzykowski R., Dongarra J., Deelman E., Karczewski K. (eds), Springer International Publishing, pp. 207-216, 2018
+ - Carl Christian Kjelgaard Mikkelsen, Angelika Schwarz, and Lars Karlsson. *Parallel Robust Solution of Triangular Linear Systems. Concurrency and Computation: Practice and Experience*, 0(0):1–19, 2018
 
 ### Reports and deliverables
 
- - Mirko Myllykoski, Carl Christian Kjelgaard Mikkelsen, Angelika Schwarz, Bo Kågström: *D2.7 Eigenvalue solvers for nonsymmetric problems*, public NLAFET deliverable, 2019
- - Lars Karlsson, Mahmoud Eljammaly, Mirko Myllykoski: *D6.5 Evaluation of auto-tuning techniques*, public NLAFET deliverable, 2019
- - Bo Kågström et al.: *D7.8 Release of the NLAFET library*, public NLAFET deliverable, 2019
- - Mirko Myllykoski, Lars Karlsson, Bo Kågström, Mahmoud Eljammaly, Srikara Pranesh, Mawussi Zounon: *D2.6 Prototype Software for Eigenvalue Problem Solvers*, public NLAFET deliverable, 2018
- - Mirko Myllykoski, Carl Christian Kjelgaard Mikkelsen, Lars Karlsson, Bo Kågström: *Task-Based Parallel Algorithms for Reordering of Matrices in Real Schur Forms*, NLAFET Working Note WN-11, 2017. Also as Report UMINF 17.11, Department of Computing Science, Umeå University, SE-901 87 Umeå, Sweden
- - Carl Christian Kjelgaard Mikkelsen, Mirko Myllykoski, Björn Adlerborn, Lars Karlsson, Bo Kågström: *D2.5 Eigenvalue Problem Solvers*, public NLAFET deliverable, 2017
+ - Mirko Myllykoski, Carl Christian Kjelgaard Mikkelsen, Angelika Schwarz, Bo Kågström: *D2.7 Eigenvalue solvers for nonsymmetric problems*, public NLAFET deliverable, 2019 ([download](http://www.nlafet.eu/wp-content/uploads/2019/04/D2.7-EVP-solvers-evaluation-final.pdf))
+ - Lars Karlsson, Mahmoud Eljammaly, Mirko Myllykoski: *D6.5 Evaluation of auto-tuning techniques*, public NLAFET deliverable, 2019 ([download](http://www.nlafet.eu/wp-content/uploads/2019/04/D6-5-eval-auto-tuning-final.pdf))
+ - Bo Kågström et al.: *D7.8 Release of the NLAFET library*, public NLAFET deliverable, 2019 ([download](http://www.nlafet.eu/wp-content/uploads/2019/04/D7-8-Release-NLAFET-library-final.pdf))
+ - Mirko Myllykoski, Lars Karlsson, Bo Kågström, Mahmoud Eljammaly, Srikara Pranesh, Mawussi Zounon: *D2.6 Prototype Software for Eigenvalue Problem Solvers*, public NLAFET deliverable, 2018 ([download](http://www.nlafet.eu/wp-content/uploads/2016/01/Deliverable2.6-180427-rev.pdf))
+ - Mirko Myllykoski, Carl Christian Kjelgaard Mikkelsen, Lars Karlsson, Bo Kågström: *Task-Based Parallel Algorithms for Reordering of Matrices in Real Schur Forms*, NLAFET Working Note WN-11, 2017. Also as Report UMINF 17.11, Department of Computing Science, Umeå University, SE-901 87 Umeå, Sweden ([download](http://www8.cs.umu.se/research/uminf/index.cgi?year=2017&number=11))
+ - Carl Christian Kjelgaard Mikkelsen, Mirko Myllykoski, Björn Adlerborn, Lars Karlsson, Bo Kågström: *D2.5 Eigenvalue Problem Solvers*, public NLAFET deliverable, 2017 ([download](http://www.nlafet.eu/wp-content/uploads/2016/01/D2.5-EVP-solvers-170427_v1.0-final.pdf))
 
 ## Documentation:
 
- - [Installation](docs/_1_installation.md)
- - [Test driver](docs/_7_test_driver.md)
+HTML and PDF documentation can be found from https://nlafet.github.io/StarNEig.
 
 ### Doxygen documentation
 
