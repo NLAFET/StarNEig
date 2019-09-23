@@ -1,5 +1,9 @@
+v0.1-beta.3:
+ - Re-implemented Hessenberg reduction.
+
 v0.1-beta.2:
- - Fix installation and MPI related compile error.
+ - Fix an installation-related bug.
+ - Fix a MPI-related compile error.
  - Remove unused code.
 
 v0.1-beta.1:
