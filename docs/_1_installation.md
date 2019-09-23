@@ -135,8 +135,6 @@ List of StarNEig library specific configuration options:
    (`OFF` by default).
  - `STARNEIG_ENABLE_CUDA_REORDER_WINDOW`: Enable CUDA-based reorder_window
    codelet (`OFF` by default).
- - `STARNEIG_ENABLE_AED_PARALLEL_HESSENBERG`: Enable parallel Hessenberg
-   reduction during AED (`OFF` by default).
  - `STARNEIG_ENABLE_INTEGER_SCALING`: Enable integer-based scaling factors
    (`ON` by default).
 
@@ -207,11 +205,7 @@ Test project /.../build
 Total Test time (real) = 1219.47 sec
 ```
 
-Some  eigenvalue reordering related tests may randomly fail. This is more common
-with the generalized eigenvalue reordering problem. In all observed cases,
-these failures were related to ill-conditioned problems and/or a too tight
-failure threshold (i.e., they were false positives). The
-`STARNEIG_ENABLE_FULL_TESTS` `cmake` option can be used to enable additional
+The `STARNEIG_ENABLE_FULL_TESTS` `cmake` option can be used to enable additional
 tests.
 
 ## Install

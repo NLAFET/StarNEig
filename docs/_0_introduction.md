@@ -52,13 +52,15 @@ Current status with generalized eigenvalue problems:
  - Some older OpenMPI versions (pre summer 2017, e.g. <= 2.1.1) have a bug that
    might lead to a segmentation fault during a parallel AED.
  - OpenBLAS version 0.3.1 has a bug that might lead to an incorrect result.
- - OpenBLAS versions 0.3.3-0.3.5 and MKL 2018.3.222 might lead to poor
-   scalability.
- - StarPU versions 1.2.4 - 1.2.6 and some StarPU 1.3 snapshots cause poor CUDA
+ - OpenBLAS versions 0.3.3-0.3.5 might lead to poor scalability.
+ - Some MKL versions might lead to poor scalability. The problem appears to be
+   related to Intel's OpenMP library. Setting the `KMP_AFFINITY` environmental
+   variable to `disabled` fixes the problem in all known cases.
+ - StarPU versions 1.2.4 - 1.2.8 and some StarPU 1.3 snapshots cause poor CUDA
    performance. The problem can be fixed by compiling StarPU with
-   `--disable-cuda-memcpy-peer`. It is possible that newer version are also
-   effected by this problem.
- - `STARPU_LIMIT_CUDA_MEM` environmental variable may fix some GPU related
+   `--disable-cuda-memcpy-peer`. It is possible that newer versions of StarPU
+   are also effected by this problem.
+ - The `STARPU_LIMIT_CUDA_MEM` environmental variable may fix some GPU related
    memory allocation problems. For example, if the GPU has 6 GB of memory, then
    setting `STARPU_LIMIT_CUDA_MEM=5500` might help.
  - The library has an unsolved memory leak problem with OpenMPI. Only large

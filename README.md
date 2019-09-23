@@ -1,4 +1,4 @@
-# StarNEig Library
+# Introduction
 
 StarNEig library aims to provide a full suite of algorithms for solving
 **non-symmetric** (generalized) eigenvalue problems. The library is built on top
