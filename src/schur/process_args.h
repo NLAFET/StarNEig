@@ -75,23 +75,11 @@ static inline double evaluate_parameter(double x, parameter_t parameter)
      return parameter.alpha * x + parameter.beta;
 }
 
-#ifdef STARNEIG_ENABLE_AED_PARALLEL_HESSENBERG
-struct worker_move_data {
-    starpu_pthread_mutex_t mutex;     ///< protection mutex
-    int requests;                     ///< the number of concurrent reductions
-};
-#endif
-
 ///
 /// @brief Segment processing arguments.
 ///
 struct process_args {
     mpi_info_t mpi;                       ///< MPI info
-#ifdef STARNEIG_ENABLE_AED_PARALLEL_HESSENBERG
-    struct worker_move_data *worker_move_data; ///< worker move data
-#endif
-    unsigned parallel_ctx;                ///< parallel scheduling context
-    unsigned regular_ctx;                 ///< regular scheduling context
     int min_prio;                         ///< minimum priority for other_ctx
     int max_prio;                         ///< maximum priority for other_ctx
     int default_prio;                     ///< default priority for other_ctx

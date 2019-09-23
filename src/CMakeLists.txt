@@ -57,8 +57,6 @@ option (STARNEIG_ENABLE_MRM
     "Enable multiple linear regression performance models" OFF)
 option (STARNEIG_ENABLE_CUDA_REORDER_WINDOW
     "Enable CUDA-based reorder_window codelet" OFF)
-option (STARNEIG_ENABLE_AED_PARALLEL_HESSENBERG
-    "Enable parallel Hessenberg reduction in AED" OFF)
 option (STARNEIG_ENABLE_INTEGER_SCALING
     "Enable integer-based scaling factors" ON)
 

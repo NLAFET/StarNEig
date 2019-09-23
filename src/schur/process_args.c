@@ -171,12 +171,6 @@ starneig_error_t starneig_build_process_args_from(
 {
     args->mpi = source->mpi;
 
-#ifdef STARNEIG_ENABLE_AED_PARALLEL_HESSENBERG
-    args->worker_move_data = source->worker_move_data;
-#endif
-    args->parallel_ctx = source->parallel_ctx;
-    args->regular_ctx = source->regular_ctx;
-
     args->max_prio = source->max_prio;
     args->min_prio = source->min_prio;
     args->default_prio = source->default_prio;
@@ -267,53 +261,9 @@ starneig_error_t starneig_build_process_args(
 
     args->mpi = mpi;
 
-    // scheduling contexts
-
-    unsigned old_ctx = starpu_sched_ctx_get_context();
-    if (old_ctx == STARPU_NMAX_SCHED_CTXS)
-        old_ctx = 0;
-
-#ifdef STARNEIG_ENABLE_AED_PARALLEL_HESSENBERG
-
-    args->worker_move_data = malloc(sizeof(struct worker_move_data));
-    STARPU_PTHREAD_MUTEX_INIT(&args->worker_move_data->mutex, NULL);
-    args->worker_move_data->requests = 0;
-
-#if 1 < STARPU_MAJOR_VERSION || 2 < STARPU_MINOR_VERSION
-    args->parallel_ctx = starpu_sched_ctx_create(NULL, 0, "parallel_cxt", 0);
-#else
-    args->parallel_ctx = starpu_sched_ctx_create(
-        NULL, 0, "parallel_cxt", STARPU_SCHED_CTX_POLICY_NAME, "peager", 0);
-#endif
-
-    int *workers;
-    int num_workers = starpu_sched_ctx_get_workers_list(old_ctx, &workers);
-
-    char *regular_ctx_sched = "prio";
-#ifdef STARNEIG_ENABLE_CUDA
-    for (int i = 0; i < num_workers; i++) {
-        if (starpu_worker_get_type(workers[i]) == STARPU_CUDA_WORKER) {
-            regular_ctx_sched = "dmdas";
-            break;
-        }
-    }
-#endif
-    args->regular_ctx = starpu_sched_ctx_create(
-        workers, num_workers, "regular_ctx",
-        STARPU_SCHED_CTX_POLICY_NAME, regular_ctx_sched, 0);
-
-    free(workers);
-
-#else
-
-    args->parallel_ctx = STARPU_NMAX_SCHED_CTXS;
-    args->regular_ctx = old_ctx;
-
-#endif // STARNEIG_ENABLE_AED_PARALLEL_HESSENBERG
-
-    args->max_prio = starpu_sched_ctx_get_max_priority(args->regular_ctx);
-    args->min_prio = starpu_sched_ctx_get_min_priority(args->regular_ctx);
-    args->default_prio = 0;
+    args->max_prio = STARPU_MAX_PRIO;
+    args->min_prio = STARPU_MIN_PRIO;
+    args->default_prio = STARPU_DEFAULT_PRIO;
 
     // iteration limit
     if (conf == NULL ||

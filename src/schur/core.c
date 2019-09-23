@@ -94,79 +94,6 @@ static starneig_error_t scan_segment_list(
 static enum segment_status process_segment(
     struct segment *segment, struct process_args *args);
 
-#ifdef STARNEIG_ENABLE_AED_PARALLEL_HESSENBERG
-
-///
-/// @brief Moves a requested number of worker to the parallel scheduling
-/// context.
-///
-/// @param[in] num_workers
-///         The number of workers to move.
-///
-/// @param[in,out]
-///         Segment processing arguments.
-///
-static void move_workers_to_parallel_ctx(
-    int num_workers, struct process_args *args)
-{
-    STARPU_PTHREAD_MUTEX_LOCK(&args->worker_move_data->mutex);
-
-    int to_add =
-        num_workers - starpu_sched_ctx_get_nworkers(args->parallel_ctx);
-    if (0 < to_add) {
-        starneig_verbose(
-            "Moving %d workers to the parallel scheduling context.", to_add);
-        int *_workers;
-        int _num_workers =
-            starpu_sched_ctx_get_workers_list(args->regular_ctx, &_workers);
-        starpu_sched_ctx_remove_workers(
-            _workers + _num_workers - to_add, to_add, args->regular_ctx);
-        starpu_sched_ctx_add_workers(
-            _workers + _num_workers - to_add, to_add, args->parallel_ctx);
-        free(_workers);
-    }
-
-    args->worker_move_data->requests++;
-
-    STARPU_PTHREAD_MUTEX_UNLOCK(&args->worker_move_data->mutex);
-}
-
-///
-/// @brief Moves workers back to the regular scheduler.
-///
-/// @param[in,out]
-///         Segment processing arguments.
-///
-static void move_workers_from_parallel_ctx(struct process_args *args)
-{
-    STARPU_PTHREAD_MUTEX_LOCK(&args->worker_move_data->mutex);
-
-    args->worker_move_data->requests--;
-    if (args->worker_move_data->requests == 0) {
-        int *_workers;
-        int _num_workers =
-            starpu_sched_ctx_get_workers_list(args->parallel_ctx, &_workers);
-
-        starneig_verbose(
-            "Moving %d workers from the parallel scheduling context.",
-            _num_workers);
-
-        starpu_sched_ctx_remove_workers(
-            _workers, _num_workers, args->parallel_ctx);
-        starpu_sched_ctx_add_workers(
-            _workers, _num_workers, args->regular_ctx);
-    }
-
-    STARPU_PTHREAD_MUTEX_UNLOCK(&args->worker_move_data->mutex);
-}
-
-static void move_worker_callback(unsigned sched_ctx_id, void *args)
-{
-    move_workers_from_parallel_ctx(args);
-}
-
-#endif
-
 ///
 /// @brief Window chain direction hint for the insert_updates and the
 /// insert_segment_updates functions.
@@ -819,17 +746,27 @@ static enum segment_status perform_deflate_finalize(
     //
     if (0 < status->converged) {
 
-        starneig_matrix_descr_t lQ = starneig_init_matrix_descr(
-            padded_size, padded_size, padded_size, padded_size, -1, -1,
-            sizeof(double), &starneig_single_owner_matrix_descr, &owner,
-            args->mpi);
+        starpu_data_handle_t lQ;
+        starpu_matrix_data_register(
+            &lQ, -1, 0, padded_size, padded_size, padded_size, sizeof(double));
+#ifdef STARNEIG_ENABLE_MPI
+        if (args->mpi)
+            starpu_mpi_data_register_comm(
+                lQ, args->mpi->tag_offset++, owner, starneig_mpi_get_comm());
+#endif
 
-        starneig_matrix_descr_t lZ = lQ;
-        if (args->matrix_b != NULL)
-            lZ = starneig_init_matrix_descr(
-                padded_size, padded_size, padded_size, padded_size, -1, -1,
-                sizeof(double), &starneig_single_owner_matrix_descr, &owner,
-                args->mpi);
+        starpu_data_handle_t lZ = lQ;
+        if (args->matrix_b != NULL) {
+            starpu_matrix_data_register(
+                &lZ, -1, 0, padded_size, padded_size, padded_size,
+                sizeof(double));
+#ifdef STARNEIG_ENABLE_MPI
+            if (args->mpi)
+                starpu_mpi_data_register_comm(
+                    lZ, args->mpi->tag_offset++, owner,
+                    starneig_mpi_get_comm());
+#endif
+        }
 
         if (my_rank == owner) {
 
@@ -844,9 +781,8 @@ static enum segment_status perform_deflate_finalize(
             //
             // reduce the non-deleflated part to Hessenberg-triangular form
             //
-#ifdef STARNEIG_ENABLE_AED_PARALLEL_HESSENBERG
-            if (padded_size-status->converged < 256 || args->matrix_b != NULL) {
-#endif
+            if (padded_size-status->converged < 1500 || args->matrix_b != NULL)
+            {
                 starpu_data_handle_t _lQ, _lZ;
                 starneig_schur_insert_small_hessenberg(
                     0, padded_size-status->converged, STARPU_MAX_PRIO,
@@ -861,46 +797,36 @@ static enum segment_status perform_deflate_finalize(
                     starpu_data_unregister_submit(_lZ);
                 starpu_data_unregister_submit(_lQ);
 
-#ifdef STARNEIG_ENABLE_AED_PARALLEL_HESSENBERG
             }
             else {
 
                 starneig_verbose("Performing parallel Hessenberg reduction.");
 
-                int panel_width = MAX(
-                    STARNEIG_MATRIX_BN(segment->aed_args.matrix_a),
-                    (160/STARNEIG_MATRIX_BN(segment->aed_args.matrix_a)) *
-                        STARNEIG_MATRIX_BN(segment->aed_args.matrix_a)
-                );
-
-                int num_workers =
-                    starpu_sched_ctx_get_nworkers(args->parallel_ctx) +
-                    starpu_sched_ctx_get_nworkers(args->regular_ctx);
-
-                move_workers_to_parallel_ctx(MAX(1, num_workers/4), args);
+                int panel_width = divceil(224,
+                    STARNEIG_MATRIX_BN(segment->aed_args.matrix_a)) *
+                        STARNEIG_MATRIX_BN(segment->aed_args.matrix_a);
 
                 starneig_hessenberg_insert_tasks(
                     panel_width, 0, padded_size-status->converged,
-                    args->parallel_ctx, args->regular_ctx,
                     args->max_prio, MAX(args->default_prio, args->max_prio-1),
                     MAX(args->default_prio, args->max_prio-1),
                     segment->aed_args.matrix_q, segment->aed_args.matrix_a,
                     NULL);
-
-                starpu_task_wait_for_all_in_ctx(args->parallel_ctx);
-                move_workers_from_parallel_ctx(args);
             }
-#endif
 
             //
             // copy the local transformation matrices to separete data handles
             //
 
-            starneig_insert_copy_matrix(0, 0, 0, 0, padded_size, padded_size,
+            starneig_insert_copy_matrix_to_handle(
+                0, STARNEIG_MATRIX_M(segment->aed_args.matrix_q),
+                0, STARNEIG_MATRIX_N(segment->aed_args.matrix_q),
                 args->max_prio, segment->aed_args.matrix_q, lQ, NULL);
+
             if (lZ != lQ)
-                starneig_insert_copy_matrix(
-                    0, 0, 0, 0, padded_size, padded_size,
+                starneig_insert_copy_matrix_to_handle(
+                    0, STARNEIG_MATRIX_M(segment->aed_args.matrix_z),
+                    0, STARNEIG_MATRIX_N(segment->aed_args.matrix_z),
                     args->max_prio, segment->aed_args.matrix_z, lZ, NULL);
         }
 
@@ -925,14 +851,12 @@ static enum segment_status perform_deflate_finalize(
         // insert update tasks
         //
 
-        insert_segment_updates(segment->aed_begin, segment->end,
-            starneig_get_tile_from_matrix_descr(0, 0, lQ),
-            starneig_get_tile_from_matrix_descr(0, 0, lZ),
+        insert_segment_updates(segment->aed_begin, segment->end, lQ, lZ,
             segment, args, UPDATE_DIRECTION_UP);
 
         if (lZ != lQ)
-            starneig_free_matrix_descr(lZ);
-        starneig_free_matrix_descr(lQ);
+            starpu_data_unregister_submit(lZ);
+        starpu_data_unregister_submit(lQ);
 
         //
         // resize the segment
@@ -2328,21 +2252,6 @@ starneig_error_t starneig_schur_insert_tasks(
     starneig_message("Using %d shifts.", (int)
         evaluate_parameter(STARNEIG_MATRIX_N(A), args.aed_shift_count));
 
-#ifdef STARNEIG_ENABLE_AED_PARALLEL_HESSENBERG
-
-    //
-    // setup schedulers
-    //
-
-    unsigned old_ctx = starpu_sched_ctx_get_context();
-    if (old_ctx == STARPU_NMAX_SCHED_CTXS)
-        old_ctx = 0;
-
-    if (args.regular_ctx != old_ctx)
-        starpu_sched_ctx_set_context(&args.regular_ctx);
-
-#endif
-
     //
     // prepare for the bootstrap process
     //
@@ -2370,34 +2279,6 @@ starneig_error_t starneig_schur_insert_tasks(
             STARPU_MAX_PRIO, A, B, real, imag, beta, mpi);
 
 cleanup:
-
-#ifdef STARNEIG_ENABLE_AED_PARALLEL_HESSENBERG
-
-    //
-    // clean up schedulers
-    //
-
-    STARPU_PTHREAD_MUTEX_LOCK(&args.worker_move_data->mutex);
-
-    if (args.parallel_ctx != STARPU_NMAX_SCHED_CTXS) {
-        starpu_task_wait_for_all_in_ctx(args.parallel_ctx);
-        starpu_sched_ctx_delete(args.parallel_ctx);
-    }
-
-    if (args.regular_ctx != old_ctx) {
-        starpu_task_wait_for_all_in_ctx(args.regular_ctx);
-        starpu_sched_ctx_delete(args.regular_ctx);
-    }
-
-    STARPU_PTHREAD_MUTEX_UNLOCK(&args.worker_move_data->mutex);
-    STARPU_PTHREAD_MUTEX_DESTROY(&args.worker_move_data->mutex);
-
-    free(args.worker_move_data);
-
-    if (args.regular_ctx != old_ctx)
-        starpu_sched_ctx_set_context(&old_ctx);
-
-#endif
 
     //
     // clean up
