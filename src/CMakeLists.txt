@@ -408,7 +408,8 @@ if (STARPU_USE_CUDA)
                 find_program (CUDA_HOST_COMPILER gcc-7 gcc-6 gcc-5)
             endif ()
 
-            if (NOT CUDA_HOST_COMPILER STREQUAL OLD_CUDA_HOST_COMPILER)
+            if (NOT CUDA_HOST_COMPILER STREQUAL CUDA_HOST_COMPILER-NOTFOUND AND
+            NOT CUDA_HOST_COMPILER STREQUAL OLD_CUDA_HOST_COMPILER)
                 message (STATUS "Switched to ${CUDA_HOST_COMPILER}")
                 set (CUDA_PROPAGATE_HOST_FLAGS OFF)
             else ()
