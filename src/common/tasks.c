@@ -831,6 +831,74 @@ void starneig_insert_copy_matrix(
     }
 }
 
+void starneig_insert_copy_matrix_to_handle(
+    int rbegin, int rend, int cbegin, int cend, int prio,
+    starneig_matrix_descr_t source, starpu_data_handle_t dest,
+    mpi_info_t mpi)
+{
+    struct packing_helper *helper = starneig_init_packing_helper();
+
+    struct packing_info packing_info;
+    starneig_pack_window(
+        STARPU_R, rbegin, rend, cbegin, cend, source, helper, &packing_info, 0);
+
+    starneig_pack_handle(STARPU_W, dest, helper, 0);
+
+#ifdef STARNEIG_ENABLE_MPI
+    if (mpi != NULL)
+        starpu_mpi_task_insert(
+            starneig_mpi_get_comm(),
+            &copy_matrix_to_handle_cl,
+            STARPU_EXECUTE_ON_NODE,
+            starpu_mpi_data_get_rank(dest),
+            STARPU_PRIORITY, prio,
+            STARPU_VALUE, &packing_info, sizeof(packing_info),
+            STARPU_DATA_MODE_ARRAY, helper->descrs, helper->count, 0);
+    else
+#endif
+        starpu_task_insert(
+            &copy_matrix_to_handle_cl,
+            STARPU_PRIORITY, prio,
+            STARPU_VALUE, &packing_info, sizeof(packing_info),
+            STARPU_DATA_MODE_ARRAY, helper->descrs, helper->count, 0);
+
+    starneig_free_packing_helper(helper);
+}
+
+void starneig_insert_copy_handle_to_matrix(
+    int rbegin, int rend, int cbegin, int cend, int prio,
+    starpu_data_handle_t source, starneig_matrix_descr_t dest,
+    mpi_info_t mpi)
+{
+    struct packing_helper *helper = starneig_init_packing_helper();
+
+    starneig_pack_handle(STARPU_R, source, helper, 0);
+
+    struct packing_info packing_info;
+    starneig_pack_window(
+        STARPU_RW, rbegin, rend, cbegin, cend, dest, helper, &packing_info,0);
+
+#ifdef STARNEIG_ENABLE_MPI
+    if (mpi != NULL)
+        starpu_mpi_task_insert(
+            starneig_mpi_get_comm(),
+            &copy_handle_to_matrix_cl,
+            STARPU_EXECUTE_ON_NODE,
+            starpu_mpi_data_get_rank(source),
+            STARPU_PRIORITY, prio,
+            STARPU_VALUE, &packing_info, sizeof(packing_info),
+            STARPU_DATA_MODE_ARRAY, helper->descrs, helper->count, 0);
+    else
+#endif
+        starpu_task_insert(
+            &copy_handle_to_matrix_cl,
+            STARPU_PRIORITY, prio,
+            STARPU_VALUE, &packing_info, sizeof(packing_info),
+            STARPU_DATA_MODE_ARRAY, helper->descrs, helper->count, 0);
+
+    starneig_free_packing_helper(helper);
+}
+
 void starneig_insert_set_to_identity(
     int prio, starneig_matrix_descr_t descr, mpi_info_t mpi)
 {

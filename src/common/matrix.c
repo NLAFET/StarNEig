@@ -533,3 +533,23 @@ void starneig_flush_section_matrix_descr(
                     starneig_mpi_get_comm(), descr->tiles[i][j]);
 #endif
 }
+
+void starneig_prefetch_section_matrix_descr(
+    int rbegin, int rend, int cbegin, int cend, int node, int async,
+    const starneig_matrix_descr_t descr)
+{
+    STARNEIG_ASSERT(descr != NULL);
+    STARNEIG_ASSERT(0 <= rbegin && rend <= STARNEIG_MATRIX_M(descr));
+    STARNEIG_ASSERT(0 <= cbegin && cend <= STARNEIG_MATRIX_N(descr));
+
+    int srbegin = (descr->rbegin + rbegin) / descr->bm;
+    int srend = (descr->rbegin + rend-1) / descr->bm + 1;
+
+    int scbegin = (descr->cbegin + cbegin) / descr->bn;
+    int scend = (descr->cbegin + cend-1) / descr->bn + 1;
+
+    for (int i = srbegin; i < srend; i++)
+        for (int j = scbegin; j < scend; j++)
+            if (descr->tiles[i][j] != NULL)
+                starpu_data_prefetch_on_node(descr->tiles[i][j], node, async);
+}

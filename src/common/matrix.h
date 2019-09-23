@@ -763,4 +763,32 @@ int starneig_involved_with_part_of_matrix_descr(
 void starneig_flush_section_matrix_descr(
     int rbegin, int rend, int cbegin, int cend, starneig_matrix_descr_t descr);
 
+///
+/// @brief Prefetches a section of a distributed matrix.
+///
+/// @param[in] rbegin
+///         First row that belongs to the section.
+///
+/// @param[in] rend
+///         Last row that belongs to the section + 1.
+///
+/// @param[in] cbegin
+///         First column that belongs to the section.
+///
+/// @param[in] cend
+///         Last row that belong to the section + 1.
+///
+/// @param[in] node
+///         The memory node.
+///
+/// @param[in] async
+///         Asynchronicity flag.
+///
+/// @param[in,out] descr
+///         Matrix descriptor.
+///
+void starneig_prefetch_section_matrix_descr(
+    int rbegin, int rend, int cbegin, int cend, int node, int async,
+    const starneig_matrix_descr_t descr);
+
 #endif

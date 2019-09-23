@@ -152,6 +152,70 @@ void starneig_insert_copy_matrix(
     mpi_info_t mpi);
 
 ///
+/// @brief Inserts copy_to_handle task.
+///
+/// @param[in] rbegin
+///         The first row to be copied.
+///
+/// @param[in] rend
+///         The last row the copied + 1.
+///
+/// @param[in] cbegin
+///         The first column to be copied.
+///
+/// @param[in] cend
+///         The last column the copied + 1.
+///
+/// @param[in] prio
+///         The StarPU priority.
+///
+/// @param[in] source
+///         The source matrix.
+///
+/// @param[in,out] dest
+///         The destination data handle.
+///
+/// @param[in,out] mpi
+///          The MPI info.
+///
+void starneig_insert_copy_matrix_to_handle(
+    int rbegin, int rend, int cbegin, int cend, int prio,
+    starneig_matrix_descr_t source, starpu_data_handle_t dest,
+    mpi_info_t mpi);
+
+///
+/// @brief Inserts copy_from_handle task.
+///
+/// @param[in] rbegin
+///         The first row to be copied.
+///
+/// @param[in] rend
+///         The last row the copied + 1.
+///
+/// @param[in] cbegin
+///         The first column to be copied.
+///
+/// @param[in] cend
+///         The last column the copied + 1.
+///
+/// @param[in] prio
+///         The StarPU priority.
+///
+/// @param[in] source
+///         The source data handle.
+///
+/// @param[in,out] dest
+///         The destination matrix.
+///
+/// @param[in,out] mpi
+///          The MPI info.
+///
+void starneig_insert_copy_handle_to_matrix(
+    int rbegin, int rend, int cbegin, int cend, int prio,
+    starpu_data_handle_t source, starneig_matrix_descr_t dest,
+    mpi_info_t mpi);
+
+///
 /// @brief Inserts set_to_identity task(s).
 ///
 /// @param[in] prio
