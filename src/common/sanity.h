@@ -576,7 +576,7 @@ static inline void starneig_sanity_check_schur(
                 double s1, s2, wr1, wr2, wi;
 
                 extern void dlag2_(double const *, int const *, double const *,
-                    int const *, double const *, double const *, double *,
+                    int const *, double const *, double *, double *,
                     double *, double *, double *);
 
                 dlag2_(&A[i*ldA+i], &ldA, &B[i*ldB+i], &ldB, &safmin,
