@@ -48,8 +48,9 @@
 /// @brief Supplementary data type enumerator.
 ///
 typedef enum {
-    SUPPLEMENTARY_SELECTED,     ///< eigenvalue selection vector
-    SUPPLEMENTARY_EIGENVALUES   ///< eigenvalues
+    SUPPLEMENTARY_SELECTED,          ///< eigenvalue selection vector
+    SUPPLEMENTARY_EIGENVALUES,       ///< eigenvalues
+    SUPPLEMENTARY_KNOWN_EIGENVALUES  ///< know eigenvalues
 } supplementary_type_t;
 
 ///
@@ -122,7 +123,7 @@ int * get_supplementaty_selected(struct supplementary const *supp);
 /// @brief Initialized a supplementary data of the type
 /// SUPPLEMENTARY_EIGENVALUES.
 ///
-/// @param[in]  size      eigenvalue selection vector size
+/// @param[in]  size      eigenvalue vector size
 /// @param[out] real      returns the eigenvalues vector (real parts)
 /// @param[out] imag      returns the eigenvalues vector (imaginary part)
 /// @param[out] beta      returns the "beta"
@@ -141,9 +142,33 @@ void init_supplementary_eigenvalues(
 /// @param[out]    imag  returns eigenvalues (imaginary parts)
 /// @param[out]    beta  returns the "beta"
 ///
-/// @return eigenvalues
-///
 void get_supplementaty_eigenvalues(struct supplementary const *supp,
+    double **real, double **imag, double **beta);
+
+///
+/// @brief Initialized a supplementary data of the type
+/// SUPPLEMENTARY_KNOWN_EIGENVALUES.
+///
+/// @param[in]  size      eigenvalue vector size
+/// @param[out] real      returns the eigenvalues vector (real parts)
+/// @param[out] imag      returns the eigenvalues vector (imaginary part)
+/// @param[out] beta      returns the eigenvalues vector (beta part)
+/// @param[out] supp      supplementary data
+///
+void init_supplementary_known_eigenvalues(
+    size_t size, double **real, double **imag, double **beta,
+    struct supplementary **supp);
+
+///
+/// @brief Returns the contest of a SUPPLEMENTARY_KNOWN_EIGENVALUES type
+/// supplementary data.
+///
+/// @param[in,out] supp  supplementary data
+/// @param[out]    real  returns eigenvalues (real parts)
+/// @param[out]    imag  returns eigenvalues (imaginary parts)
+/// @param[out]    beta  returns the eigenvalues vector (beta part)
+///
+void get_supplementaty_known_eigenvalues(struct supplementary const *supp,
     double **real, double **imag, double **beta);
 
 #endif

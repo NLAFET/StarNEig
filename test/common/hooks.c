@@ -913,7 +913,11 @@ static hook_return_t eigenvalues_test_after_solver_run(
     t->min[iter] = 1.0/0.0;
     t->max[iter] = 0.0;
     for (int i = 0; i < n; i++) {
-        if (beta1[i] == 0.0 && beta2[i] == 0.0) {
+        if (real1[i] == 0.0 && imag1[i] == 0.0 &&
+        real2[i] == 0.0 && imag2[i] == 0.0) {
+            // no problem ...
+        }
+        else if (beta1[i] == 0.0 && beta2[i] == 0.0) {
             // no problem ...
         }
         else if (beta1[i] == 0.0 && beta2[i] != 0.0) {
@@ -925,35 +929,12 @@ static hook_return_t eigenvalues_test_after_solver_run(
             t->min[iter] = MIN(t->min[iter], 1.0/0.0);
             t->max[iter] = MAX(t->max[iter], 1.0/0.0);
         }
-        else if (i+1 < n && imag1[i+1] != 0.0) {
-            double diff = ((long long)1<<52) * sqrt(
-                squ(real1[i]/beta1[i]-real2[i]/beta2[i]) +
-                squ(real1[i+1]/beta1[i+1]-real2[i+1]/beta2[i+1])
-            );
-            if (t->warn_threshold < diff || t->fail_threshold < diff ||
-            isnan(diff))
-            {
-                if (t->fail_threshold < diff || isnan(diff)) {
-                    printf(
-                        "EIGENVALUES TEST (FAILURE): An incorrect eigenvalue "
-                        "was returned at %d (diff = %.0f u).\n", i, diff);
-                    t->fail[iter]++;
-                }
-                else {
-                    printf(
-                        "EIGENVALUES TEST (WARNING): An incorrect eigenvalue "
-                        "was returned at %d (diff = %.0f u).\n", i, diff);
-                    t->warning[iter]++;
-                }
-            }
-            t->mean[iter] += 2*diff;
-            t->min[iter] = MIN(t->min[iter], diff);
-            t->max[iter] = MAX(t->max[iter], diff);
-            i++;
-        }
         else {
             double diff = ((long long)1<<52) *
-                fabs(real1[i]/beta1[i]-real2[i]/beta2[i]);
+                sqrt(
+                    squ(real1[i]/beta1[i]-real2[i]/beta2[i]) +
+                    squ(imag1[i]/beta1[i]-imag2[i]/beta2[i])
+                ) / sqrt(squ(real1[i]/beta1[i]) + squ(imag1[i]/beta1[i]));
 
             if (t->warn_threshold < diff || t->fail_threshold < diff ||
             isnan(diff))
@@ -961,13 +942,19 @@ static hook_return_t eigenvalues_test_after_solver_run(
                 if (t->fail_threshold < diff || isnan(diff)) {
                     printf(
                         "EIGENVALUES TEST (FAILURE): An incorrect eigenvalue "
-                        "was returned at %d (diff = %.0f u).\n", i, diff);
+                        "was returned at %d. Returned (%e,%e), correct " \
+                        "(%e, %e) (diff = %.0f u).\n", i,
+                        real2[i]/beta2[i], imag2[i]/beta2[i],
+                        real1[i]/beta1[i], imag1[i]/beta1[i], diff);
                     t->fail[iter]++;
                 }
                 else {
                     printf(
                         "EIGENVALUES TEST (WARNING): An incorrect eigenvalue "
-                        "was returned at %d (diff = %.0f u).\n", i, diff);
+                        "was returned at %d. Returned (%e,%e), correct " \
+                        "(%e, %e) (diff = %.0f u).\n", i,
+                        real2[i]/beta2[i], imag2[i]/beta2[i],
+                        real1[i]/beta1[i], imag1[i]/beta1[i], diff);
                     t->warning[iter]++;
                 }
             }
@@ -1071,6 +1058,314 @@ const struct hook_descr_t default_eigenvalues_descr = {
     .is_enabled = 1,
     .default_mode = HOOK_MODE_NORMAL,
     .hook = &eigenvalues_test
+};
+
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
+static const int known_eigenvalues_test_default_fail_threshold = 1000000;
+static const int known_eigenvalues_test_default_warn_threshold = 10000;
+
+struct known_eigenvalues_test_state {
+    int used;
+    int fail_threshold;     ///< norm failure threshold
+    int warn_threshold;     ///< norm warning threshold
+    int *warning;
+    int *fail;
+    double *mean;
+    double *min;
+    double *max;
+};
+
+static void known_eigenvalues_test_print_usage(int argc, char * const *argv)
+{
+    printf(
+        "  --known-eigenvalues-fail-threshold (num) -- Failure threshold\n"
+        "  --known-eigenvalues-warn-threshold (num) -- Warning threshold\n"
+    );
+}
+
+static void known_eigenvalues_test_print_args(int argc, char * const *argv)
+{
+    printf(" --known-eigenvalues-fail-threshold %d",
+        read_int("--known-eigenvalues-fail-threshold", argc, argv, NULL,
+            known_eigenvalues_test_default_fail_threshold));
+    printf(" --known-eigenvalues-warn-threshold %d",
+        read_int("--known-eigenvalues-warn-threshold", argc, argv, NULL,
+            known_eigenvalues_test_default_warn_threshold));
+}
+
+static int known_eigenvalues_test_check_args(
+    int argc, char * const *argv, int *argr)
+{
+    int fail_threshold =
+        read_int("--known-eigenvalues-fail-threshold", argc, argv, argr,
+            known_eigenvalues_test_default_fail_threshold);
+    int warn_threshold =
+        read_int("--known-eigenvalues-warn-threshold", argc, argv, argr,
+            known_eigenvalues_test_default_warn_threshold);
+
+    if (fail_threshold < 0) {
+        fprintf(stderr,
+            "KNOWN EIGENVALUES CHECK: Invalid failure threshold.\n");
+        return 1;
+    }
+    if (warn_threshold < 0) {
+        fprintf(stderr,
+            "KNOWN EIGENVALUES CHECK: Invalid warning threshold.\n");
+        return 1;
+    }
+
+    if (fail_threshold < warn_threshold)
+        fprintf(stderr,
+            "KNOWN EIGENVALUES CHECK: The warning threshold is tighter than " \
+            "the failure threshold.\n");
+
+    return 0;
+}
+
+static int known_eigenvalues_test_init(
+    int argc, char * const *argv, int repeat, int warmup, hook_state_t *state)
+{
+    struct known_eigenvalues_test_state *t =
+        malloc(sizeof(struct known_eigenvalues_test_state));
+
+    int fail_threshold =
+        read_double("--known-eigenvalues-fail-threshold", argc, argv, NULL,
+            known_eigenvalues_test_default_fail_threshold);
+    int warn_threshold =
+        read_double("--known-eigenvalues-warn-threshold", argc, argv, NULL,
+            known_eigenvalues_test_default_warn_threshold);
+
+    t->used = 0;
+    t->fail_threshold = fail_threshold;
+    t->warn_threshold = warn_threshold;
+
+    t->warning = malloc(repeat*sizeof(int));
+    t->fail = malloc(repeat*sizeof(int));
+
+    t->mean = malloc(repeat*sizeof(double));
+    t->min = malloc(repeat*sizeof(double));
+    t->max = malloc(repeat*sizeof(double));
+
+    *state = t;
+
+    return 0;
+}
+
+static int known_eigenvalues_test_clean(hook_state_t state)
+{
+    struct known_eigenvalues_test_state *t = state;
+
+    if (t == NULL)
+        return 0;
+
+    free(t->warning);
+    free(t->fail);
+    free(t->mean);
+    free(t->min);
+    free(t->max);
+    free(t);
+
+    return 0;
+}
+
+static hook_return_t known_eigenvalues_test_after_solver_run(
+    int iter, hook_state_t state, struct hook_data_env *env)
+{
+    if (iter < 0)
+        return HOOK_SUCCESS;
+
+    pencil_t pencil = (pencil_t) env->data;
+    struct known_eigenvalues_test_state *t = state;
+
+    int n = GENERIC_MATRIX_N(pencil->mat_a);
+
+    double *real2, *imag2, *beta2;
+    get_supplementaty_known_eigenvalues(pencil->supp, &real2, &imag2, &beta2);
+    if (real2 == NULL || imag2 == NULL || beta2 == NULL) {
+        fprintf(stderr,
+            "KNOWN EIGENVALUES CHECK: The stored pencil does not contain " \
+            "the known eigenvalues. Skipping.\n");
+        return HOOK_SUCCESS;
+    }
+
+    double *real1 = malloc(n*sizeof(double));
+    double *imag1 = malloc(n*sizeof(double));
+    double *beta1 = malloc(n*sizeof(double));
+    extract_eigenvalues(pencil->mat_a, pencil->mat_b, real1, imag1, beta1);
+
+    t->warning[t->used] = 0;
+    t->fail[t->used] = 0;
+    t->mean[t->used] = 0.0;
+    t->min[t->used] = 1.0/0.0;
+    t->max[t->used] = 0.0;
+
+    int *used = malloc(n*sizeof(int));
+    memset(used, 0, n*sizeof(int));
+
+    for (int i = 0; i < n; i++) {
+
+        // find closest match
+        int closest = n;
+        double closest_diff = 1.0/0.0;
+        for (int j = 0; j < n; j++) {
+            if (!used[j]) {
+                if (beta1[i] == 0.0 && beta2[j] == 0.0) {
+                    closest = j;
+                    closest_diff = 0.0;
+                    break;
+                } else {
+                    double diff;
+                    if (real2[j] == 0.0 && imag2[j] == 0.0)
+                        diff = ((long long)1<<52) * sqrt(
+                            squ(real1[i]/beta1[i]) +
+                            squ(imag1[i]/beta1[i]));
+                    else
+                        diff = ((long long)1<<52) * sqrt(
+                            squ(real1[i]/beta1[i]-real2[j]/beta2[j]) +
+                            squ(imag1[i]/beta1[i]-imag2[j]/beta2[j])
+                        ) / sqrt(
+                            squ(real2[j]/beta2[j]) + squ(imag2[j]/beta2[j]));
+
+                    if (diff < closest_diff) {
+                        closest = j;
+                        closest_diff = diff;
+                    }
+                }
+            }
+        }
+        if (closest < n)
+            used[closest] = 1;
+
+        if (t->warn_threshold < closest_diff ||
+        t->fail_threshold < closest_diff || isnan(closest_diff)) {
+            if (t->fail_threshold < closest_diff || isnan(closest_diff)) {
+                printf(
+                    "KNOWN EIGENVALUES TEST (FAILURE): An incorrect eigenvalue "
+                    "was returned at %d (diff = %.0f u).\n", i, closest_diff);
+                t->fail[t->used]++;
+            }
+            else {
+                printf(
+                    "KNOWN EIGENVALUES TEST (WARNING): An incorrect eigenvalue "
+                    "was returned at %d (diff = %.0f u).\n", i, closest_diff);
+                t->warning[t->used]++;
+            }
+        }
+        t->mean[t->used] += closest_diff;
+        t->min[t->used] = MIN(t->min[t->used], closest_diff);
+        t->max[t->used] = MAX(t->max[t->used], closest_diff);
+    }
+
+    t->mean[t->used] /= n;
+
+    printf(
+        "KNOWN EIGENVALUES CHECK: mean = %.0f u, min = %.0f u, max = %.0f u\n",
+        t->mean[t->used], t->min[t->used], t->max[t->used]);
+
+    if (0 < t->fail[t->used])
+        printf(
+            "KNOWN EIGENVALUES CHECK: %d eigenvalue failures.\n",
+            t->fail[t->used]);
+
+    if (0 < t->warning[t->used])
+        printf(
+            "KNOWN EIGENVALUES CHECK: %d eigenvalue warnings.\n",
+            t->warning[t->used]);
+
+    t->used++;
+
+    free(real1);
+    free(imag1);
+    free(beta1);
+    free(used);
+
+    if (0 < t->fail[t->used-1])
+        return HOOK_SOFT_FAIL;
+
+    if (0 < t->warning[t->used-1])
+        return HOOK_WARNING;
+
+    return HOOK_SUCCESS;
+}
+
+static hook_return_t known_eigenvalues_test_summary(
+    int iter, hook_state_t state, struct hook_data_env *env)
+{
+    struct known_eigenvalues_test_state *t = state;
+
+    if (t->used == 0)
+        return HOOK_SUCCESS;
+
+    qsort(t->warning, t->used, sizeof(int), &int_compare);
+    qsort(t->fail, t->used, sizeof(int), &int_compare);
+    qsort(t->mean, t->used, sizeof(double), &double_compare);
+    qsort(t->min, t->used, sizeof(double), &double_compare);
+    qsort(t->max, t->used, sizeof(double), &double_compare);
+
+    int warning_runs = 0;
+    int fail_runs = 0;
+    for (int i = 0; i < t->used; i++) {
+        if (0 < t->warning[i]) warning_runs++;
+        if (0 < t->fail[i]) fail_runs++;
+    }
+
+    printf("KNOWN EIGENVALUES CHECK (WARNINGS): %d runs effected "
+        "[avg %.1f, cv %.2f, min %d, max %d]\n",
+        warning_runs, int_mean(t->used, t->warning),
+        int_cv(t->used, t->warning), t->warning[0], t->warning[t->used-1]);
+    printf("KNOWN EIGENVALUES CHECK (FAILS): %d runs effected "
+        "[avg %.1f, cv %.2f, min %d, max %d]\n",
+        fail_runs, int_mean(t->used, t->fail), int_cv(t->used, t->fail),
+        t->fail[0], t->fail[t->used-1]);
+    printf(
+        "KNOWN EIGENVALUES CHECK (MEANS): "
+        "[avg %.0f u, cv %.2f, min %.0f u, max %.0f u]\n",
+        double_mean(t->used, t->mean), double_cv(t->used, t->mean),
+        t->mean[0], t->mean[t->used-1]);
+    printf("KNOWN EIGENVALUES CHECK (MIN): "
+        "[avg %.0f u, cv %.2f, min %.0f u, max %.0f u]\n",
+        double_mean(t->used, t->min), double_cv(t->used, t->min),
+        t->min[0], t->min[t->used-1]);
+    printf("KNOWN EIGENVALUES CHECK (MAX): "
+        "[avg %.0f u, cv %.2f, min %.0f u, max %.0f u]\n",
+        double_mean(t->used, t->max), double_cv(t->used, t->max),
+        t->max[0], t->max[t->used-1]);
+
+    return HOOK_SUCCESS;
+}
+
+const struct hook_t known_eigenvalues_test = {
+    .name = "known-eigenvalues",
+    .desc = "Checks computed eigenvalues agains known values",
+    .formats = (hook_data_format_t[]) {
+        HOOK_DATA_FORMAT_PENCIL_LOCAL,
+#ifdef STARNEIG_ENABLE_MPI
+        HOOK_DATA_FORMAT_PENCIL_STARNEIG,
+#endif
+#ifdef STARNEIG_ENABLE_BLACS
+        HOOK_DATA_FORMAT_PENCIL_BLACS,
+#endif
+        0 },
+    .print_usage = &known_eigenvalues_test_print_usage,
+    .print_args = &known_eigenvalues_test_print_args,
+    .check_args = &known_eigenvalues_test_check_args,
+    .init = &known_eigenvalues_test_init,
+    .clean = &known_eigenvalues_test_clean,
+    .after_solver_run = &known_eigenvalues_test_after_solver_run,
+    .summary = &known_eigenvalues_test_summary
+};
+
+const struct hook_descr_t default_known_eigenvalues_descr = {
+    .is_enabled = 1,
+    .default_mode = HOOK_MODE_NORMAL,
+    .hook = &known_eigenvalues_test
 };
 
 ////////////////////////////////////////////////////////////////////////////////

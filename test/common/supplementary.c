@@ -369,6 +369,87 @@ void get_supplementaty_eigenvalues(struct supplementary const *supp,
 
 ////////////////////////////////////////////////////////////////////////////////
 
+static void print_known_eigenvalues(void *ptr)
+{
+    struct eigenvalues_load *load = ptr;
+
+    if (load == NULL)
+        return;
+
+    printf("Known eigenvalues:\n");
+    for (int i = 0; i < load->size; i++) {
+        if (load->real != NULL)
+            printf("%10f ", load->real[i]);
+        else
+            printf("  -------- ");
+    }
+    printf("\n");
+    for (int i = 0; i < load->size; i++) {
+        if (load->imag != NULL)
+            printf("%10f ", load->imag[i]);
+        else
+            printf("  -------- ");
+    }
+    printf("\n");
+    for (int i = 0; i < load->size; i++) {
+        if (load->beta != NULL)
+            printf("%10f ", load->beta[i]);
+        else
+            printf("  -------- ");
+    }
+    printf("\n");
+}
+
+void init_supplementary_known_eigenvalues(
+    size_t size, double **real, double **imag, double **beta,
+    struct supplementary **supp)
+{
+    if (real != NULL)
+        *real = NULL;
+    if (imag != NULL)
+        *imag = NULL;
+    if (beta != NULL)
+        *beta = NULL;
+
+    struct eigenvalues_load **load = (struct eigenvalues_load **)
+        create_supplementary(SUPPLEMENTARY_KNOWN_EIGENVALUES, supp);
+
+    if (0 < size) {
+        *load = malloc(sizeof(struct eigenvalues_load));
+        (*load)->real = malloc(size*sizeof(double));
+        (*load)->imag = malloc(size*sizeof(double));
+        (*load)->beta = malloc(size*sizeof(double));
+        for (int i = 0; i < size; i++) {
+            (*load)->real[i] = 0.0;
+            (*load)->imag[i] = 0.0;
+            (*load)->beta[i] = 1.0;
+        }
+        (*load)->size = size;
+        if (real != NULL)
+            *real = (*load)->real;
+        if (imag != NULL)
+            *imag = (*load)->imag;
+        if (beta != NULL)
+            *beta = (*load)->beta;
+    }
+}
+
+void get_supplementaty_known_eigenvalues(struct supplementary const *supp,
+    double **real, double **imag, double **beta)
+{
+    struct eigenvalues_load *load =
+        get_load(SUPPLEMENTARY_KNOWN_EIGENVALUES, supp);
+
+    *real = *imag = *beta = NULL;
+    if (load != NULL) {
+        *real = load->real;
+        *imag = load->imag;
+        *beta = load->beta;
+    }
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
 ///
 /// @brief Supplementary data handler descriptor.
 ///
@@ -403,6 +484,15 @@ static const struct handler handlers[] = {
         .broadcast = broadcast_eigenvalues,
 #endif
         .print = print_eigenvalues
+    },
+    {
+        .type = SUPPLEMENTARY_KNOWN_EIGENVALUES,
+        .free = free_eigenvalues,
+        .copy = copy_eigenvalues,
+#ifdef STARNEIG_ENABLE_MPI
+        .broadcast = broadcast_eigenvalues,
+#endif
+        .print = print_known_eigenvalues
     }
 };
 

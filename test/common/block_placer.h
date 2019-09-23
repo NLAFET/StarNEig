@@ -1,5 +1,6 @@
 ///
-/// @file This file contains general purpose hooks.
+/// @file This file contains code that places a set of 1-by-1 and 2-by-2 blocks
+/// to the diagonal of a matrix A or a matrix pencil (A,B).
 ///
 /// @author Mirko Myllykoski (mirkom@cs.umu.se), Umeå University
 ///
@@ -34,35 +35,33 @@
 /// POSSIBILITY OF SUCH DAMAGE.
 ///
 
-#ifndef STARNEIG_TESTS_COMMON_HOOKS_H
-#define STARNEIG_TESTS_COMMON_HOOKS_H
+#ifndef STARNEIG_TEST_COMMON_BLOCK_PLACER_H
+#define STARNEIG_TEST_COMMON_BLOCK_PLACER_H
 
 #include <starneig_test_config.h>
 #include <starneig/configuration.h>
-#include "hook_experiment.h"
+#include "pencil.h"
 
-extern const struct hook_t hessenberg_test;
-extern const struct hook_descr_t default_hessenberg_test_descr;
+///
+/// @brief Places a set of 1-by-1 and 2-by-2 blocks to the diagonal of a matrix
+/// A or a matrix pencil (A,B).
+///
+/// @param[in] real
+///         The real parts of the eigenvalues.
+///
+/// @param[in] imag
+///         The imaginary parts of the eigenvalues.
+///
+/// @param[in] beta
+///         The eigenvalue scaling factors.
+///
+/// @param[in,out] A
+///         Matrix A.
+///
+/// @param[in,out] B
+///         Matrix B.
+///
+void block_placer(
+    double *real, double *imag, double *beta, matrix_t A, matrix_t B);
 
-extern const struct hook_t schur_test;
-extern const struct hook_descr_t default_schur_test_descr;
-
-extern const struct hook_t residual_test;
-extern const struct hook_descr_t default_residual_test_descr;
-
-extern const struct hook_t print_input_pencil;
-extern const struct hook_descr_t default_print_input_pencil_descr;
-
-extern const struct hook_t print_pencil;
-extern const struct hook_descr_t default_print_pencil_descr;
-
-extern const struct hook_t eigenvalues_test;
-extern const struct hook_descr_t default_eigenvalues_descr;
-
-extern const struct hook_t known_eigenvalues_test;
-extern const struct hook_descr_t default_known_eigenvalues_descr;
-
-extern const struct hook_t analysis_test;
-extern const struct hook_descr_t default_analysis_descr;
-
-#endif
+#endif // STARNEIG_TEST_COMMON_BLOCK_PLACER_H

@@ -39,7 +39,7 @@
 #include "complex_distr.h"
 #include "common.h"
 #include "parse.h"
-#include "crawler.h"
+#include "block_placer.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -50,87 +50,27 @@ static const double default_zero_ratio = 0.01;
 static const double default_inf_ratio = 0.01;
 
 ///
-/// @brief A argument structure for the crawler function that places the 2-by-2
-/// blocks to the diagonal.
-///
-struct complex_arg {
-    double *real;
-    double *imag;
-    double *beta;
-};
-
-///
-/// @brief A crawler function that places the 2-by-2 blocks to the diagonal.
-///
-static int complex_crawler(
-    int offset, int size, int m, int n, int count, size_t *lds,
-    void **ptrs, void *arg)
-{
-    double *real = ((struct complex_arg *)arg)->real;
-    double *imag = ((struct complex_arg *)arg)->imag;
-    double *beta = ((struct complex_arg *)arg)->beta;
-
-    double *A = ptrs[0];
-    size_t ldA = lds[0];
-
-    double *B = NULL;
-    size_t ldB = 0;
-    if (1 < count) {
-        B = ptrs[1];
-        ldB = lds[1];
-    }
-
-    int i = 0;
-    int _size = offset+size < n ? size-1 : size;
-    while (i < _size) {
-        if (imag[offset+i] != 0.0) {
-            A[    i * ldA + i] = real[offset+i];
-            A[(i+1) * ldA + i+1] = real[offset+i+1];
-            A[(i+1) * ldA + i] = imag[offset+i];
-            A[    i * ldA + i+1] = imag[offset+i+1];
-
-            if (B != NULL) {
-                B[    i * ldB + i] = beta[offset+i];
-                B[(i+1) * ldB + i+1] = beta[offset+i];
-                B[(i+1) * ldB + i] = 0.0;
-                B[    i * ldB + i+1] = 0.0;
-            }
-
-            i += 2;
-        }
-        else {
-            A[i*ldA+i] = real[offset+i];
-            if (B != NULL)
-                B[i*ldB+i] = beta[offset+i];
-            i++;
-        }
-    }
-
-    return i;
-}
-
-///
 /// @brief
 ///
 static void generate_special_cases(
     int n, double complex_ratio, double zero_ratio, double inf_ratio,
-    struct complex_arg *arg)
+    double *real, double *imag, double *beta)
 {
     // place zero blocks (zero eigenvaleus)
     for (int i = 0; i < n; i++) {
-        if (i+1 < n && arg->imag[i] != 0.0)
+        if (i+1 < n && imag[i] != 0.0)
             i++;
         else if (1.0 * prand() / PRAND_MAX < zero_ratio/(1.0-complex_ratio))
-            arg->real[i] = 0.0;
+            real[i] = 0.0;
     }
 
     // place zero blocks (infinite eigenvalues)
-    for (int i = 0; arg->beta != NULL && i < n; i++) {
-        if (i+1 < n && arg->imag[i] != 0.0)
+    for (int i = 0; beta != NULL && i < n; i++) {
+        if (i+1 < n && imag[i] != 0.0)
             i++;
-        else if (arg->real[i] != 0.0 &&
+        else if (real[i] != 0.0 &&
         1.0 * prand() / PRAND_MAX < inf_ratio/(1.0-complex_ratio-zero_ratio))
-            arg->beta[i] = 0.0;
+            beta[i] = 0.0;
     }
 }
 
@@ -140,7 +80,7 @@ static void uniform_complex_distr_print_usage()
 {
     printf(
         "  --fortify -- Fortify against failed swaps\n"
-        "  --complex-ratio (0.0-1.0) -- Ratio\n"
+        "  --complex-ratio (0.0-1.0) -- Complex eigenvalue ratio\n"
         "  --zero-ratio (0.0-1.0) -- Zero eigenvalue ratio\n"
         "  --inf-ratio (0.0-1.0) -- Infinite eigenvalue ratio\n"
     );
@@ -220,25 +160,26 @@ static int uniform_complex_distr_init(
     for (int i = 0; i < real_count; i++)
         spaces[prand() % (complex_count+1)]++;
 
-    struct complex_arg arg = {
-        .real = malloc(n*sizeof(double)),
-        .imag = malloc(n*sizeof(double)),
-        .beta = malloc(n*sizeof(double))
-    };
+    double *real = malloc(n*sizeof(double));
+    double *imag = malloc(n*sizeof(double));
+    double *beta = malloc(n*sizeof(double));
 
     // place the 1-by-1 blocks
     if (fortify) {
         for (int i = 0; i < n; i++) {
-            arg.real[i] = 2.0*(i - n/2 + 0.5);
-            arg.imag[i] = 0.0;
-            arg.beta[i] = 1.0;
+            real[i] = 2.0*(i - n/2 + 0.5);
+            imag[i] = 0.0;
+            beta[i] = 1.0;
         }
     }
     else {
         for (int i = 0; i < n; i++) {
-            arg.real[i] = 2.0*(1.0*prand()/PRAND_MAX)-1.0;
-            arg.imag[i] = 0.0;
-            arg.beta[i] = 1.0;
+            real[i] = (2.0*prand()/PRAND_MAX-1.0) * n;
+            imag[i] = 0.0;
+            if (B != NULL)
+                beta[i] = 1.0*prand()/PRAND_MAX;
+            else
+                beta[i] = 1.0;
         }
     }
 
@@ -247,9 +188,9 @@ static int uniform_complex_distr_init(
         int i = 0;
         for (int j = 0; j < complex_count; j++) {
             i += spaces[j];
-            arg.imag[i]   =  fabs(arg.real[i]);
-            arg.real[i+1] =       arg.real[i];
-            arg.imag[i+1] =      -arg.imag[i];
+            imag[i]   =  fabs(real[i]);
+            real[i+1] =       real[i];
+            imag[i+1] =      -imag[i];
             i += 2;
         }
     }
@@ -257,23 +198,24 @@ static int uniform_complex_distr_init(
         int i = 0;
         for (int j = 0; j < complex_count; j++) {
             i += spaces[j];
-            arg.real[i] = 2.0*(1.0*prand()/PRAND_MAX)-1.0;
-            arg.imag[i] = 2.0*(1.0*prand()/PRAND_MAX)-1.0;
-            arg.real[i+1] =  arg.real[i];
-            arg.imag[i+1] = -arg.imag[i];
+            real[i] = (2.0*prand()/PRAND_MAX-1.0) * n;
+            imag[i] = (2.0*prand()/PRAND_MAX-1.0) * n;
+            real[i+1] =  real[i];
+            imag[i+1] = -imag[i];
+            beta[i] = beta[i+1] = 1.0*prand()/PRAND_MAX;
             i += 2;
         }
     }
 
     if (!fortify)
-        generate_special_cases(n, complex_ratio, zero_ratio, inf_ratio, &arg);
+        generate_special_cases(n, complex_ratio, zero_ratio, inf_ratio,
+            real, imag, beta);
 
-    crawl_matrices(CRAWLER_RW, CRAWLER_DIAG_WINDOW,
-        &complex_crawler, &arg, 0, A, B, NULL);
+    block_placer(real, imag, beta, A, B);
 
-    free(arg.real);
-    free(arg.imag);
-    free(arg.beta);
+    free(real);
+    free(imag);
+    free(beta);
 
     return 0;
 }
@@ -420,54 +362,56 @@ static int bulk_complex_distr_init(
     double inf_ratio =
         read_double("--inf-ratio", argc, argv, NULL, default_inf_ratio);
 
-    struct complex_arg arg = {
-        .real = malloc(n*sizeof(double)),
-        .imag = malloc(n*sizeof(double)),
-        .beta = malloc(n*sizeof(double))
-    };
+    double *real = malloc(n*sizeof(double));
+    double *imag = malloc(n*sizeof(double));
+    double *beta = malloc(n*sizeof(double));
 
     // place the 1-by-1 blocks
     if (fortify) {
         for (int i = 0; i < n; i++) {
-            arg.real[i] = 2.0*(i - n/2 + 0.5);
-            arg.imag[i] = 0.0;
-            arg.beta[i] = 1.0;
+            real[i] = 2.0*(i - n/2 + 0.5);
+            imag[i] = 0.0;
+            beta[i] = 1.0;
         }
     }
     else {
         for (int i = 0; i < n; i++) {
-            arg.real[i] = 2.0*(1.0*prand()/PRAND_MAX)-1.0;
-            arg.imag[i] = 0.0;
-            arg.beta[i] = 1.0;
+            real[i] = (2.0*prand()/PRAND_MAX-1.0) * n;
+            imag[i] = 0.0;
+            if (B != NULL)
+                beta[i] = 1.0*prand()/PRAND_MAX;
+            else
+                beta[i] = 1.0;
         }
     }
 
     // place the 2-by-2 blocks into the diagonal
     if (fortify) {
         for (int i = begin; i+1 < end; i += 2) {
-            arg.imag[i]   =  fabs(arg.real[i]);
-            arg.real[i+1] =       arg.real[i];
-            arg.imag[i+1] =      -arg.imag[i];
+            imag[i]   =  fabs(real[i]);
+            real[i+1] =       real[i];
+            imag[i+1] =      -imag[i];
         }
     }
     else {
         for (int i = begin; i+1 < end; i += 2) {
-            arg.real[i] = 2.0*(1.0*prand()/PRAND_MAX)-1.0;
-            arg.imag[i] = 2.0*(1.0*prand()/PRAND_MAX)-1.0;
-            arg.real[i+1] =  arg.real[i];
-            arg.imag[i+1] = -arg.imag[i];
+            real[i] = (2.0*prand()/PRAND_MAX-1.0) * n;
+            imag[i] = (2.0*prand()/PRAND_MAX-1.0) * n;
+            real[i+1] =  real[i];
+            imag[i+1] = -imag[i];
+            beta[i] = beta[i+1] = 1.0*prand()/PRAND_MAX;
         }
     }
 
     if (!fortify)
-        generate_special_cases(n, complex_ratio, zero_ratio, inf_ratio, &arg);
+        generate_special_cases(n, complex_ratio, zero_ratio, inf_ratio,
+            real, imag, beta);
 
-    crawl_matrices(CRAWLER_RW, CRAWLER_DIAG_WINDOW,
-        &complex_crawler, &arg, 0, A, B, NULL);
+    block_placer(real, imag, beta, A, B);
 
-    free(arg.real);
-    free(arg.imag);
-    free(arg.beta);
+    free(real);
+    free(imag);
+    free(beta);
 
     return 0;
 }
