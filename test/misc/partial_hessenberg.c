@@ -59,8 +59,6 @@ void partial_hessenberg_print_usage(
         "  --gpus [default,(num)] -- Number of GPUS\n"
         "  --tile-size [default,(num)] -- Tile size\n"
         "  --panel-width [default,(num)] -- Panel width\n"
-        "  --parallel-worker-size [default,gpuonly,(num)] -- Parallel "
-        "worker size\n"
     );
 }
 
@@ -74,8 +72,6 @@ void partial_hessenberg_print_args(
     print_multiarg("--gpus", argc, argv, "default", NULL);
     print_multiarg("--tile-size", argc, argv, "default", NULL);
     print_multiarg("--panel-width", argc, argv, "default", NULL);
-    print_multiarg(
-        "--parallel-worker-size", argc, argv, "default", NULL);
 }
 
 int partial_hessenberg_check_args(
@@ -93,8 +89,6 @@ int partial_hessenberg_check_args(
         "--tile-size", argc, argv, argr, "default", NULL);
     struct multiarg_t panel_width = read_multiarg(
         "--panel-width", argc, argv, argr, "default", NULL);
-    struct multiarg_t parallel_worker_size = read_multiarg(
-        "--parallel-worker-size", argc, argv, argr, "default", NULL);
 
     if (n < 1 || begin < 0 || end < begin || n < end)
         return 1;
@@ -117,13 +111,6 @@ int partial_hessenberg_check_args(
         return -1;
     }
 
-    if (parallel_worker_size.type == invalid ||
-    (parallel_worker_size.type == integer &&
-    parallel_worker_size.int_value < 1)) {
-        fprintf(stderr, "Invalid parallel worker size.\n");
-        return -1;
-    }
-
     return 0;
 }
 
@@ -141,8 +128,6 @@ int partial_hessenberg_run(
         "--tile-size", argc, argv, NULL, "default", NULL);
     struct multiarg_t panel_width = read_multiarg(
         "--panel-width", argc, argv, NULL, "default", NULL);
-    struct multiarg_t parallel_worker_size = read_multiarg(
-        "--parallel-worker-size", argc, argv, NULL, "default", NULL);
 
     int cores = -1;
     if (arg_cores.type == integer)
@@ -181,8 +166,6 @@ int partial_hessenberg_run(
         conf.tile_size = tile_size.int_value;
     if (panel_width.type == integer)
         conf.panel_width = panel_width.int_value;
-    if (parallel_worker_size.type == integer)
-        conf.parallel_worker_size = parallel_worker_size.int_value;
 
     starneig_SEP_SM_Hessenberg_expert(&conf,
         LOCAL_MATRIX_N(pencil->mat_a), begin, end,
