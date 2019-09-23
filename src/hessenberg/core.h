@@ -55,14 +55,6 @@
 /// @param[in] end
 ///         Last row/column to be reduced + 1.
 ///
-/// @param[in] parallel_ctx
-///         Parallel StarPU scheduling context (for panel reduction and
-///         trailing matrix update tasks). This scheduling context is ignored if
-///         the value is STARPU_NMAX_SCHED_CTXS.
-///
-/// @param[in] other_ctx
-///         Regular StarPU scheduling context (for remaining update tasks).
-///
 /// @param[in] critical_prio
 ///         Panel reduction and trailing matrix update task priority.
 ///
@@ -83,7 +75,6 @@
 ///
 starneig_error_t starneig_hessenberg_insert_tasks(
     int panel_width, int begin, int end,
-    unsigned parallel_ctx, unsigned other_ctx,
     int critical_prio, int update_prio, int misc_prio,
     starneig_matrix_descr_t matrix_q, starneig_matrix_descr_t matrix_a,
     mpi_info_t mpi);

@@ -37,15 +37,14 @@
 #include <starneig_config.h>
 #include <starneig/configuration.h>
 #include "cuda.h"
-#include "cuda_cleanup.h"
 #include "../common/common.h"
 #include "../common/tiles.h"
 #include <starpu.h>
 #include <starpu_cublas_v2.h>
 
-static __constant__ __device__ double _one = 1.0;
-static __constant__ __device__ double _m_one = -1.0;
-static __constant__ __device__ double _zero = 0.0;
+static const double *one = (const double[]) { 1.0 };
+static const double *m_one = (const double[]) { -1.0 };
+static const double *zero = (const double[]) { 0.0 };
 
 extern "C" void dlarfg_(int const *, double *, double *, int const *, double *);
 
@@ -58,25 +57,25 @@ extern "C" void dlarfg_(int const *, double *, double *, int const *, double *);
 /// @param[in]  cend    last column that is included to the computation + 1
 /// @param[in]  bm      tile height
 /// @param[in]  bn      tile width
-/// @param[in]  tiles   device side argument buffer (matrix tiles)
-/// @param[in]  x       input vector
-/// @param[out] y       output vector
+/// @param[in]  A       device side argument buffer (matrix tiles)
+/// @param[in]  x       device side argument buffer (input vector)
+/// @param[out] y       device side argument buffer (output vector)
 ///
-static __global__ void _tiled_matrix_vector(
+static __global__ void tiled_matrix_vector(
     int rbegin, int rend, int cbegin, int cend, int bm, int bn,
-    struct tile_addr const * __restrict__ tiles, double const * __restrict__ x,
-    double * __restrict__ y)
+    struct tile_addr const * __restrict__ A, uintptr_t const * __restrict__ x,
+    uintptr_t * __restrict__ y)
 {
     extern __shared__ double s[];
 
     int idx = blockIdx.x*blockDim.x + threadIdx.x;
-    int tid = (rbegin + idx) / bm;              // tile row index
-    int rid = (rbegin + idx) % bm;              // row index inside the tile row
+    int tid = idx / bm;                         // tile row index
+    int rid = idx % bm;                         // row index inside the tile row
     int rtiles = (rend-1)/bm + 1 - rbegin/bm;   // tile row count
 
     double v = 0.0;
 
-    if (idx < rend - rbegin) {
+    if (rbegin <= idx && idx < rend) {
 
         // loop over the tile columns
         int cbbegin = cbegin/bn;
@@ -85,273 +84,79 @@ static __global__ void _tiled_matrix_vector(
 
             // compute the correct row address inside the tile
             double const * __restrict__ ptr =
-                (double const *) tiles[i*rtiles+tid].ptr + rid;
-            int ld = tiles[i*rtiles+tid].ld;
-
-            // compute the correct row address inside the input vector
-            double const *_x = x+i*bn-cbegin;
+                (double const *) A[i*rtiles+tid].ptr;
+            int ld = A[i*rtiles+tid].ld;
 
             // loop over the columns in the tile (blockDim.y threads per row)
             int begin = MAX(0, cbegin - i*bn);
             int end = MIN(bn, cend - i*bn);
             for (int j = begin+threadIdx.y; j < end; j += blockDim.y)
-                v += ptr[j*ld] * _x[j];
+                v += ptr[j*ld+rid] * ((double const *) x[i])[j];
         }
     }
 
     // store partial sums to the shared memory
-    if (0 < threadIdx.y)
+    if (0 < threadIdx.y && rbegin <= idx && idx < rend)
         s[(threadIdx.y-1)*blockDim.x+threadIdx.x] = v;
-     __syncthreads();
+    __syncthreads();
 
     // sum partial sums together and store the final result
-    if (threadIdx.y == 0 && idx < rend - rbegin) {
+    if (threadIdx.y == 0 && rbegin <= idx && idx < rend) {
         for (int i = 0; i < blockDim.y-1; i++)
             v += s[i*blockDim.x+threadIdx.x];
-        y[idx] = v;
+        ((double *)y[tid])[rid] = v;
     }
 }
 
-///
-/// @brief Submits a custom matrix-vector multiplication CUDA kernel.
-///
-/// @param[in]  stream        CUDA stream
-/// @param[in]  rbegin        first row that is included to the computation
-/// @param[in]  rend          last row that is included to the computation + 1
-/// @param[in]  cbegin        first column that is included to the computation
-/// @param[in]  cend          last column that is included to the computation+1
-/// @param[in]  packing_info  tile packing information
-/// @param[in]  tiles         device side argument buffer (matrix tiles)
-/// @param[in]  x             input vector
-/// @param[out] y             output vector
-///
-static void tiled_matrix_vector(
-    cudaStream_t stream, int rbegin, int rend, int cbegin, int cend,
-    struct packing_info const *packing_info,
-    struct tile_addr const *tiles, double const *x, double *y)
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
+void starneig_hessenberg_cuda_compute_column(
+    void *buffers[], void *cl_args)
 {
-    dim3 threads(32,32);
-    dim3 blocks(divceil(rend-rbegin, threads.x));
+    struct packing_info A_pi;
+    struct range_packing_info v_pi, y_pi;
+    starpu_codelet_unpack_args(cl_args, &A_pi, &v_pi, &y_pi);
+
+    int k = 0;
+
+    // involved trailing matrix tiles
+    struct tile_addr *A_da =
+        starneig_cuda_prepare_join_window(&A_pi, buffers + k);
+    k += A_pi.handles;
+
+    // intemediate vector interface for the trailing matrix operation
+    uintptr_t *v_da = starneig_cuda_prepare_join_range(&v_pi, buffers + k);
+    k += v_pi.handles;
+
+    // intemediate vector interface from the trailing matrix operation
+    uintptr_t *y_da = starneig_cuda_prepare_join_range(&y_pi, buffers + k);
+    k += y_pi.handles;
+
+    cudaStream_t stream = starpu_cuda_get_local_stream();
+
+    int rtiles = (A_pi.rend-1)/A_pi.bm + 1 - A_pi.rbegin/A_pi.bm;
+
+    dim3 threads(32, MIN(32, MAX(1, (A_pi.cend-A_pi.cbegin)/16)));
+    dim3 blocks(divceil(rtiles*A_pi.bm, threads.x));
     size_t shared_size = threads.x*(threads.y-1)*sizeof(double);
 
-    _tiled_matrix_vector<<<blocks, threads, shared_size, stream>>>(
-        packing_info->rbegin+rbegin, packing_info->rbegin+rend,
-        packing_info->cbegin+cbegin, packing_info->cbegin+cend,
-        packing_info->bm, packing_info->bn, tiles, x, y);
+    tiled_matrix_vector<<<blocks, threads, shared_size, stream>>>(
+        A_pi.rbegin, A_pi.rend, A_pi.cbegin, A_pi.cend, A_pi.bm, A_pi.bn,
+        A_da, v_da, y_da);
 
     cudaError err = cudaGetLastError();
     if (err != cudaSuccess)
         STARPU_CUDA_REPORT_ERROR(err);
 }
 
-struct callback_args {
-    int height;
-    double *host;
-};
-
-///
-/// @brief CUDA callback function that calls dlarfg.
-///
-static void CUDART_CB callback_dlarfg(
-    cudaStream_t stream, cudaError_t status, void *arg_ptr)
-{
-    struct callback_args *args = (struct callback_args *) arg_ptr;
-
-    double tau;
-    dlarfg_(&args->height, args->host+3, args->host+4, (const int[]){ 1 },
-        &tau);
-
-    args->host[0] = tau;
-    args->host[1] = -tau;
-    args->host[2] = args->host[3];
-    args->host[3] = 1.0;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////
-
-extern "C" void starneig_hessenberg_cuda_process_panel(
-    void *buffers[], void *cl_args)
-{
-    cudaError err;
-
-    double *one, *m_one, *zero;
-    cudaGetSymbolAddress((void **)&one, _one);
-    cudaGetSymbolAddress((void **)&m_one, _m_one);
-    cudaGetSymbolAddress((void **)&zero, _zero);
-
-    struct packing_info packing_info;
-    int nb;
-    starpu_codelet_unpack_args(cl_args, &packing_info, &nb);
-
-    int m = packing_info.rend - packing_info.rbegin;
-    int n = packing_info.cend - packing_info.cbegin;
-
-    double *V = (double *) STARPU_MATRIX_GET_PTR(buffers[0]);
-    int ldV = STARPU_MATRIX_GET_LD(buffers[0]);
-
-    double *T = (double *) STARPU_MATRIX_GET_PTR(buffers[1]);
-    int ldT = STARPU_MATRIX_GET_LD(buffers[1]);
-
-    double *Y2 = (double *) STARPU_MATRIX_GET_PTR(buffers[2]);
-    int ldY2 = STARPU_MATRIX_GET_LD(buffers[2]);
-
-    double *P = (double *) STARPU_MATRIX_GET_PTR(buffers[3]);
-    int ldP = STARPU_MATRIX_GET_LD(buffers[3]);
-
-    struct tile_addr *device_args =
-        starneig_cuda_prepare_join_window(&packing_info, buffers+4);
-
-    struct callback_args *args =
-        (struct callback_args *) malloc(nb*sizeof(struct callback_args));
-
-    double *host_values;
-    err = cudaHostAlloc(
-        &host_values, (m+3)*sizeof(double), cudaHostAllocDefault);
-    if (err != cudaSuccess)
-        STARPU_CUDA_REPORT_ERROR(err);
-
-    double *_v = host_values+3;
-
-    double *device_values;
-    err = cudaMalloc(&device_values, (m+3)*sizeof(double));
-    if (err != cudaSuccess)
-        STARPU_CUDA_REPORT_ERROR(err);
-
-    double *tau = device_values;
-    double *mtau = device_values+1;
-    double *sub = device_values+2;
-    double *v = device_values+3;
-
-    cudaStream_t stream = starpu_cuda_get_local_stream();
-    cublasHandle_t handle = starpu_cublas_get_local_handle();
-    cublasSetPointerMode(handle, CUBLAS_POINTER_MODE_DEVICE);
-    cublasSetStream(handle, stream);
-
-    starneig_cuda_join_sub_window(
-        0, m, 0, nb, stream, &packing_info, device_args, ldP, P, 0);
-
-    // loop over column in the panel
-    for (int i = 0; i < nb; i++) {
-
-        // update the current column if necessary
-        if (0 < i) {
-
-            // A <- A - Y2 * V' (update column from the right)
-            cublasDgemv(handle, CUBLAS_OP_N, m, i,
-                m_one, Y2, ldY2, V+i-1, ldV, one, P+i*ldP, 1);
-
-            //
-            // update column from the left
-            //
-
-            // we use the last column of T as a work space
-            double *w = T+(nb-1)*ldT;
-
-            // w <- V1' * b1 (upper part of V and column)
-            cublasDcopy(handle, i, P+i*ldP, 1, w, 1);
-            cublasDtrmv(handle,
-                CUBLAS_FILL_MODE_LOWER, CUBLAS_OP_T, CUBLAS_DIAG_UNIT,
-                i, V, ldV, w, 1);
-
-            // w <- w + V2' * b2 (lower part of V and column)
-            cublasDgemv(handle, CUBLAS_OP_T, m-i, i,
-                one, V+i, ldV, P+i*ldP+i, 1, one, w, 1);
-
-            // w <- T' * w
-            cublasDtrmv(handle,
-                CUBLAS_FILL_MODE_UPPER, CUBLAS_OP_T, CUBLAS_DIAG_NON_UNIT,
-                i, T, ldT, w, 1);
-
-            // b2 <- b2 - V2 * w
-            cublasDgemv(handle, CUBLAS_OP_N, m-i, i,
-                m_one, V+i, ldV, w, 1, one, P+i*ldP+i, 1);
-
-            // b1 <- b1 - V1 * w
-            cublasDtrmv(handle,
-                CUBLAS_FILL_MODE_LOWER, CUBLAS_OP_N, CUBLAS_DIAG_UNIT,
-                i, V, ldV, w, 1);
-            cublasDaxpy(handle, i, m_one, w, 1, P+i*ldP, 1);
-        }
-
-        //
-        // form the reflector
-        //
-
-        cudaMemcpyAsync(_v, P+i*ldP+i, (m-i)*sizeof(double),
-            cudaMemcpyDeviceToHost, stream);
-
-        args[i].height = m-i;
-        args[i].host = host_values;
-        cudaStreamAddCallback(stream, callback_dlarfg, &args[i], 0);
-
-        cudaMemcpyAsync(device_values, host_values, (m-i+3)*sizeof(double),
-            cudaMemcpyHostToDevice, stream);
-
-        cudaMemcpyAsync(V+i*ldV+i, v, (m-i)*sizeof(double),
-            cudaMemcpyDeviceToDevice, stream);
-
-        //
-        // zero the sub-diagonal elements
-        //
-
-        cudaMemcpyAsync(P+i*ldP+i, sub, sizeof(double),
-            cudaMemcpyDeviceToDevice, stream);
-        cudaMemsetAsync(P+i*ldP+i+1, 0, (m-i-1)*sizeof(double), stream);
-
-        //
-        // update Y2
-        //
-
-        // Y2(:,i) <- trailing matrix times v
-        tiled_matrix_vector(stream, 0, m, i+1, n, &packing_info, device_args,
-            V+i*ldV+i, Y2+i*ldY2);
-
-        // w <- V' * v (shared result)
-        cublasDgemv(handle, CUBLAS_OP_T, m-i, i,
-            one, V+i, ldV, V+i*ldV+i, 1, zero, T+i*ldT, 1);
-
-        // Y2(:,i) <- Y2(:,i) - Y * w
-        cublasDgemv(handle, CUBLAS_OP_N, m, i,
-            m_one, Y2, ldY2, T+i*ldT, 1, one, Y2+i*ldY2, 1);
-
-        cublasDscal(handle, m, tau, Y2+i*ldY2, 1);
-
-        //
-        // update T
-        //
-
-        // w <- tau * w
-        cublasDscal(handle, i, mtau, T+i*ldT, 1);
-
-        // T(0:i,i) = T * w
-        cublasDtrmv(handle,
-            CUBLAS_FILL_MODE_UPPER, CUBLAS_OP_N, CUBLAS_DIAG_NON_UNIT,
-            i, T, ldT, T+i*ldT, 1);
-
-        cudaMemcpyAsync(T+i*ldT+i, tau, sizeof(double),
-            cudaMemcpyDeviceToDevice, stream);
-    }
-
-    starneig_cuda_join_sub_window(
-        0, m, 0, nb, stream, &packing_info, device_args, ldP, P, 1);
-
-    starneig_hessenberg_insert_process_panel_cleanup(
-        args, host_values, device_values);
-}
-
 extern "C" void starneig_hessenberg_cuda_update_trail(
     void *buffers[], void *cl_args)
 {
-    double *one, *m_one, *zero;
-    cudaGetSymbolAddress((void **)&one, _one);
-    cudaGetSymbolAddress((void **)&m_one, _m_one);
-    cudaGetSymbolAddress((void **)&zero, _zero);
-
     struct packing_info packing_info;
-    int nb;
-    starpu_codelet_unpack_args(cl_args, &packing_info, &nb);
+    int nb, offset;
+    starpu_codelet_unpack_args(cl_args, &packing_info, &nb, &offset);
 
     int m = packing_info.rend - packing_info.rbegin;
     int n = packing_info.cend - packing_info.cbegin;
@@ -362,8 +167,8 @@ extern "C" void starneig_hessenberg_cuda_update_trail(
     double *T = (double *) STARPU_MATRIX_GET_PTR(buffers[1]);
     int ldT = STARPU_MATRIX_GET_LD(buffers[1]);
 
-    double *Y2 = (double *) STARPU_MATRIX_GET_PTR(buffers[2]);
-    int ldY2 = STARPU_MATRIX_GET_LD(buffers[2]);
+    double *Y = (double *) STARPU_MATRIX_GET_PTR(buffers[2]);
+    int ldY = STARPU_MATRIX_GET_LD(buffers[2]);
 
     double *A = (double *) STARPU_MATRIX_GET_PTR(buffers[3]);
     int nA = STARPU_MATRIX_GET_NY(buffers[3]);
@@ -380,7 +185,7 @@ extern "C" void starneig_hessenberg_cuda_update_trail(
 
     cudaStream_t stream = starpu_cuda_get_local_stream();
     cublasHandle_t handle = starpu_cublas_get_local_handle();
-    cublasSetPointerMode(handle, CUBLAS_POINTER_MODE_DEVICE);
+    cublasSetPointerMode(handle, CUBLAS_POINTER_MODE_HOST);
     cublasSetStream(handle, stream);
 
     for (int i = 0; i < n; i += max_width) {
@@ -394,7 +199,7 @@ extern "C" void starneig_hessenberg_cuda_update_trail(
 
         cublasDgemm(handle, CUBLAS_OP_N, CUBLAS_OP_T,
             m, MIN(max_width, n-i), nb, m_one,
-            Y2, ldY2, V+i+nb-1, ldV, one, A, ldA);
+            Y, ldY, V+offset+i+nb-1, ldV, one, A, ldA);
 
         //
         // update from the left
@@ -441,11 +246,6 @@ extern "C" void starneig_hessenberg_cuda_update_trail(
 extern "C" void starneig_hessenberg_cuda_update_right(
     void *buffers[], void *cl_args)
 {
-    double *one, *m_one, *zero;
-    cudaGetSymbolAddress((void **)&one, _one);
-    cudaGetSymbolAddress((void **)&m_one, _m_one);
-    cudaGetSymbolAddress((void **)&zero, _zero);
-
     struct packing_info packing_info;
     int nb;
     starpu_codelet_unpack_args(cl_args, &packing_info, &nb);
@@ -470,7 +270,7 @@ extern "C" void starneig_hessenberg_cuda_update_right(
 
     cudaStream_t stream = starpu_cuda_get_local_stream();
     cublasHandle_t handle = starpu_cublas_get_local_handle();
-    cublasSetPointerMode(handle, CUBLAS_POINTER_MODE_DEVICE);
+    cublasSetPointerMode(handle, CUBLAS_POINTER_MODE_HOST);
     cublasSetStream(handle, stream);
 
     starneig_cuda_join_window(stream, &packing_info, device_args, ldA, A, 0);
@@ -504,11 +304,6 @@ extern "C" void starneig_hessenberg_cuda_update_right(
 extern "C" void starneig_hessenberg_cuda_update_left(
     void *buffers[], void *cl_args)
 {
-    double *one, *m_one, *zero;
-    cudaGetSymbolAddress((void **)&one, _one);
-    cudaGetSymbolAddress((void **)&m_one, _m_one);
-    cudaGetSymbolAddress((void **)&zero, _zero);
-
     struct packing_info packing_info;
     int nb;
     starpu_codelet_unpack_args(cl_args, &packing_info, &nb);
@@ -533,7 +328,7 @@ extern "C" void starneig_hessenberg_cuda_update_left(
 
     cudaStream_t stream = starpu_cuda_get_local_stream();
     cublasHandle_t handle = starpu_cublas_get_local_handle();
-    cublasSetPointerMode(handle, CUBLAS_POINTER_MODE_DEVICE);
+    cublasSetPointerMode(handle, CUBLAS_POINTER_MODE_HOST);
     cublasSetStream(handle, stream);
 
     starneig_cuda_join_window(stream, &packing_info, device_args, ldA, A, 0);

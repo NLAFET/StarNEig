@@ -40,16 +40,13 @@
 #include <starneig_config.h>
 #include <starneig/configuration.h>
 
-void starneig_hessenberg_cpu_process_panel_single(
-    void *buffers[], void *cl_args);
+void starneig_hessenberg_cpu_prepare_column(void *buffers[], void *cl_args);
 
-void starneig_hessenberg_cpu_process_panel_bind(
-    void *buffers[], void *cl_args);
+void starneig_hessenberg_cpu_compute_column(void *buffers[], void *cl_args);
 
-void starneig_hessenberg_cpu_update_trail_single(
-    void *buffers[], void *cl_args);
+void starneig_hessenberg_cpu_finish_column(void *buffers[], void *cl_args);
 
-void starneig_hessenberg_cpu_update_trail_bind(void *buffers[], void *cl_args);
+void starneig_hessenberg_cpu_update_trail(void *buffers[], void *cl_args);
 
 void starneig_hessenberg_cpu_update_right(void *buffers[], void *cl_args);
 

@@ -39,53 +39,43 @@
 #include "core.h"
 #include "tasks.h"
 #include "../common/scratch.h"
-
-///
-/// @brief Calculates how much GPU memory can be used.
-///
-/// @param[in] ctx
-///         Scheduling context.
-///
-/// @return Amount of available GPU memory.
-///
-static ssize_t get_gpu_mem_size(unsigned ctx)
-{
-    int *workers;
-    starpu_sched_ctx_get_workers_list(ctx, &workers);
-    int worker_count = starpu_sched_ctx_get_nworkers(ctx);
-
-    ssize_t largest = 0;
-
-    for (int i = 0; i < worker_count; i++) {
-        if (starpu_worker_get_type(workers[i]) == STARPU_CUDA_WORKER) {
-            unsigned node = starpu_worker_get_memory_node(workers[i]);
-            ssize_t total = starpu_memory_get_total(node);
-            starneig_verbose("GPU memory node %u contains %u MB of memory.",
-                node, total/1000000);
-            largest = MAX(largest, total);
-        }
-    }
-
-    free(workers);
-
-    return largest;
-}
+#include "../common/tasks.h"
 
 starneig_error_t starneig_hessenberg_insert_tasks(
     int panel_width, int begin, int end,
-    unsigned parallel_ctx, unsigned other_ctx,
     int critical_prio, int update_prio, int misc_prio,
     starneig_matrix_descr_t matrix_q, starneig_matrix_descr_t matrix_a,
     mpi_info_t mpi)
 {
-    ssize_t gpu_mem_size = get_gpu_mem_size(other_ctx);
-
-    int parallel =
-        parallel_ctx != STARPU_NMAX_SCHED_CTXS &&
-        1 < starpu_sched_ctx_get_nworkers(parallel_ctx);
-
     int n = STARNEIG_MATRIX_N(matrix_a);
     int m = STARNEIG_MATRIX_M(matrix_a);
+
+    //
+    // find a suitable GPU
+    //
+
+    unsigned gpu_memory_node = 0;
+    ssize_t gpu_mem_size = 0;
+#ifdef STARNEIG_ENABLE_CUDA
+    {
+        int workers[STARPU_NMAXWORKERS];
+        int worker_count = starpu_worker_get_ids_by_type(
+            STARPU_CUDA_WORKER, workers, STARPU_NMAXWORKERS);
+
+        ssize_t largest_size = 0;
+
+        for (int i = 0; i < worker_count; i++) {
+            unsigned node = starpu_worker_get_memory_node(workers[i]);
+            ssize_t total = starpu_memory_get_total(node);
+            starneig_verbose("GPU memory node %u contains %u MB of memory.",
+                node, total/1000000);
+            if (largest_size < total) {
+                gpu_memory_node = node;
+                gpu_mem_size = total;
+            }
+        }
+    }
+#endif
 
     // noncritical updates are added to a special update chain and are inserted
     // separately
@@ -93,6 +83,7 @@ starneig_error_t starneig_hessenberg_insert_tasks(
     struct update {
         int i;
         int nb;
+        starpu_data_handle_t P_h;
         starpu_data_handle_t V_h;
         starpu_data_handle_t T_h;
         struct update *next;
@@ -105,31 +96,99 @@ starneig_error_t starneig_hessenberg_insert_tasks(
     // insert critical tasks (panels and trailing matrix updates)
     //
 
-    unsigned ctx = parallel_ctx;
-    if (!parallel)
-        ctx = other_ctx;
+    starneig_vector_descr_t v = starneig_init_vector_descr(
+        STARNEIG_MATRIX_N(matrix_a), STARNEIG_MATRIX_BN(matrix_a),
+        sizeof(double), NULL, NULL, NULL);
+    starneig_vector_descr_t y = starneig_init_vector_descr(
+        STARNEIG_MATRIX_N(matrix_a), STARNEIG_MATRIX_BN(matrix_a),
+        sizeof(double), NULL, NULL, NULL);
 
     for (int i = begin; i < end-1; i += panel_width) {
         const int nb = MIN(panel_width, end-i-1);
 
-        if (ctx != other_ctx &&
-        (end-i)*(end-i)*sizeof(double) < 0.75*gpu_mem_size) {
-            starneig_verbose("Switching to the other scheduling context.");
-            starneig_scratch_unregister();
-            ctx = other_ctx;
+        //
+        // check whether the GPU has enough memory
+        //
+
+        int try_gpu = 0;
+#ifdef STARNEIG_ENABLE_CUDA
+        if (0 < gpu_mem_size) {
+            int rbegin = starneig_matrix_cut_vectically_up(i+1, matrix_a);
+            int rend = starneig_matrix_cut_vectically_down(end, matrix_a);
+            int cbegin = starneig_matrix_cut_horizontally_left(i+1, matrix_a);
+            int cend = starneig_matrix_cut_horizontally_right(end, matrix_a);
+
+            if ((rend-rbegin)*(cend-cbegin)*sizeof(double) < 0.75*gpu_mem_size){
+                starneig_prefetch_section_matrix_descr(
+                    i+1, end, i+1, end, gpu_memory_node, 1, matrix_a);
+                try_gpu = 1;
+            }
+        }
+#endif
+
+        starpu_data_handle_t P_h, V_h, T_h, Y_h;
+        starpu_matrix_data_register(
+            &P_h, -1, 0, end-i-1, end-i-1, nb, sizeof(double));
+        starpu_matrix_data_register(
+            &V_h, -1, 0, end-i-1, end-i-1, nb, sizeof(double));
+        starpu_matrix_data_register(
+            &T_h, -1, 0, nb, nb, nb, sizeof(double));
+        starpu_matrix_data_register(
+            &Y_h, -1, 0, end-i-1, end-i-1, nb, sizeof(double));
+
+        //
+        // loop over the columns in the panel
+        //
+
+        starneig_insert_copy_matrix_to_handle(i+1, end, i, i+nb,
+            critical_prio, matrix_a, P_h, NULL);
+
+        for (int j = 0; j < nb; j++) {
+            starneig_hessenberg_insert_prepare_column(
+                critical_prio, j, i+1, end, Y_h, V_h, T_h, P_h, v);
+
+            // trailing matrix operation
+            if (try_gpu) {
+                starneig_hessenberg_insert_compute_column(
+                    critical_prio, i+1, end, i+j+1, end,
+                    matrix_a, v, y);
+            }
+            else {
+                int _begin = i+1;
+                while (_begin < end) {
+                    int _end = MIN(end, starneig_matrix_cut_vectically_down(
+                        _begin+1, matrix_a));
+                    starneig_hessenberg_insert_compute_column(
+                        critical_prio, _begin, _end, i+j+1, end,
+                        matrix_a, v, y);
+                    _begin = _end;
+                }
+            }
+
+            starneig_hessenberg_insert_finish_column(
+                critical_prio, j, i+1, end, V_h, T_h, Y_h, y);
         }
 
-        starpu_data_handle_t V_h, T_h, Y_h;
+        //
+        // update the trailing matrix
+        //
 
-        // reduce panel
-        starneig_hessenberg_insert_process_panel(ctx, critical_prio,
-            i+1, end, i, end, nb, matrix_a, &V_h, &T_h, &Y_h, parallel,
-            mpi);
-
-        // update trail
-        starneig_hessenberg_insert_update_trail(ctx, critical_prio,
-            i+1, end, i+nb, end, nb, V_h, T_h, Y_h, matrix_a, parallel,
-            mpi);
+        if (try_gpu) {
+            starneig_hessenberg_insert_update_trail(
+                critical_prio, i+1, end, i+nb, end, nb, 0,
+                V_h, T_h, Y_h, matrix_a, mpi);
+        }
+        else {
+            int _begin = i+nb;
+            while (_begin < end) {
+                int _end = MIN(end,
+                    starneig_matrix_cut_horizontally_right(_begin+1, matrix_a));
+                starneig_hessenberg_insert_update_trail(
+                    critical_prio, i+1, end, _begin, _end, nb, _begin-i-nb,
+                    V_h, T_h, Y_h, matrix_a, mpi);
+                _begin = _end;
+            }
+        }
 
         starpu_data_unregister_submit(Y_h);
 
@@ -150,10 +209,14 @@ starneig_error_t starneig_hessenberg_insert_tasks(
 
         tail->i = i;
         tail->nb = nb;
+        tail->P_h = P_h;
         tail->V_h = V_h;
         tail->T_h = T_h;
         tail->next = NULL;
     }
+
+    starneig_free_vector_descr(v);
+    starneig_free_vector_descr(y);
 
     starneig_scratch_unregister();
 
@@ -164,6 +227,7 @@ starneig_error_t starneig_hessenberg_insert_tasks(
     while (updates != NULL) {
         int i = updates->i;
         int nb = updates->nb;
+        starpu_data_handle_t P_h = updates->P_h;
         starpu_data_handle_t V_h = updates->V_h;
         starpu_data_handle_t T_h = updates->T_h;
 
@@ -171,21 +235,24 @@ starneig_error_t starneig_hessenberg_insert_tasks(
         int hor_part = STARNEIG_MATRIX_BN(matrix_a);
         int q_part = STARNEIG_MATRIX_BM(matrix_q);
 
+        starneig_insert_copy_handle_to_matrix(i+1, end, i, i+nb,
+            critical_prio, P_h, matrix_a, mpi);
+
         // update A from the right
         for (int j = 0; j < i+1; j += ver_part)
-            starneig_hessenberg_insert_update_right(other_ctx, update_prio,
+            starneig_hessenberg_insert_update_right(update_prio,
                 j, MIN(i+1, j+ver_part), i+1, end, nb, V_h, T_h,
                 matrix_a, mpi);
 
         // update A from the left
         for (int j = (end/hor_part)*hor_part; j < n; j += hor_part)
-            starneig_hessenberg_insert_update_left(other_ctx, update_prio,
+            starneig_hessenberg_insert_update_left(update_prio,
                 i+1, end, MAX(end, j), MIN(n, j+hor_part), nb,
                 V_h, T_h, matrix_a, mpi);
 
         // update Q from the right
         for (int j = 0; j < m; j += q_part)
-            starneig_hessenberg_insert_update_right(other_ctx, misc_prio,
+            starneig_hessenberg_insert_update_right(misc_prio,
                 j, MIN(m, j+q_part), i+1, end, nb, V_h, T_h,
                 matrix_q, mpi);
 

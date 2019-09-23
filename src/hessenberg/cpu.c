@@ -46,369 +46,248 @@
 #include <cblas.h>
 #include <omp.h>
 
-void starneig_hessenberg_cpu_process_panel_single(
+void starneig_hessenberg_cpu_prepare_column(
     void *buffers[], void *cl_args)
 {
     // LAPACK subroutine that generates a real elementary reflector H
     extern void dlarfg_(int const *, double *, double *, int const *, double *);
 
-    struct packing_info packing_info;
-    int nb;
-    starpu_codelet_unpack_args(cl_args, &packing_info, &nb);
+    int i; // the index of the currect column inside the panel
+    struct range_packing_info v_pi;
+    starpu_codelet_unpack_args(cl_args, &i, &v_pi);
 
-    int m = packing_info.rend - packing_info.rbegin;
-    int n = packing_info.cend - packing_info.cbegin;
+    int k = 0;
 
-    double *V = (double *) STARPU_MATRIX_GET_PTR(buffers[0]);
-    int ldV = STARPU_MATRIX_GET_LD(buffers[0]);
+    double *Y = NULL; int ldY = 0;
+    if (0 < i) {
+        Y = (double *) STARPU_MATRIX_GET_PTR(buffers[k]);
+        ldY = STARPU_MATRIX_GET_LD(buffers[k]);
+        k++;
+    }
 
-    double *T = (double *) STARPU_MATRIX_GET_PTR(buffers[1]);
-    int ldT = STARPU_MATRIX_GET_LD(buffers[1]);
+    double *V = (double *) STARPU_MATRIX_GET_PTR(buffers[k]);
+    int ldV = STARPU_MATRIX_GET_LD(buffers[k]);
+    int m = STARPU_MATRIX_GET_NX(buffers[k]);
+    int nb = STARPU_MATRIX_GET_NY(buffers[k]);
+    k++;
 
-    double *Y2 = (double *) STARPU_MATRIX_GET_PTR(buffers[2]);
-    int ldY2 = STARPU_MATRIX_GET_LD(buffers[2]);
+    double *T = (double *) STARPU_MATRIX_GET_PTR(buffers[k]);
+    int ldT = STARPU_MATRIX_GET_LD(buffers[k]);
+    k++;
 
-    double *P = (double *) STARPU_MATRIX_GET_PTR(buffers[3]);
-    int ldP = STARPU_MATRIX_GET_LD(buffers[3]);
+    double *P = (double *) STARPU_MATRIX_GET_PTR(buffers[k]);
+    int ldP = STARPU_MATRIX_GET_LD(buffers[k]);
+    k++;
 
-    struct starpu_matrix_interface **A_i =
-        (struct starpu_matrix_interface **)buffers + 4;
+    // an intemediate vector interface for the trailing matrix operation
+    struct starpu_vector_interface **v_i =
+        (struct starpu_vector_interface **)buffers + k;
+    k += v_pi.handles;
 
-    starneig_join_sub_window(0, m, 0, nb, &packing_info, ldP, A_i, P, 0);
-
-    int ldA = divceil(m, 8)*8;
-    double *A = malloc(n*ldA*sizeof(double));
-    starneig_join_sub_window(0, m, 0, n, &packing_info, ldA, A_i, A, 0);
+    // current column
+    double *p = P+i*ldP;
 
     //
-    // loop over column in the panel
+    // update the current column
     //
 
-    for (int i = 0; i < nb; i++) {
+    if (0 < i) {
 
-        double *v = V+i*ldV+i;
-        double *p = P+i*ldP;
-
-        // update the current column if necessary
-        if (0 < i) {
-
-            // A <- A - Y2 * V' (update column from the right)
-            cblas_dgemv(CblasColMajor, CblasNoTrans, m, i,
-                -1.0, Y2, ldY2, V+i-1, ldV, 1.0, p, 1);
-
-            //
-            // update column from the left
-            //
-
-            // we use the last column of T as a work space
-            double *w = T+(nb-1)*ldT;
-
-            // w <- V1' * b1 (upper part of V and column)
-            cblas_dcopy(i, p, 1, w, 1);
-            cblas_dtrmv(CblasColMajor, CblasLower, CblasTrans, CblasUnit,
-                i, V, ldV, w, 1);
-
-            // w <- w + V2' * b2 (lower part of V and column)
-            cblas_dgemv(CblasColMajor, CblasTrans, m-i, i,
-                1.0, V+i, ldV, p+i, 1, 1.0, w, 1);
-
-            // w <- T' * w
-            cblas_dtrmv(CblasColMajor, CblasUpper, CblasTrans, CblasNonUnit,
-                i, T, ldT, w, 1);
-
-            // b2 <- b2 - V2 * w
-            cblas_dgemv(CblasColMajor, CblasNoTrans, m-i, i,
-                -1.0, V+i, ldV, w, 1, 1.0, p+i, 1);
-
-            // b1 <- b1 - V1 * w
-            cblas_dtrmv(CblasColMajor, CblasLower, CblasNoTrans, CblasUnit,
-                i, V, ldV, w, 1);
-            cblas_daxpy(i, -1.0, w, 1, p, 1);
-        }
-
-        //
-        // form the reflector and zero the sub-diagonal elements
-        //
-
-        int height = m-i;
-        memcpy(v, p+i, height*sizeof(double));
-
-        double tau;
-        dlarfg_(&height, p+i, v+1, (const int[]){1}, &tau);
-        v[0] = 1.0;
-
-        for (int j = i+1; j < m; j++)
-            p[j] = 0.0;
-
-        //
-        // update Y2
-        //
-
-        // Y2(:,i) <- trailing matrix times v
-        cblas_dgemv(CblasColMajor, CblasNoTrans, m, n-i-1,
-            1.0, A+(i+1)*ldA, ldA, v, 1, 0.0, Y2+i*ldY2, 1);
-
-        // w <- V' * v (shared result)
-        cblas_dgemv(CblasColMajor, CblasTrans, m-i, i,
-            1.0, V+i, ldV, v, 1, 0.0, T+i*ldT, 1);
-
-        // Y2(:,i) <- Y2(:,i) - Y * w
+        // A <- A - Y * V' (update column from the right)
         cblas_dgemv(CblasColMajor, CblasNoTrans, m, i,
-            -1.0, Y2, ldY2, T+i*ldT, 1, 1.0, Y2+i*ldY2, 1);
-
-        cblas_dscal(m, tau, Y2+i*ldY2, 1);
+            -1.0, Y, ldY, V+i-1, ldV, 1.0, p, 1);
 
         //
-        // update T
+        // update column from the left
         //
 
-        // w <- tau * w
-        cblas_dscal(i, -tau, T+i*ldT, 1);
+        // we use the last column of T as a work space
+        double *w = T+(nb-1)*ldT;
 
-        // T(0:i,i) = T * w
-        cblas_dtrmv(CblasColMajor, CblasUpper, CblasNoTrans,
-            CblasNonUnit, i, T, ldT, T+i*ldT, 1);
+        // w <- V1' * b1 (upper part)
+        cblas_dcopy(i, p, 1, w, 1);
+        cblas_dtrmv(
+            CblasColMajor, CblasLower, CblasTrans, CblasUnit, i, V, ldV, w, 1);
 
-        T[i*ldT+i] = tau;
+        // w <- w + V2' * b2 (lower part)
+        cblas_dgemv(CblasColMajor, CblasTrans, m-i, i,
+            1.0, V+i, ldV, p+i, 1, 1.0, w, 1);
+
+        // w <- T' * w
+        cblas_dtrmv(
+            CblasColMajor, CblasUpper, CblasTrans, CblasNonUnit, i,
+            T, ldT, w, 1);
+
+        // b2 <- b2 - V2 * w
+        cblas_dgemv(CblasColMajor, CblasNoTrans, m-i, i,
+            -1.0, V+i, ldV, w, 1, 1.0, p+i, 1);
+
+        // b1 <- b1 - V1 * w
+        cblas_dtrmv(
+            CblasColMajor, CblasLower, CblasNoTrans, CblasUnit, i,
+            V, ldV, w, 1);
+        cblas_daxpy(i, -1.0, w, 1, p, 1);
     }
 
-    STARNEIG_SANITY_CHECK_HESSENBERG(0, nb, m, ldP, 0, P, NULL);
+    //
+    // compute the current unit vector
+    //
 
-    // copy panel back
-    starneig_join_sub_window(0, m, 0, nb, &packing_info, ldP, A_i, P, 1);
+    int height = m-i;
+    double tau, *v = V+i*ldV+i;
+    memcpy(v, p+i, height*sizeof(double));
+    dlarfg_(&height, p+i, v+1, (const int[]){1}, &tau);
+    v[0] = 1.0;
 
-    free(A);
+    //
+    // copy the current unit vector to the intemediate vector interface
+    //
+
+    starneig_join_range(&v_pi, v_i, v, 1);
+
+    //
+    // set elements below the subdiagonal to zero
+    //
+
+    for (int j = i+1; j < m; j++)
+        p[j] = 0.0;
+
+    //
+    // store tau for future use
+    //
+
+    T[i*ldT+i] = tau;
 }
 
-void starneig_hessenberg_cpu_process_panel_bind(void *buffers[], void *cl_args)
+void starneig_hessenberg_cpu_compute_column(
+    void *buffers[], void *cl_args)
 {
-    // LAPACK subroutine that generates a real elementary reflector H
-    extern void dlarfg_(int const *, double *, double *, int const *, double *);
+    struct packing_info A_pi;
+    struct range_packing_info v_pi, y_pi;
+    starpu_codelet_unpack_args(cl_args, &A_pi, &v_pi, &y_pi);
 
-    struct packing_info packing_info;
-    int nb;
-    starpu_codelet_unpack_args(cl_args, &packing_info, &nb);
+    int k = 0;
 
-    int m = packing_info.rend - packing_info.rbegin;
-    int n = packing_info.cend - packing_info.cbegin;
-
-    double *V = (double *) STARPU_MATRIX_GET_PTR(buffers[0]);
-    int ldV = STARPU_MATRIX_GET_LD(buffers[0]);
-
-    double *T = (double *) STARPU_MATRIX_GET_PTR(buffers[1]);
-    int ldT = STARPU_MATRIX_GET_LD(buffers[1]);
-
-    double *Y2 = (double *) STARPU_MATRIX_GET_PTR(buffers[2]);
-    int ldY2 = STARPU_MATRIX_GET_LD(buffers[2]);
-
-    double *P = (double *) STARPU_MATRIX_GET_PTR(buffers[3]);
-    int ldP = STARPU_MATRIX_GET_LD(buffers[3]);
-
+    // involved trailing matrix tiles
     struct starpu_matrix_interface **A_i =
-        (struct starpu_matrix_interface **)buffers + 4;
+        (struct starpu_matrix_interface **)buffers + k;
+    k += A_pi.handles;
 
-    hwloc_topology_t topology;
-    hwloc_topology_init(&topology);
-    hwloc_topology_load(topology);
+    // intemediate vector interface for the trailing matrix operation
+    struct starpu_vector_interface **v_i =
+        (struct starpu_vector_interface **)buffers + k;
+    k += v_pi.handles;
 
-    double tau = 0.0;
+    // intemediate vector interface from the trailing matrix operation
+    struct starpu_vector_interface **y_i =
+        (struct starpu_vector_interface **)buffers + k;
+    k += y_pi.handles;
 
-#if 1 < STARPU_MAJOR_VERSION || 2 < STARPU_MINOR_VERSION
-    // get the scheduling context
-    unsigned ctx = starpu_task_get_current()->sched_ctx;
+    int t_rows = (A_pi.rend-1) / A_pi.bm + 1 - (A_pi.rbegin-1) / A_pi.bm;
+    int t_cols = (A_pi.cend-1) / A_pi.bn + 1 - (A_pi.cbegin-1) / A_pi.bn;
 
-    // calculate per thread trailing matrix segment height
-    int pp = divceil(m, starpu_sched_ctx_get_nworkers(ctx));
+    //
+    // loop oper tile rows
+    //
 
-    int *workers;
-    starpu_sched_ctx_get_workers_list(ctx, &workers);
+    for (int i = 0; i < t_rows; i++) {
 
-    #pragma omp parallel num_threads(starpu_sched_ctx_get_nworkers(ctx))
-#else
-    // calculate per thread trailing matrix segment height
-    int pp = divceil(m, starpu_combined_worker_get_size());
+        double *y = (double *) STARPU_VECTOR_GET_PTR(y_i[i]);
 
-    hwloc_cpuset_t master = hwloc_bitmap_alloc();
-    hwloc_get_cpubind(topology, master, HWLOC_CPUBIND_THREAD);
+        int rbegin = MAX(     0,  A_pi.rbegin - i * A_pi.bm);
+        int rend =   MIN(A_pi.bm, A_pi.rend   - i * A_pi.bm);
 
-    #pragma omp parallel num_threads(starpu_combined_worker_get_size())
-#endif
-    {
-        int tid = omp_get_thread_num();
-
-        // join panel tiles
-        if (tid*pp < m)
-            starneig_join_sub_window(tid*pp, MIN(m, (tid+1)*pp), 0, nb,
-                &packing_info, ldP, A_i, P+tid*pp, 0);
-        #pragma omp barrier
+        for (int l = rbegin; l < rend; l++)
+            y[l] = 0.0;
 
         //
-        // bind OpenMP threads, join panel tiles and allocate local workspace
+        // loop over tile columns
         //
 
-        // store the old binding (this might not be necessary)
-        hwloc_cpuset_t old = hwloc_bitmap_alloc();
-        hwloc_get_cpubind(topology, old, HWLOC_CPUBIND_THREAD);
+        for (int j = 0; j < t_cols; j++) {
 
-        // find a suitable CPU core for a binding mask
+            double *A = (double *) STARPU_MATRIX_GET_PTR(A_i[j*t_rows+i]);
+            int ldA = STARPU_MATRIX_GET_LD(A_i[j*t_rows+i]);
 
-#if 1 < STARPU_MAJOR_VERSION || 2 < STARPU_MINOR_VERSION
-        hwloc_cpuset_t set = starpu_worker_get_hwloc_cpuset(workers[tid]);
-#else
-        hwloc_cpuset_t set = hwloc_bitmap_alloc();
-        hwloc_bitmap_zero(set);
+            double *v = (double *) STARPU_VECTOR_GET_PTR(v_i[j]);
 
-        int core = hwloc_bitmap_first(master);
-        for (int i = 0; i < tid; i++)
-            core = hwloc_bitmap_next(master, core);
+            int cbegin = MAX(      0, A_pi.cbegin - j * A_pi.bn);
+            int cend =   MIN(A_pi.bn, A_pi.cend   - j * A_pi.bn);
 
-        hwloc_bitmap_set(set, core);
-#endif
-
-        // bind the thread
-        hwloc_set_cpubind(topology, set, HWLOC_CPUBIND_THREAD);
-
-        double *A = NULL;
-        int ldA = 0;
-
-        // allocate workspace and copy the matching section of the trailing
-        // matrix
-        if (tid*pp < m) {
-            ldA = divceil(MIN(pp, m-tid*pp), 8)*8;
-            A = hwloc_alloc_membind(topology, n*ldA*sizeof(double), set,
-                HWLOC_MEMBIND_BIND, HWLOC_MEMBIND_THREAD);
-            starneig_join_sub_window(tid*pp, MIN(m, (tid+1)*pp), 0, n,
-                &packing_info, ldA, A_i, A, 0);
+            cblas_dgemv(
+                CblasColMajor, CblasNoTrans, rend-rbegin, cend-cbegin,
+                1.0, A+cbegin*ldA+rbegin, ldA, v+cbegin, 1, 1.0, y+rbegin, 1);
         }
-
-        //
-        // loop over column in the panel
-        //
-
-        for (int i = 0; i < nb; i++) {
-
-            double *v = V+i*ldV+i;
-            double *p = P+i*ldP;
-
-            // update the current column if necessary
-            #pragma omp single
-            if (0 < i) {
-
-                // A <- A - Y2 * V' (update column from the right)
-                cblas_dgemv(CblasColMajor, CblasNoTrans, m, i,
-                    -1.0, Y2, ldY2, V+i-1, ldV, 1.0, p, 1);
-
-                //
-                // update column from the left
-                //
-
-                // we use the last column of T as a work space
-                double *w = T+(nb-1)*ldT;
-
-                // w <- V1' * b1 (upper part of V and column)
-                cblas_dcopy(i, p, 1, w, 1);
-                cblas_dtrmv(CblasColMajor, CblasLower, CblasTrans, CblasUnit,
-                    i, V, ldV, w, 1);
-
-                // w <- w + V2' * b2 (lower part of V and column)
-                cblas_dgemv(CblasColMajor, CblasTrans, m-i, i,
-                    1.0, V+i, ldV, p+i, 1, 1.0, w, 1);
-
-                // w <- T' * w
-                cblas_dtrmv(CblasColMajor, CblasUpper, CblasTrans, CblasNonUnit,
-                    i, T, ldT, w, 1);
-
-                // b2 <- b2 - V2 * w
-                cblas_dgemv(CblasColMajor, CblasNoTrans, m-i, i,
-                    -1.0, V+i, ldV, w, 1, 1.0, p+i, 1);
-
-                // b1 <- b1 - V1 * w
-                cblas_dtrmv(CblasColMajor, CblasLower, CblasNoTrans, CblasUnit,
-                    i, V, ldV, w, 1);
-                cblas_daxpy(i, -1.0, w, 1, p, 1);
-            }
-
-            #pragma omp single
-            {
-                //
-                // form the reflector and zero the sub-diagonal elements
-                //
-
-                int height = m-i;
-                memcpy(v, p+i, height*sizeof(double));
-                dlarfg_(&height, p+i, v+1, (const int[]){1}, &tau);
-                v[0] = 1.0;
-
-                for (int j = i+1; j < m; j++)
-                    p[j] = 0.0;
-            }
-
-            //
-            // update Y2
-            //
-
-            // Y2(:,i) <- trailing matrix times v
-            if (tid*pp < m) {
-                cblas_dgemv(CblasColMajor, CblasNoTrans, MIN(pp, m-tid*pp),
-                    n-i-1, 1.0, A+(i+1)*ldA, ldA, v, 1, 0.0,
-                    Y2+i*ldY2+tid*pp, 1);
-            }
-            #pragma omp barrier
-
-            #pragma omp single
-            {
-                // w <- V' * v (shared result)
-                cblas_dgemv(CblasColMajor, CblasTrans, m-i, i,
-                    1.0, V+i, ldV, v, 1, 0.0, T+i*ldT, 1);
-
-                // Y2(:,i) <- Y2(:,i) - Y * w
-                cblas_dgemv(CblasColMajor, CblasNoTrans, m, i,
-                    -1.0, Y2, ldY2, T+i*ldT, 1, 1.0, Y2+i*ldY2, 1);
-
-                cblas_dscal(m, tau, Y2+i*ldY2, 1);
-
-                //
-                // update T
-                //
-
-                // w <- tau * w
-                cblas_dscal(i, -tau, T+i*ldT, 1);
-
-                // T(0:i,i) = T * w
-                cblas_dtrmv(CblasColMajor, CblasUpper, CblasNoTrans,
-                    CblasNonUnit, i, T, ldT, T+i*ldT, 1);
-
-                T[i*ldT+i] = tau;
-            }
-        }
-
-        // copy panel back
-        if (tid*pp < m)
-            starneig_join_sub_window(tid*pp, MIN(m, (tid+1)*pp), 0, nb,
-                &packing_info, ldP, A_i, P+tid*pp, 1);
-
-        hwloc_set_cpubind(topology, old, HWLOC_CPUBIND_THREAD);
-        hwloc_bitmap_free(old);
-        hwloc_bitmap_free(set);
-        hwloc_free(topology, A, n*ldA*sizeof(double));
     }
-
-#if 1 < STARPU_MAJOR_VERSION || 2 < STARPU_MINOR_VERSION
-    free(workers);
-#else
-    hwloc_bitmap_free(master);
-#endif
-
-    hwloc_topology_destroy(topology);
-
-    STARNEIG_SANITY_CHECK_HESSENBERG(0, nb, m, ldP, 0, P, NULL);
 }
 
-void starneig_hessenberg_cpu_update_trail_single(void *buffers[], void *cl_args)
+void starneig_hessenberg_cpu_finish_column(
+    void *buffers[], void *cl_args)
+{
+    struct range_packing_info y_pi;
+    int i;
+    starpu_codelet_unpack_args(cl_args, &i, &y_pi);
+
+    int k = 0;
+
+    double *V = (double *) STARPU_MATRIX_GET_PTR(buffers[k]);
+    int m = STARPU_MATRIX_GET_NX(buffers[k]);
+    int ldV = STARPU_MATRIX_GET_LD(buffers[k]);
+    k++;
+
+    double *T = (double *) STARPU_MATRIX_GET_PTR(buffers[k]);
+    int ldT = STARPU_MATRIX_GET_LD(buffers[k]);
+    k++;
+
+    double *Y = (double *) STARPU_MATRIX_GET_PTR(buffers[k]);
+    int ldY = STARPU_MATRIX_GET_LD(buffers[k]);
+    k++;
+
+    // intemediate vector interface from the trailing matrix operation
+    struct starpu_vector_interface **y_i =
+        (struct starpu_vector_interface **)buffers + k;
+    k += y_pi.handles;
+
+    double tau = T[i*ldT+i];
+    double *v = V+i*ldV+i;
+
+    //
+    // finish Y update
+    //
+
+    starneig_join_range(&y_pi, y_i, Y+i*ldY, 0);
+
+    // w <- V' * v (shared result)
+    cblas_dgemv(CblasColMajor, CblasTrans, m-i, i,
+        1.0, V+i, ldV, v, 1, 0.0, T+i*ldT, 1);
+
+    // Y(:,i) <- Y(:,i) - Y * w
+    cblas_dgemv(CblasColMajor, CblasNoTrans, m, i,
+        -1.0, Y, ldY, T+i*ldT, 1, 1.0, Y+i*ldY, 1);
+
+    cblas_dscal(m, tau, Y+i*ldY, 1);
+
+    //
+    // update T
+    //
+
+    // w <- tau * w
+    cblas_dscal(i, -tau, T+i*ldT, 1);
+
+    // T(0:i,i) = T * w
+    cblas_dtrmv(
+        CblasColMajor, CblasUpper, CblasNoTrans, CblasNonUnit, i,
+        T, ldT, T+i*ldT, 1);
+
+    T[i*ldT+i] = tau;
+}
+
+void starneig_hessenberg_cpu_update_trail(
+    void *buffers[], void *cl_args)
 {
     struct packing_info packing_info;
-    int nb;
-    starpu_codelet_unpack_args(cl_args, &packing_info, &nb);
+    int nb, offset;
+    starpu_codelet_unpack_args(cl_args, &packing_info, &nb, &offset);
 
     int m = packing_info.rend - packing_info.rbegin;
     int n = packing_info.cend - packing_info.cbegin;
@@ -419,8 +298,8 @@ void starneig_hessenberg_cpu_update_trail_single(void *buffers[], void *cl_args)
     double *T = (double *) STARPU_MATRIX_GET_PTR(buffers[1]);
     int ldT = STARPU_MATRIX_GET_LD(buffers[1]);
 
-    double *Y2 = (double *) STARPU_MATRIX_GET_PTR(buffers[2]);
-    int ldY2 = STARPU_MATRIX_GET_LD(buffers[2]);
+    double *Y = (double *) STARPU_MATRIX_GET_PTR(buffers[2]);
+    int ldY = STARPU_MATRIX_GET_LD(buffers[2]);
 
     double *A = (double *) STARPU_MATRIX_GET_PTR(buffers[3]);
     int nA = STARPU_MATRIX_GET_NY(buffers[3]);
@@ -430,10 +309,11 @@ void starneig_hessenberg_cpu_update_trail_single(void *buffers[], void *cl_args)
     int mW = STARPU_MATRIX_GET_NX(buffers[4]);
     int ldW = STARPU_MATRIX_GET_LD(buffers[4]);
 
-    int max_width = MIN(nA, mW);
-
     struct starpu_matrix_interface **A_i =
         (struct starpu_matrix_interface **)buffers + 5;
+
+    int max_width = MIN(nA, mW);
+
 
     for (int i = 0; i < n; i += max_width) {
 
@@ -446,7 +326,7 @@ void starneig_hessenberg_cpu_update_trail_single(void *buffers[], void *cl_args)
 
         cblas_dgemm(CblasColMajor, CblasNoTrans, CblasTrans,
             m, MIN(max_width, n-i), nb, -1.0,
-            Y2, ldY2, V+i+nb-1, ldV, 1.0, A, ldA);
+            Y, ldY, V+offset+i+nb-1, ldV, 1.0, A, ldA);
 
         //
         // update from the left
@@ -492,172 +372,6 @@ void starneig_hessenberg_cpu_update_trail_single(void *buffers[], void *cl_args)
     }
 }
 
-void starneig_hessenberg_cpu_update_trail_bind(void *buffers[], void *cl_args)
-{
-    struct packing_info packing_info;
-    int nb;
-    starpu_codelet_unpack_args(cl_args, &packing_info, &nb);
-
-    int m = packing_info.rend - packing_info.rbegin;
-    int n = packing_info.cend - packing_info.cbegin;
-
-    double *V = (double *) STARPU_MATRIX_GET_PTR(buffers[0]);
-    int ldV = STARPU_MATRIX_GET_LD(buffers[0]);
-
-    double *T = (double *) STARPU_MATRIX_GET_PTR(buffers[1]);
-    int ldT = STARPU_MATRIX_GET_LD(buffers[1]);
-
-    double *Y2 = (double *) STARPU_MATRIX_GET_PTR(buffers[2]);
-    int ldY2 = STARPU_MATRIX_GET_LD(buffers[2]);
-
-    double *A = (double *) STARPU_MATRIX_GET_PTR(buffers[3]);
-    int nA = STARPU_MATRIX_GET_NY(buffers[3]);
-    int ldA = STARPU_MATRIX_GET_LD(buffers[3]);
-
-    double *W = (double *) STARPU_MATRIX_GET_PTR(buffers[4]);
-    int mW = STARPU_MATRIX_GET_NX(buffers[4]);
-    int ldW = STARPU_MATRIX_GET_LD(buffers[4]);
-
-    int max_width = MIN(nA, mW);
-
-    struct starpu_matrix_interface **A_i =
-        (struct starpu_matrix_interface **)buffers + 5;
-
-    hwloc_topology_t topology;
-    hwloc_topology_init(&topology);
-    hwloc_topology_load(topology);
-
-#if 1 < STARPU_MAJOR_VERSION || 2 < STARPU_MINOR_VERSION
-    // get the scheduling context
-    unsigned ctx = starpu_task_get_current()->sched_ctx;
-
-    int ppm = divceil(m, starpu_sched_ctx_get_nworkers(ctx));
-    int ppn = divceil(max_width, starpu_sched_ctx_get_nworkers(ctx));
-
-    int *workers;
-    starpu_sched_ctx_get_workers_list(ctx, &workers);
-
-    #pragma omp parallel num_threads(starpu_sched_ctx_get_nworkers(ctx))
-#else
-    int ppm = divceil(m, starpu_combined_worker_get_size());
-    int ppn = divceil(max_width, starpu_combined_worker_get_size());
-
-    hwloc_cpuset_t master = hwloc_bitmap_alloc();
-    hwloc_get_cpubind(topology, master, HWLOC_CPUBIND_THREAD);
-
-    #pragma omp parallel num_threads(starpu_combined_worker_get_size())
-#endif
-    {
-        int tid = omp_get_thread_num();
-
-        // store the old binding (this might not be necessary)
-        hwloc_cpuset_t old = hwloc_bitmap_alloc();
-        hwloc_get_cpubind(topology, old, HWLOC_CPUBIND_THREAD);
-
-        // find a suitable CPU core for a binding mask
-
-#if 1 < STARPU_MAJOR_VERSION || 2 < STARPU_MINOR_VERSION
-        hwloc_cpuset_t set = starpu_worker_get_hwloc_cpuset(workers[tid]);
-#else
-        hwloc_cpuset_t set = hwloc_bitmap_alloc();
-        hwloc_bitmap_zero(set);
-
-        int core = hwloc_bitmap_first(master);
-        for (int i = 0; i < tid; i++)
-            core = hwloc_bitmap_next(master, core);
-
-        hwloc_bitmap_set(set, core);
-#endif
-
-        // bind the thread
-        hwloc_set_cpubind(topology, set, HWLOC_CPUBIND_THREAD);
-
-        double *_A = A + tid * ppn * ldA;
-        double *_W = W + tid * ppn;
-
-        for (int i = 0; i < n; i += max_width) {
-
-            //
-            // join tiles and update from the right
-            //
-
-            int height = MIN(ppm, m-tid*ppm);
-
-            if (0 < height) {
-                starneig_join_sub_window(
-                    tid*ppm, tid*ppm+height, i, MIN(n, i+max_width),
-                    &packing_info, ldA, A_i, A+tid*ppm, 0);
-
-                cblas_dgemm(CblasColMajor, CblasNoTrans, CblasTrans,
-                    height, MIN(max_width, n-i), nb, -1.0,
-                    Y2+tid*ppm, ldY2, V+i+nb-1, ldV, 1.0, A+tid*ppm, ldA);
-            }
-
-            #pragma omp barrier
-
-            //
-            // update from the left
-            //
-
-            int width = MIN(MIN(ppn, max_width-tid*ppn), n-i-tid*ppn);
-            if (0 < width) {
-                for (int k = 0; k < nb; k++)
-                    cblas_dcopy(width, _A+k, ldA, _W+k*ldW, 1);
-
-                cblas_dtrmm(
-                    CblasColMajor, CblasRight, CblasLower, CblasNoTrans,
-                    CblasUnit, width, nb, 1.0, V, ldV, _W, ldW);
-
-                if (nb < m)
-                    cblas_dgemm(
-                        CblasColMajor, CblasTrans, CblasNoTrans, width, nb,
-                        m-nb, 1.0, _A+nb, ldA, V+nb, ldV, 1.0, _W, ldW);
-
-                cblas_dtrmm(
-                    CblasColMajor, CblasRight, CblasUpper, CblasNoTrans,
-                    CblasNonUnit, width, nb, 1.0, T, ldT, _W, ldW);
-
-                if (nb < m)
-                    cblas_dgemm(
-                        CblasColMajor, CblasNoTrans, CblasTrans, m-nb, width,
-                        nb, -1.0, V+nb, ldV, _W, ldW, 1.0, _A+nb, ldA);
-
-                cblas_dtrmm(
-                    CblasColMajor, CblasRight, CblasLower, CblasTrans,
-                    CblasUnit, width, nb, 1.0, V, ldV, _W, ldW);
-
-                for (int k = 0; k < nb; k++)
-                    cblas_daxpy(width, -1.0, _W+k*ldW, 1, _A+k, ldA);
-            }
-
-            #pragma omp barrier
-
-            //
-            // copy tiles back
-            //
-
-            if (0 < height) {
-                starneig_join_sub_window(
-                    tid*ppm, tid*ppm+height, i, MIN(n, i+max_width),
-                    &packing_info, ldA, A_i, A+tid*ppm, 1);
-            }
-
-            #pragma omp barrier
-        }
-
-        hwloc_set_cpubind(topology, old, HWLOC_CPUBIND_THREAD);
-        hwloc_bitmap_free(old);
-        hwloc_bitmap_free(set);
-    }
-
-#if 1 < STARPU_MAJOR_VERSION || 2 < STARPU_MINOR_VERSION
-    free(workers);
-#else
-    hwloc_bitmap_free(master);
-#endif
-
-    hwloc_topology_destroy(topology);
-}
 
 void starneig_hessenberg_cpu_update_right(void *buffers[], void *cl_args)
 {
