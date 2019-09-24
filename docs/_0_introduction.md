@@ -60,9 +60,12 @@ Current status with generalized eigenvalue problems:
    performance. The problem can be fixed by compiling StarPU with
    `--disable-cuda-memcpy-peer`. It is possible that newer versions of StarPU
    are also effected by this problem.
- - The `STARPU_LIMIT_CUDA_MEM` environmental variable may fix some GPU related
-   memory allocation problems. For example, if the GPU has 6 GB of memory, then
-   setting `STARPU_LIMIT_CUDA_MEM=5500` might help.
+ - The `STARPU_MINIMUM_AVAILABLE_MEM` and `STARPU_TARGET_AVAILABLE_MEM`
+   environmental variables can be used to fix some GPU related memory allocation
+   problems:
+```
+STARPU_MINIMUM_AVAILABLE_MEM=10 STARPU_TARGET_AVAILABLE_MEM=15 ...
+```
  - The library has an unsolved memory leak problem with OpenMPI. Only large
    problem sizes are effected. It is not known whether this problem is related
    to StarNEig, StarPU, OpenMPI or something else. A memory leak is sometimes
