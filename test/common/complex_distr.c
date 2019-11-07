@@ -89,30 +89,32 @@ static void uniform_complex_distr_print_usage()
 static int uniform_complex_distr_check_args(
     int argc, char * const *argv, int *argr)
 {
-    read_opt("--fortify", argc, argv, argr);
+    int fortify = read_opt("--fortify", argc, argv, argr);
 
-    double complex_ratio =
-        read_double("--complex-ratio", argc, argv, argr, default_ratio);
+    if (!fortify) {
+        double complex_ratio =
+            read_double("--complex-ratio", argc, argv, argr, default_ratio);
 
-    if (complex_ratio < 0.0 || 1.0 < complex_ratio) {
-        fprintf(stderr, "Invalid complex ratio.\n");
-        return -1;
-    }
+        if (complex_ratio < 0.0 || 1.0 < complex_ratio) {
+            fprintf(stderr, "Invalid complex ratio.\n");
+            return -1;
+        }
 
-    double zero_ratio =
-        read_double("--zero-ratio", argc, argv, argr, default_zero_ratio);
+        double zero_ratio =
+            read_double("--zero-ratio", argc, argv, argr, default_zero_ratio);
 
-    if (zero_ratio < 0.0 && 1.0 < zero_ratio) {
-        fprintf(stderr, "Invalid zero eigenvalue ratio.\n");
-        return -1;
-    }
+        if (zero_ratio < 0.0 && 1.0 < zero_ratio) {
+            fprintf(stderr, "Invalid zero eigenvalue ratio.\n");
+            return -1;
+        }
 
-    double inf_ratio =
-        read_double("--inf-ratio", argc, argv, argr, default_inf_ratio);
+        double inf_ratio =
+            read_double("--inf-ratio", argc, argv, argr, default_inf_ratio);
 
-    if (inf_ratio < 0.0 && 1.0 < inf_ratio) {
-        fprintf(stderr, "Invalid infinite eigenvalue ratio.\n");
-        return -1;
+        if (inf_ratio < 0.0 && 1.0 < inf_ratio) {
+            fprintf(stderr, "Invalid infinite eigenvalue ratio.\n");
+            return -1;
+        }
     }
 
     return 0;
@@ -121,18 +123,22 @@ static int uniform_complex_distr_check_args(
 static void uniform_complex_distr_print_args(
     int argc, char * const *argv)
 {
-    if (read_opt("--fortify", argc, argv, NULL))
+    int fortify = read_opt("--fortify", argc, argv, NULL);
+
+    if (fortify) {
         printf(" --fortify");
+    }
+    else {
+        double complex_ratio =
+            read_double("--complex-ratio", argc, argv, NULL, default_ratio);
+        printf(" --complex-ratio %f", complex_ratio);
 
-    double complex_ratio =
-        read_double("--complex-ratio", argc, argv, NULL, default_ratio);
-    printf(" --complex-ratio %f", complex_ratio);
+        printf(" --zero-ratio %f",
+            read_double("--zero-ratio", argc, argv, NULL, default_zero_ratio));
 
-    printf(" --zero-ratio %f",
-        read_double("--zero-ratio", argc, argv, NULL, default_zero_ratio));
-
-    printf(" --inf-ratio %f",
-        read_double("--inf-ratio", argc, argv, NULL, default_inf_ratio));
+        printf(" --inf-ratio %f",
+            read_double("--inf-ratio", argc, argv, NULL, default_inf_ratio));
+    }
 }
 
 static int uniform_complex_distr_init(
