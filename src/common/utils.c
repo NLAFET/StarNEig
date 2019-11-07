@@ -63,7 +63,7 @@ int starneig_calc_update_size(
     int n, int bn, int sbn, int world_size, int worker_count)
 {
     if (world_size == 1)
-        return MAX(bn, divceil(n/worker_count,bn)*bn);
+        return MAX(bn, MIN(divceil(n/8,bn)*bn, divceil(n/worker_count,bn)*bn));
 
     int size = MAX(bn, (sbn/2)*bn);
 
