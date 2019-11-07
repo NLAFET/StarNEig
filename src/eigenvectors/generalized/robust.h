@@ -49,8 +49,8 @@ void starneig_InitializeOmega(int k);
 // --------------------------------------------------------------------------
 // WARNING: Remember to assign values to Omega and OmegaInv.
 // --------------------------------------------------------------------------
-double Omega;
-double OmegaInv;
+extern double Omega;
+extern double OmegaInv;
 
 // Protect a scalar division against overflow
 double starneig_ProtectDivision(double b, double t);

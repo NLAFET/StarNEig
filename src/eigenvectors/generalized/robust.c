@@ -45,6 +45,13 @@
 
 #include <omp.h>
 #include <stdio.h>
+
+// --------------------------------------------------------------------------
+// WARNING: Remember to assign values to Omega and OmegaInv.
+// --------------------------------------------------------------------------
+double Omega;
+double OmegaInv;
+
 ///
 /// @brief Set the global overflow threshold Omega used by all robust codes
 /// The overflow threshold is an integer power of 2.
