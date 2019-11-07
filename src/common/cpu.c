@@ -43,6 +43,7 @@
 #include "common.h"
 #include "tiles.h"
 #include "sanity.h"
+#include "trace.h"
 #include <math.h>
 #include <starpu.h>
 
@@ -54,6 +55,8 @@ void starneig_cpu_left_gemm_update(void *buffers[], void *cl_args)
 {
     struct packing_info packing_info;
     starpu_codelet_unpack_args(cl_args, &packing_info);
+
+    STARNEIG_EVENT_BEGIN(&packing_info, starneig_event_green);
 
     // local Q matrix
     double *lq_ptr = (double *)STARPU_MATRIX_GET_PTR(buffers[0]);
@@ -100,12 +103,16 @@ void starneig_cpu_left_gemm_update(void *buffers[], void *cl_args)
 
     // Y <- st2
     starneig_join_window(&packing_info, st2_ld, a_i, st2_ptr, 1);
+
+    STARNEIG_EVENT_END();
 }
 
 void starneig_cpu_right_gemm_update(void *buffers[], void *cl_args)
 {
     struct packing_info packing_info;
     starpu_codelet_unpack_args(cl_args, &packing_info);
+
+    STARNEIG_EVENT_BEGIN(&packing_info, starneig_event_blue);
 
     // local Q matrix
     double *lq_ptr = (double *)STARPU_MATRIX_GET_PTR(buffers[0]);
@@ -150,6 +157,8 @@ void starneig_cpu_right_gemm_update(void *buffers[], void *cl_args)
 
     // Y <- st2
     starneig_join_window(&packing_info, st2_ld, a_i, st2_ptr, 1);
+
+    STARNEIG_EVENT_END();
 }
 
 void starneig_cpu_copy_matrix_to_handle(void *buffers[], void *cl_args)

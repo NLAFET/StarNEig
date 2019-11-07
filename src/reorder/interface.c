@@ -40,6 +40,7 @@
 #include "common.h"
 #include "../common/node_internal.h"
 #include "../common/utils.h"
+#include "../common/trace.h"
 #include <starneig/sep_sm.h>
 #include <starneig/gep_sm.h>
 
@@ -83,25 +84,32 @@ static starneig_error_t reorder(
     starneig_matrix_descr_t A_d = starneig_register_matrix_descr(
         MATRIX_TYPE_UPPER_HESSENBERG, n, n, conf->tile_size, conf->tile_size,
         -1, -1, ldA, sizeof(double), NULL, NULL, A, NULL);
+    STARNEIG_EVENT_SET_LABEL(A_d, 'A');
 
     starneig_matrix_descr_t B_d = NULL;
-    if (B != NULL)
+    if (B != NULL) {
         B_d = starneig_register_matrix_descr(
             MATRIX_TYPE_UPPER_TRIANGULAR, n, n,
             conf->tile_size, conf->tile_size, -1, -1, ldB, sizeof(double),
             NULL, NULL, B, NULL);
+        STARNEIG_EVENT_SET_LABEL(B_d, 'B');
+    }
 
     starneig_matrix_descr_t Q_d = NULL;
-    if (Q != NULL)
+    if (Q != NULL) {
         Q_d = starneig_register_matrix_descr(
             MATRIX_TYPE_FULL, n, n, conf->tile_size, conf->tile_size,
             -1, -1, ldQ, sizeof(double), NULL, NULL, Q, NULL);
+        STARNEIG_EVENT_SET_LABEL(Q_d, 'Q');
+    }
 
     starneig_matrix_descr_t Z_d = NULL;
-    if (Z != NULL)
+    if (Z != NULL) {
         Z_d = starneig_register_matrix_descr(
             MATRIX_TYPE_FULL, n, n, conf->tile_size, conf->tile_size,
             -1, -1, ldZ, sizeof(double), NULL, NULL, Z, NULL);
+        STARNEIG_EVENT_SET_LABEL(Z_d, 'Z');
+    }
 
     starneig_vector_descr_t selected_d = starneig_init_matching_vector_descr(
         A_d, sizeof(int), selected, NULL);
@@ -124,6 +132,8 @@ static starneig_error_t reorder(
     //
     // insert tasks
     //
+
+    STARNEIG_EVENT_INIT();
 
     starneig_error_t ret = starneig_reorder_insert_tasks(
         conf, selected_d, Q_d, Z_d, A_d, B_d, real_d, imag_d, beta_d, NULL);
@@ -149,6 +159,9 @@ static starneig_error_t reorder(
     starneig_free_vector_descr(real_d);
     starneig_free_vector_descr(imag_d);
     starneig_free_vector_descr(beta_d);
+
+    STARNEIG_EVENT_STORE(n, "trace.dat");
+    STARNEIG_EVENT_FREE();
 
     for (int i = 0; i < n; i++) {
         if (1 < selected[i]) {

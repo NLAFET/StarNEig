@@ -43,6 +43,7 @@
 #include "../common/sanity.h"
 #include "../common/tiles.h"
 #include "../common/math.h"
+#include "../common/trace.h"
 
 #include <math.h>
 #include <starpu.h>
@@ -231,6 +232,8 @@ void starneig_cpu_reorder_window(void *buffers[], void *cl_arg)
         &packing_info_selected, &packing_info_A, &packing_info_B,
         &window_size, &threshold, &swaps);
 
+    STARNEIG_EVENT_BEGIN(&packing_info_A, starneig_event_red);
+
     int size = packing_info_A.rend - packing_info_A.rbegin;
     int general = packing_info_B.handles != 0;
 
@@ -310,4 +313,6 @@ void starneig_cpu_reorder_window(void *buffers[], void *cl_arg)
         starneig_join_diag_window(&packing_info_B, lB_ld, B_i, lB_ptr, 1);
 
     free(selected);
+
+    STARNEIG_EVENT_END();
 }

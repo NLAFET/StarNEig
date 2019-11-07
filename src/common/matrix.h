@@ -118,6 +118,12 @@ struct starneig_matrix_descr {
         STARNEIG_MATRIX_ROOT = 0,         ///< the matrix is a root matrix
         STARNEIG_MATRIX_SUB_MATRIX,       ///< the matrix is a submatrix
     } mode;                               ///< matrix descriptor mode
+#ifdef STARNEIG_ENABLE_EVENTS
+    char event_label;
+    int event_enabled;
+    int event_roffset;
+    int event_coffset;
+#endif
 };
 
 ///

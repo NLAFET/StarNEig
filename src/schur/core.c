@@ -56,6 +56,7 @@
 #include "../common/common.h"
 #include "../common/utils.h"
 #include "../common/tasks.h"
+#include "../common/trace.h"
 #include "../hessenberg/core.h"
 #include <math.h>
 #include <time.h>
@@ -1340,6 +1341,8 @@ static enum segment_status perform_large_aed(
         segment->end-segment->aed_begin, segment->end-segment->aed_begin,
         tile_size, tile_size, -1, -1, sizeof(double),
         starneig_single_owner_matrix_descr, &owner, args->mpi);
+    STARNEIG_EVENT_INHERIT(matrix_a, args->matrix_a);
+    STARNEIG_EVENT_ADD_OFFSET(matrix_a, segment->aed_begin, segment->aed_begin);
 
     starneig_insert_copy_matrix(
         segment->aed_begin, segment->aed_begin, 0, 0,
@@ -1352,6 +1355,9 @@ static enum segment_status perform_large_aed(
             segment->end-segment->aed_begin, segment->end-segment->aed_begin,
             tile_size, tile_size, -1, -1, sizeof(double),
             starneig_single_owner_matrix_descr, &owner, args->mpi);
+        STARNEIG_EVENT_INHERIT(matrix_b, args->matrix_b);
+        STARNEIG_EVENT_ADD_OFFSET(
+            matrix_b, segment->aed_begin, segment->aed_begin);
 
         starneig_insert_copy_matrix(
             segment->aed_begin, segment->aed_begin, 0, 0,

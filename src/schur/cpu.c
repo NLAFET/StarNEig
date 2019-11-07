@@ -46,6 +46,7 @@
 #include "../common/sanity.h"
 #include "../common/tiles.h"
 #include "../common/math.h"
+#include "../common/trace.h"
 #include <math.h>
 
 #define _A(i,j) A[(j)*ldA+(i)]
@@ -59,6 +60,8 @@ void starneig_cpu_push_inf_top(void *buffers[], void *cl_arg)
     int top, bottom;
     starpu_codelet_unpack_args(cl_arg,
         &packing_info_A, &packing_info_B, &top, &bottom);
+    STARNEIG_EVENT_BEGIN(&packing_info_A, starneig_event_red);
+
 
     int window_size = packing_info_A.rend - packing_info_A.rbegin;
 
@@ -114,6 +117,8 @@ void starneig_cpu_push_inf_top(void *buffers[], void *cl_arg)
 
     starneig_join_diag_window(&packing_info_A, ldA, A_i, A, 1);
     starneig_join_diag_window(&packing_info_B, ldB, B_i, B, 1);
+
+    STARNEIG_EVENT_END();
 }
 
 void starneig_cpu_push_bulges(void *buffers[], void *cl_arg)
@@ -126,6 +131,8 @@ void starneig_cpu_push_bulges(void *buffers[], void *cl_arg)
     starpu_codelet_unpack_args(cl_arg,
         &packing_info_shifts_real, &packing_info_shifts_imag,
         &packing_info_aftermath, &packing_info_A, &packing_info_B, &mode);
+
+    STARNEIG_EVENT_BEGIN(&packing_info_A, starneig_event_red);
 
     int generalized = 0 < packing_info_B.handles;
     int check_aftermath = 0 < packing_info_aftermath.handles;
@@ -257,7 +264,7 @@ void starneig_cpu_push_bulges(void *buffers[], void *cl_arg)
     free(A);
     free(B);
 
-    return;
+    STARNEIG_EVENT_END();
 }
 
 void starneig_cpu_aggressively_deflate(void *buffers[], void *cl_arg)
@@ -267,6 +274,7 @@ void starneig_cpu_aggressively_deflate(void *buffers[], void *cl_arg)
     struct packing_info packing_info_A, packing_info_B;
     starpu_codelet_unpack_args(cl_arg, &packing_info_shifts_real,
         &packing_info_shifts_imag, &packing_info_A, &packing_info_B);
+    STARNEIG_EVENT_BEGIN(&packing_info_A, starneig_event_red);
 
     int generalized = 0 < packing_info_B.handles;
     int window_size = packing_info_A.rend - packing_info_A.rbegin;
@@ -397,12 +405,15 @@ void starneig_cpu_aggressively_deflate(void *buffers[], void *cl_arg)
     free(B);
     free(real);
     free(imag);
+
+    STARNEIG_EVENT_END();
 }
 
 void starneig_cpu_small_schur(void *buffers[], void *cl_arg)
 {
     struct packing_info packing_info_A, packing_info_B;
     starpu_codelet_unpack_args(cl_arg, &packing_info_A, &packing_info_B);
+    STARNEIG_EVENT_BEGIN(&packing_info_A, starneig_event_red);
 
     int generalized = 0 < packing_info_B.handles;
     int size = packing_info_A.rend - packing_info_A.rbegin;
@@ -501,12 +512,16 @@ void starneig_cpu_small_schur(void *buffers[], void *cl_arg)
     free(real);
     free(imag);
     free(beta);
+
+    STARNEIG_EVENT_END();
 }
 
 void starneig_cpu_small_hessenberg(void *buffers[], void *cl_arg)
 {
     struct packing_info packing_info_A, packing_info_B;
     starpu_codelet_unpack_args(cl_arg, &packing_info_A, &packing_info_B);
+
+    STARNEIG_EVENT_BEGIN(&packing_info_A, starneig_event_red);
 
     int generalized = 0 < packing_info_B.handles;
     int size = packing_info_A.rend - packing_info_A.rbegin;
@@ -574,6 +589,8 @@ void starneig_cpu_small_hessenberg(void *buffers[], void *cl_arg)
 
     free(A);
     free(B);
+
+    STARNEIG_EVENT_END();
 }
 
 void starneig_cpu_form_spike(void *buffers[], void *cl_arg)
@@ -648,6 +665,7 @@ void starneig_cpu_deflate(void *buffers[], void *cl_arg)
         &packing_info_spike, &packing_info_A, &packing_info_B,
         &offset, &deflate, &corner);
 
+    STARNEIG_EVENT_BEGIN(&packing_info_A, starneig_event_red);
     int generalized = 0 < packing_info_B.handles;
     int size = packing_info_A.rend - packing_info_A.rbegin;
 
@@ -946,6 +964,8 @@ void starneig_cpu_deflate(void *buffers[], void *cl_arg)
     if (Z != Q)
         free(Z);
     free(work);
+
+    STARNEIG_EVENT_END();
 }
 
 void starneig_cpu_extract_shifts(void *buffers[], void *cl_args)

@@ -85,6 +85,12 @@ struct packing_info {
     int roffset;              ///< row offset from the beginning of the matrix
     int coffset;              ///< column offset rom the beginning of the matrix
     int handles;              ///< the total number of handles
+#ifdef STARNEIG_ENABLE_EVENTS
+    char event_label;
+    int event_enabled;
+    int event_roffset;
+    int event_coffset;
+#endif
 };
 
 ///

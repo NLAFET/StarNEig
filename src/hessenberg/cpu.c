@@ -40,6 +40,7 @@
 #include "../common/common.h"
 #include "../common/sanity.h"
 #include "../common/tiles.h"
+#include "../common/trace.h"
 #include <starpu.h>
 #include <starpu_scheduler.h>
 #include <hwloc.h>
@@ -166,6 +167,8 @@ void starneig_hessenberg_cpu_compute_column(
     struct range_packing_info v_pi, y_pi;
     starpu_codelet_unpack_args(cl_args, &A_pi, &v_pi, &y_pi);
 
+    //STARNEIG_EVENT_BEGIN(&A_pi, starneig_event_red);
+
     int k = 0;
 
     // involved trailing matrix tiles
@@ -219,6 +222,8 @@ void starneig_hessenberg_cpu_compute_column(
                 1.0, A+cbegin*ldA+rbegin, ldA, v+cbegin, 1, 1.0, y+rbegin, 1);
         }
     }
+
+    //STARNEIG_EVENT_END();
 }
 
 void starneig_hessenberg_cpu_finish_column(
@@ -288,6 +293,8 @@ void starneig_hessenberg_cpu_update_trail(
     struct packing_info packing_info;
     int nb, offset;
     starpu_codelet_unpack_args(cl_args, &packing_info, &nb, &offset);
+
+    STARNEIG_EVENT_BEGIN(&packing_info, starneig_event_red);
 
     int m = packing_info.rend - packing_info.rbegin;
     int n = packing_info.cend - packing_info.cbegin;
@@ -370,6 +377,8 @@ void starneig_hessenberg_cpu_update_trail(
         starneig_join_sub_window(
             0, m, i, MIN(n, i+max_width), &packing_info, ldA, A_i, A, 1);
     }
+
+    STARNEIG_EVENT_END();
 }
 
 
@@ -378,6 +387,8 @@ void starneig_hessenberg_cpu_update_right(void *buffers[], void *cl_args)
     struct packing_info packing_info;
     int nb;
     starpu_codelet_unpack_args(cl_args, &packing_info, &nb);
+
+    STARNEIG_EVENT_BEGIN(&packing_info, starneig_event_blue);
 
     int m = packing_info.rend - packing_info.rbegin;
     int n = packing_info.cend - packing_info.cbegin;
@@ -428,6 +439,8 @@ void starneig_hessenberg_cpu_update_right(void *buffers[], void *cl_args)
         cblas_daxpy(m, -1.0, W+j*ldW, 1, X+j*ldX, 1);
 
     starneig_join_window(&packing_info, ldX, X_i, X, 1);
+
+    STARNEIG_EVENT_END();
 }
 
 void starneig_hessenberg_cpu_update_left(void *buffers[], void *cl_args)
@@ -435,6 +448,8 @@ void starneig_hessenberg_cpu_update_left(void *buffers[], void *cl_args)
     struct packing_info packing_info;
     int nb;
     starpu_codelet_unpack_args(cl_args, &packing_info, &nb);
+
+    STARNEIG_EVENT_BEGIN(&packing_info, starneig_event_green);
 
     int m = packing_info.rend - packing_info.rbegin;
     int n = packing_info.cend - packing_info.cbegin;
@@ -485,4 +500,6 @@ void starneig_hessenberg_cpu_update_left(void *buffers[], void *cl_args)
         cblas_daxpy(n, -1.0, W+j*ldW, 1, X+j, ldX);
 
     starneig_join_window(&packing_info, ldX, X_i, X, 1);
+
+    STARNEIG_EVENT_END();
 }

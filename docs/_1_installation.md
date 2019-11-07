@@ -126,6 +126,8 @@ List of StarNEig library specific configuration options:
  - `STARNEIG_ENABLE_MESSAGES`: Enable basic verbose messages (`ON` by default).
  - `STARNEIG_ENABLE_VERBOSE`: Enable additional verbose messages (`OFF` by
    default).
+ - `STARNEIG_ENABLE_EVENTS`: Enable event traces (`OFF` by default).
+ - `STARNEIG_ENABLE_EVENT_PARSER`: Enable event parser (`OFF` by default).
  - `STARNEIG_ENABLE_SANITY_CHECKS`: Enables additional satiny checks. These
    checks are very expensive and should not be enabled unless absolutely
    necessary (`OFF` by default).

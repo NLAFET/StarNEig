@@ -35,6 +35,7 @@ enable_testing ()
 option (STARNEIG_ENABLE_DOCS "Enable documentation" OFF)
 option (STARNEIG_ENABLE_TESTS "Enable test binary" ON)
 option (STARNEIG_ENABLE_EXAMPLES "Enable examples" OFF)
+option (STARNEIG_ENABLE_EVENT_PARSER "Enable event parser" OFF)
 
 set (EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR})
 set (LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR})
@@ -59,4 +60,8 @@ endif ()
 
 if (STARNEIG_ENABLE_EXAMPLES)
     add_subdirectory (examples)
+endif ()
+
+if (STARNEIG_ENABLE_EVENT_PARSER)
+    add_subdirectory (misc/event_parser)
 endif ()

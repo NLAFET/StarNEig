@@ -152,6 +152,13 @@ static void pack_window_full(
 
     helper->count += k;
     info->handles = k;
+
+#ifdef STARNEIG_ENABLE_EVENTS
+    info->event_label = matrix->event_label;
+    info->event_enabled = matrix->event_enabled;
+    info->event_roffset = matrix->event_roffset;
+    info->event_coffset = matrix->event_coffset;
+#endif
 }
 
 static void pack_window_upper_hess(
@@ -198,6 +205,13 @@ static void pack_window_upper_hess(
 
     helper->count += k;
     info->handles = k;
+
+#ifdef STARNEIG_ENABLE_EVENTS
+    info->event_label = matrix->event_label;
+    info->event_enabled = matrix->event_enabled;
+    info->event_roffset = matrix->event_roffset;
+    info->event_coffset = matrix->event_coffset;
+#endif
 }
 
 static void pack_window_upper_triag(
@@ -244,6 +258,13 @@ static void pack_window_upper_triag(
 
     helper->count += k;
     info->handles = k;
+
+#ifdef STARNEIG_ENABLE_EVENTS
+    info->event_label = matrix->event_label;
+    info->event_enabled = matrix->event_enabled;
+    info->event_roffset = matrix->event_roffset;
+    info->event_coffset = matrix->event_coffset;
+#endif
 }
 
 static void join_tiles_full(

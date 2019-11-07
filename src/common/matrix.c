@@ -143,6 +143,13 @@ starneig_matrix_descr_t starneig_init_matrix_descr(
     descr->parent = NULL;
     descr->mode = STARNEIG_MATRIX_ROOT;
 
+#ifdef STARNEIG_ENABLE_EVENTS
+    descr->event_enabled = 0;
+    descr->event_label = 'X';
+    descr->event_roffset = 0;
+    descr->event_coffset = 0;
+#endif
+
     return descr;
 }
 

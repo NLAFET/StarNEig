@@ -38,6 +38,7 @@
 #include <starneig/configuration.h>
 #include <starneig/sep_sm.h>
 #include "../common/node_internal.h"
+#include "../common/trace.h"
 #include "core.h"
 
 static starneig_error_t hessenberg(
@@ -88,14 +89,18 @@ static starneig_error_t hessenberg(
     starneig_matrix_descr_t matrix_a = starneig_register_matrix_descr(
         MATRIX_TYPE_FULL, n, n, conf->tile_size, conf->tile_size,
         -1, -1, ldA, sizeof(double), NULL, NULL, A, NULL);
+    STARNEIG_EVENT_SET_LABEL(matrix_a, 'A');
 
     starneig_matrix_descr_t matrix_q = starneig_register_matrix_descr(
         MATRIX_TYPE_FULL, n, n, conf->tile_size, conf->tile_size,
         -1, -1, ldQ, sizeof(double), NULL, NULL, Q, NULL);
+    STARNEIG_EVENT_SET_LABEL(matrix_q, 'Q');
 
     //
     // insert tasks
     //
+
+    STARNEIG_EVENT_INIT();
 
     starneig_error_t ret = starneig_hessenberg_insert_tasks(
         conf->panel_width, begin, end,
@@ -111,6 +116,9 @@ static starneig_error_t hessenberg(
 
     starneig_free_matrix_descr(matrix_a);
     starneig_free_matrix_descr(matrix_q);
+
+    STARNEIG_EVENT_STORE(n, "trace.dat");
+    STARNEIG_EVENT_FREE();
 
     return ret;
 }

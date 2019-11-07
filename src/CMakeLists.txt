@@ -49,6 +49,7 @@ option (STARNEIG_DISABLE_BLACS "Disable BLACS support" OFF)
 
 option (STARNEIG_ENABLE_VERBOSE "Enable all verbose messages" OFF)
 option (STARNEIG_ENABLE_MESSAGES "Enable some verbose messages" ON)
+option (STARNEIG_ENABLE_EVENTS "Enable event traces" OFF)
 option (STARNEIG_ENABLE_SANITY_CHECKS "Enable additional sanity checks" OFF)
 
 option (STARNEIG_ENABLE_PRUNING
@@ -533,6 +534,12 @@ file (GLOB_RECURSE SOURCES
     "${CMAKE_CURRENT_SOURCE_DIR}/eigenvectors/*.c"
     "${CMAKE_CURRENT_SOURCE_DIR}/wrappers/common.c"
     "${CMAKE_CURRENT_SOURCE_DIR}/wrappers/lapack.c")
+
+# remove event tracing related source files
+if (NOT STARNEIG_ENABLE_EVENTS)
+    list (REMOVE_ITEM SOURCES
+    ${CMAKE_CURRENT_SOURCE_DIR}/common/trace.c)
+endif ()
 
 # compile ScaLAPACK wrappers only when ScaLAPACK and BLACS support are present
 if (STARNEIG_ENABLE_SCALAPACK)
