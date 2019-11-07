@@ -1,3 +1,6 @@
+v0.1-beta.4:
+ - Fix a problem where infinite eigenvalues were detected too late.
+
 v0.1-beta.3:
  - Re-implemented Hessenberg reduction.
 
