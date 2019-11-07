@@ -317,6 +317,7 @@ static void insert_reverse_updates(
     int low_prio = MAX(args->min_prio, args->default_prio-1);
     int medium_prio = args->default_prio;
     int high_prio = MAX(args->default_prio, args->max_prio-1);
+    int max_prio = args->max_prio;
 
     #define update_matrix(matrix_x, x_height, x_width) { \
         int vert_cut = \
@@ -326,12 +327,13 @@ static void insert_reverse_updates(
         int hor_cut = \
             starneig_matrix_cut_horizontally_right(segment->end, matrix_x); \
         \
-        starneig_insert_right_gemm_update(top_cut, begin, begin, end, \
-            x_height, high_prio, lZ_h, matrix_x, args->mpi); \
+        starneig_insert_right_gemm_update( \
+            top_cut, begin, begin, end, STARNEIG_MATRIX_BM(matrix_x), \
+            max_prio, lZ_h, matrix_x, args->mpi); \
         \
         starneig_insert_left_gemm_update( \
             begin, end, end, hor_cut, x_width, \
-            medium_prio, lQ_h, matrix_x, args->mpi); \
+            high_prio, lQ_h, matrix_x, args->mpi); \
         starneig_insert_right_gemm_update( \
             vert_cut, top_cut, begin, end, x_height, \
             medium_prio, lZ_h, matrix_x, args->mpi); \
@@ -367,6 +369,94 @@ static void insert_reverse_updates(
         starneig_insert_right_gemm_update(
             0, STARNEIG_MATRIX_M(args->matrix_z), begin, end, args->z_height,
             args->min_prio, lZ_h, args->matrix_z, args->mpi);
+}
+
+///
+/// @brief Inserts update tasks that correspond to a given AED window. The
+/// segment size is taken into account when assigning priorities. Updates
+/// that fall outside the segment are given lower priority.
+///
+/// @param[in] begin
+///         First row/column that belongs to the diagonal window.
+///
+/// @param[in] end
+///         Last row/column that belongs to the diagonal window + 1.
+///
+/// @param[in] lQ_h
+///         Local left-hand size transformation matrix.
+///
+/// @param[in] lZ_h
+///         Local right-hand size transformation matrix.
+///
+/// @param[in] segment
+///         Segment.
+///
+/// @param[in,out] args
+///         Segment processing arguments.
+///
+static void insert_aed_updates(
+    int begin, int end, starpu_data_handle_t lQ_h, starpu_data_handle_t lZ_h,
+    struct segment const *segment, struct process_args *args)
+{
+    if (lZ_h == NULL)
+        lZ_h = lQ_h;
+
+    int off_prio = MAX(args->min_prio, args->default_prio-1);
+    int right_prio = MAX(args->default_prio, args->max_prio-1);
+
+    int aed_window_size = evaluate_parameter(
+        segment->end - segment->begin, args->aed_window_size);
+
+    #define update_matrix(matrix_x) { \
+        int x_height = STARNEIG_MATRIX_BM(matrix_x); \
+        int x_width = STARNEIG_MATRIX_BN(matrix_x); \
+        \
+        int off_cut = starneig_matrix_cut_vectically_up( \
+            segment->begin, matrix_x); \
+        int aed_cut = starneig_matrix_cut_vectically_up( \
+            MAX(segment->begin, begin-aed_window_size), matrix_x); \
+        \
+        starneig_insert_right_gemm_update( \
+            0, off_cut, begin, end, x_height, off_prio, lZ_h, \
+            matrix_x, args->mpi); \
+        starneig_insert_right_gemm_update( \
+            off_cut, aed_cut, begin, end, x_height, right_prio, lZ_h, \
+            matrix_x, args->mpi); \
+        starneig_insert_right_gemm_update( \
+            aed_cut, begin, begin, end, x_height, args->max_prio, lZ_h, \
+            matrix_x, args->mpi); \
+        \
+        starneig_insert_left_gemm_update( \
+            begin, end, end, STARNEIG_MATRIX_N(matrix_x), x_width,  \
+            off_prio, lQ_h, matrix_x, args->mpi); \
+    }
+
+    // update A
+
+    update_matrix(args->matrix_a);
+
+    // update B
+
+    if (args->matrix_b != NULL)
+        update_matrix(args->matrix_b);
+
+    #undef update_matrix
+
+    // update Q
+
+    if (args->matrix_q != NULL)
+        starneig_insert_right_gemm_update(
+            0, STARNEIG_MATRIX_M(args->matrix_q), begin, end,
+            STARNEIG_MATRIX_BM(args->matrix_q), args->min_prio, lQ_h,
+            args->matrix_q, args->mpi);
+
+    // update Z
+
+    if (args->matrix_z != NULL)
+        starneig_insert_right_gemm_update(
+            0, STARNEIG_MATRIX_M(args->matrix_z), begin, end,
+            STARNEIG_MATRIX_BM(args->matrix_z), args->min_prio, lZ_h,
+            args->matrix_z, args->mpi);
 }
 
 ///
@@ -782,11 +872,34 @@ static enum segment_status perform_deflate_finalize(
             //
             // reduce the non-deleflated part to Hessenberg-triangular form
             //
-            if (padded_size-status->converged < 1500 || args->matrix_b != NULL)
+
+            int hessenberg_prio_high, hessenberg_prio_normal,
+                hessenberg_prio_low;
+            if (perform_bulge_chasing) {
+                hessenberg_prio_high =
+                    MAX(args->default_prio, args->max_prio-2);
+                hessenberg_prio_normal =
+                    MAX(args->default_prio, args->max_prio-3);
+                hessenberg_prio_low =
+                    MAX(args->default_prio, args->max_prio-4);
+            }
+            else {
+                hessenberg_prio_high = args->max_prio;
+                hessenberg_prio_normal =
+                    MAX(args->default_prio, args->max_prio-1);
+                hessenberg_prio_low =
+                    MAX(args->default_prio, args->max_prio-1);
+            }
+
+            if (padded_size-status->converged < 1000 || args->matrix_b != NULL)
             {
+
+                starneig_verbose(
+                    "Performing a sequential Hessenberg reduction.");
+
                 starpu_data_handle_t _lQ, _lZ;
                 starneig_schur_insert_small_hessenberg(
-                    0, padded_size-status->converged, STARPU_MAX_PRIO,
+                    0, padded_size-status->converged, hessenberg_prio_high,
                     segment->aed_args.matrix_a, segment->aed_args.matrix_b,
                     &_lQ, &_lZ, NULL);
 
@@ -801,7 +914,8 @@ static enum segment_status perform_deflate_finalize(
             }
             else {
 
-                starneig_verbose("Performing parallel Hessenberg reduction.");
+                starneig_verbose(
+                    "Performing a parallel Hessenberg reduction.");
 
                 int panel_width = divceil(224,
                     STARNEIG_MATRIX_BN(segment->aed_args.matrix_a)) *
@@ -809,10 +923,9 @@ static enum segment_status perform_deflate_finalize(
 
                 starneig_hessenberg_insert_tasks(
                     panel_width, 0, padded_size-status->converged,
-                    args->max_prio, MAX(args->default_prio, args->max_prio-1),
-                    MAX(args->default_prio, args->max_prio-1),
-                    segment->aed_args.matrix_q, segment->aed_args.matrix_a,
-                    NULL);
+                    hessenberg_prio_high, hessenberg_prio_normal,
+                    hessenberg_prio_low, segment->aed_args.matrix_q,
+                    segment->aed_args.matrix_a, NULL);
             }
 
             //
@@ -852,8 +965,8 @@ static enum segment_status perform_deflate_finalize(
         // insert update tasks
         //
 
-        insert_segment_updates(segment->aed_begin, segment->end, lQ, lZ,
-            segment, args, UPDATE_DIRECTION_UP);
+        insert_aed_updates(
+            segment->aed_begin, segment->end, lQ, lZ, segment, args);
 
         if (lZ != lQ)
             starpu_data_unregister_submit(lZ);
@@ -1936,9 +2049,8 @@ static enum segment_status process_segment_aed_small(
     if (0 < status->converged) {
 
         // insert the related updates and re-size the segment
-        insert_segment_updates(segment->aed_begin, segment->end,
-            segment->aed_small_lQ_h, segment->aed_small_lZ_h, segment, args,
-            UPDATE_DIRECTION_UP);
+        insert_aed_updates(segment->aed_begin, segment->end,
+            segment->aed_small_lQ_h, segment->aed_small_lZ_h, segment, args);
 
         segment->end -= status->converged;
 
