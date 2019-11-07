@@ -80,10 +80,9 @@ static struct starpu_perfmodel left_gemm_update_pm = {
     .nparameters = 2,
     .parameters_names = (const char*[]) { "M", "N" },
     .combinations = (unsigned*[]) {
-        (unsigned[]) { 1U, 1U },
         (unsigned[]) { 2U, 1U }
     },
-    .ncombinations = 2
+    .ncombinations = 1
 };
 
 #else
@@ -169,10 +168,9 @@ static struct starpu_perfmodel right_gemm_update_pm = {
     .nparameters = 2,
     .parameters_names = (const char*[]) { "M", "N" },
     .combinations = (unsigned*[]) {
-        (unsigned[]) { 1U, 1U },
         (unsigned[]) { 1U, 2U },
     },
-    .ncombinations = 2
+    .ncombinations = 1
 };
 
 #else
