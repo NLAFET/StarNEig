@@ -1281,20 +1281,21 @@ static void process_small_window(
                     continue;
 
                 // skip infinite eigenvalues
-                if (B != NULL && (_B(0,0) == 0.0 || _B(1,1) == 0.0 ||
-                _B(2,2) == 0.0))
+                if (B != NULL &&
+                (_B(0,0) == 0.0 || _B(1,1) == 0.0 || _B(2,2) == 0.0))
                     continue;
             }
 
             // skip infinite eigenvalues
-            if (0 <= j && B != NULL && j+3 < n && _B(j,j) == 0.0 &&
+            if (0 <= j && B != NULL && j+3 < n &&
             _A(j+2,j) == 0.0 && _A(j+3,j) == 0.0 &&
+            _B(j,j) == 0.0 && _B(j+1,j+1) == 0.0 &&
             _B(j+1,j) == 0.0 && _B(j+2,j+1) == 0.0)
                 //
                 //  A              B
                 //  x x x x x x    x x x x x x
                 //  x j x x x x      0 x x x x
-                //    x x x x x      0 x x x x
+                //    x x x x x      0 0 x x x
                 //    0 x x x x        0 x x x
                 //    0   x x x            x x
                 //          x x              x
@@ -1351,25 +1352,6 @@ static void process_small_window(
                 //   x x x         ? x       x x x x x         ? x x x
                 //                           0 0 0 x x             x x
                 //                                 x x               x
-                //
-
-                // try to deflate the second column of B
-                if (B != NULL && fabs(_B(j+2,j+1)) < thres_b)
-                    _B(j+2,j+1) = 0.0;
-
-                if (_A(j+2,j) == 0.0 && (B == NULL || _B(j+2,j+1) == 0.0))
-                    //
-                    // A           B           A               B
-                    // x x x x     x x x x     x x x x x x     x x x x x x
-                    // x j x x       j x x     x j x x x x       j x x x x
-                    //   x x x         x x       x x x x x         x x x x
-                    //   0 x x         0 x       0 x x x x         0 x x x
-                    //                                 x x             x x
-                    //                                 x x               x
-                    //
-                    // skip 1x1 bulges
-                    continue;
-
                 //
                 // push a 2x2 bulge forward
                 //

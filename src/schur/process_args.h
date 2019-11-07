@@ -106,8 +106,8 @@ struct process_args {
     starneig_matrix_descr_t matrix_b;     ///< matrix B descriptor
     starneig_matrix_descr_t matrix_q;     ///< matrix Q descriptor
     starneig_matrix_descr_t matrix_z;     ///< matrix Z descriptor
-    starpu_data_handle_t norm_a;          ///< Frobenius norm of A
-    starpu_data_handle_t norm_b;          ///< Frobenius norm of B
+    double norm_a;                        ///< Frobenius norm of A
+    double norm_b;                        ///< Frobenius norm of B
 };
 
 ///
@@ -219,8 +219,6 @@ starneig_error_t starneig_build_process_args(
     const starneig_matrix_descr_t matrix_z,
     const starneig_matrix_descr_t matrix_a,
     const starneig_matrix_descr_t matrix_b,
-    const starpu_data_handle_t norm_a,
-    const starpu_data_handle_t norm_b,
-    mpi_info_t mpi, struct process_args *args);
+    double norm_a, double norm_b, mpi_info_t mpi, struct process_args *args);
 
 #endif

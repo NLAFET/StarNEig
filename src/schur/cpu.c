@@ -56,12 +56,15 @@
 
 void starneig_cpu_push_inf_top(void *buffers[], void *cl_arg)
 {
+    double norm_b;
     struct packing_info packing_info_A, packing_info_B;
     int top, bottom;
     starpu_codelet_unpack_args(cl_arg,
-        &packing_info_A, &packing_info_B, &top, &bottom);
+        &norm_b, &packing_info_A, &packing_info_B, &top, &bottom);
+
     STARNEIG_EVENT_BEGIN(&packing_info_A, starneig_event_red);
 
+    double thres_b = dlamch("Precision") * norm_b;
 
     int window_size = packing_info_A.rend - packing_info_A.rbegin;
 
@@ -108,6 +111,11 @@ void starneig_cpu_push_inf_top(void *buffers[], void *cl_arg)
     starneig_init_local_q(window_size, ldQ, Q);
     starneig_init_local_q(window_size, ldZ, Z);
 
+    for (int i = 0; i < window_size; i++) {
+        if (fabs(B[i*ldB+i]) < thres_b)
+            B[i*ldB+i] = 0.0;
+    }
+
     if (bottom)
         starneig_push_inf_top(
             0, window_size, window_size, ldQ, ldZ, ldA, ldB, Q, Z, A, B, top);
@@ -123,12 +131,13 @@ void starneig_cpu_push_inf_top(void *buffers[], void *cl_arg)
 
 void starneig_cpu_push_bulges(void *buffers[], void *cl_arg)
 {
+    double norm_a, norm_b;
     struct range_packing_info packing_info_shifts_real;
     struct range_packing_info packing_info_shifts_imag;
     struct range_packing_info packing_info_aftermath;
     struct packing_info packing_info_A, packing_info_B;
     bulge_chasing_mode_t mode;
-    starpu_codelet_unpack_args(cl_arg,
+    starpu_codelet_unpack_args(cl_arg, &norm_a, &norm_b,
         &packing_info_shifts_real, &packing_info_shifts_imag,
         &packing_info_aftermath, &packing_info_A, &packing_info_B, &mode);
 
@@ -142,16 +151,7 @@ void starneig_cpu_push_bulges(void *buffers[], void *cl_arg)
 
     int k = 0;
 
-    // matrix norms and thresholds
-
-    double norm_a = *((double*) STARPU_VARIABLE_GET_PTR(buffers[k]));
-    k++;
-
-    double norm_b = 1.0;
-    if (generalized) {
-        norm_b = *((double*) STARPU_VARIABLE_GET_PTR(buffers[k]));
-        k++;
-    }
+    // thresholds
 
     double thres_a = dlamch("Precision") * norm_a;
     double thres_b = dlamch("Precision") * norm_b;
@@ -269,11 +269,14 @@ void starneig_cpu_push_bulges(void *buffers[], void *cl_arg)
 
 void starneig_cpu_aggressively_deflate(void *buffers[], void *cl_arg)
 {
+    double norm_a, norm_b;
     struct range_packing_info packing_info_shifts_real;
     struct range_packing_info packing_info_shifts_imag;
     struct packing_info packing_info_A, packing_info_B;
-    starpu_codelet_unpack_args(cl_arg, &packing_info_shifts_real,
-        &packing_info_shifts_imag, &packing_info_A, &packing_info_B);
+    starpu_codelet_unpack_args(cl_arg, &norm_a, &norm_b,
+        &packing_info_shifts_real, &packing_info_shifts_imag,
+        &packing_info_A, &packing_info_B);
+
     STARNEIG_EVENT_BEGIN(&packing_info_A, starneig_event_red);
 
     int generalized = 0 < packing_info_B.handles;
@@ -281,16 +284,7 @@ void starneig_cpu_aggressively_deflate(void *buffers[], void *cl_arg)
 
     int k = 0;
 
-    // matrix norms and thresholds
-
-    double norm_a = *((double*) STARPU_VARIABLE_GET_PTR(buffers[k]));
-    k++;
-
-    double norm_b = 1.0;
-    if (generalized) {
-        norm_b = *((double*) STARPU_VARIABLE_GET_PTR(buffers[k]));
-        k++;
-    }
+    // matrix norms thresholds
 
     double thres_a = dlamch("Precision") * norm_a;
     double thres_b = dlamch("Precision") * norm_b;
@@ -411,8 +405,11 @@ void starneig_cpu_aggressively_deflate(void *buffers[], void *cl_arg)
 
 void starneig_cpu_small_schur(void *buffers[], void *cl_arg)
 {
+    double norm_a, norm_b;
     struct packing_info packing_info_A, packing_info_B;
-    starpu_codelet_unpack_args(cl_arg, &packing_info_A, &packing_info_B);
+    starpu_codelet_unpack_args(cl_arg,
+        &norm_a, &norm_b, &packing_info_A, &packing_info_B);
+
     STARNEIG_EVENT_BEGIN(&packing_info_A, starneig_event_red);
 
     int generalized = 0 < packing_info_B.handles;
@@ -420,16 +417,7 @@ void starneig_cpu_small_schur(void *buffers[], void *cl_arg)
 
     int k = 0;
 
-    // matrix norms and thresholds
-
-    double norm_a = *((double*) STARPU_VARIABLE_GET_PTR(buffers[k]));
-    k++;
-
-    double norm_b = 1.0;
-    if (generalized) {
-        norm_b = *((double*) STARPU_VARIABLE_GET_PTR(buffers[k]));
-        k++;
-    }
+    // thresholds
 
     double thres_a = dlamch("Precision") * norm_a;
     double thres_b = dlamch("Precision") * norm_b;
@@ -658,23 +646,22 @@ void starneig_cpu_embed_spike(void *buffers[], void *cl_arg)
 
 void starneig_cpu_deflate(void *buffers[], void *cl_arg)
 {
+    double norm_a;
     struct range_packing_info packing_info_spike;
     struct packing_info packing_info_A, packing_info_B;
     int offset, deflate, corner;
     starpu_codelet_unpack_args(cl_arg,
-        &packing_info_spike, &packing_info_A, &packing_info_B,
+        &norm_a, &packing_info_spike, &packing_info_A, &packing_info_B,
         &offset, &deflate, &corner);
 
     STARNEIG_EVENT_BEGIN(&packing_info_A, starneig_event_red);
+
     int generalized = 0 < packing_info_B.handles;
     int size = packing_info_A.rend - packing_info_A.rbegin;
 
     int k = 0;
 
-    // matrix norm and threshold
-
-    double norm_a = *((double*) STARPU_VARIABLE_GET_PTR(buffers[k]));
-    k++;
+    // threshold
 
     double thres_a = dlamch("Precision") * norm_a;
 

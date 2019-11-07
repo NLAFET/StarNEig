@@ -517,8 +517,8 @@ static void insert_push_inf_top(
             starpu_data_handle_t lQ_h, lZ_h;
             starneig_schur_insert_push_inf_top(
                 wbegin, wend, wbegin == begin, wend == segment->end,
-                args->max_prio, args->matrix_a, args->matrix_b, &lQ_h, &lZ_h,
-                args->mpi);
+                args->max_prio, args->norm_b, args->matrix_a, args->matrix_b,
+                &lQ_h, &lZ_h, args->mpi);
 
             insert_segment_updates(
                 wbegin, wend, lQ_h, lZ_h, segment, args, UPDATE_DIRECTION_UP);
@@ -1736,9 +1736,11 @@ static enum segment_status perform_aftermath_check(
                 SEGMENT_NEW, prev_begin, prev_end);
             new->iter = segment->iter;
 
-            if (infinities != NULL)
+            if (infinities != NULL) {
                 insert_push_inf_top(
                     infinities+prev_begin-segment->begin, new, args);
+                new->status = SEGMENT_BOOTSTRAP;
+            }
             process_segment(new, args);
 
             if (list == NULL)
@@ -1751,9 +1753,11 @@ static enum segment_status perform_aftermath_check(
                 SEGMENT_NEW, prev_end, end);
             new->iter = segment->iter;
 
-            if (infinities != NULL)
+            if (infinities != NULL) {
                 insert_push_inf_top(
                     infinities+prev_end-segment->begin, new, args);
+                new->status = SEGMENT_BOOTSTRAP;
+            }
             process_segment(new, args);
 
             if (list == NULL)
@@ -1770,9 +1774,13 @@ static enum segment_status perform_aftermath_check(
         segment->status = SEGMENT_CHILDREN;
     }
     else {
-        if (infinities != NULL)
+        if (infinities != NULL) {
             insert_push_inf_top(infinities, segment, args);
-        segment->status = SEGMENT_NEW;
+            segment->status = SEGMENT_BOOTSTRAP;
+        }
+        else {
+            segment->status = SEGMENT_NEW;
+        }
     }
 
     free(infinities);
@@ -1784,6 +1792,9 @@ static void extract_aftermath(
     int size, int rbegin, int cbegin, int m, int n, int ldA, int ldB,
     void const *arg, void const *_A, void const *_B, void **masks)
 {
+    double norm_b = *((double *)arg);
+    double thres_b = dlamch("Precision") * norm_b;
+
     double const *A = _A;
     double const *B = _B;
     bulge_chasing_aftermath_t *mask = masks[0];
@@ -1799,7 +1810,7 @@ static void extract_aftermath(
 
     if (B != NULL) {
         for (int i = 0; i < size; i++) {
-            if (B[(cbegin+i)*ldA+rbegin+i] == 0.0)
+            if (fabs(B[(cbegin+i)*ldB+rbegin+i]) < thres_b)
                 mask[i] |= BULGE_CHASING_AFTERMATH_INFINITY;
         }
     }
@@ -1828,8 +1839,8 @@ static enum segment_status process_segment_bootstrap(
 
     starneig_insert_scan_diagonal(
         0, STARNEIG_MATRIX_M(args->matrix_a), 0, 0, 0, 1, 0, args->max_prio,
-        extract_aftermath, NULL, args->matrix_a, args->matrix_b, args->mpi,
-        segment->bulges_aftermath, NULL);
+        extract_aftermath, &args->norm_b, args->matrix_a, args->matrix_b,
+        args->mpi, segment->bulges_aftermath, NULL);
 
 #ifdef STARNEIG_ENABLE_MPI
     // gather the deflation check vector to all MPI nodes
@@ -2346,13 +2357,27 @@ starneig_error_t starneig_schur_insert_tasks(
     // compute norms
     //
 
-    starpu_data_handle_t norm_a =
-        starneig_schur_insert_compute_norm(STARPU_MAX_PRIO, A, mpi);
+    double norm_a, norm_b = 0.0;
+    {
+        starpu_data_handle_t norm_a_h =
+            starneig_schur_insert_compute_norm(STARPU_MAX_PRIO, A, mpi);
+        starpu_data_handle_t norm_b_h = NULL;
+        if (B != NULL)
+            norm_b_h =
+                starneig_schur_insert_compute_norm(STARPU_MAX_PRIO, B, mpi);
 
-    starpu_data_handle_t norm_b = NULL;
-    if (B != NULL)
-        norm_b =
-            starneig_schur_insert_compute_norm(STARPU_MAX_PRIO, B, mpi);
+        starpu_data_acquire(norm_a_h, STARPU_R);
+        norm_a = *((double *) starpu_data_get_local_ptr(norm_a_h));
+        starpu_data_release(norm_a_h);
+        starpu_data_unregister(norm_a_h);
+
+        if (B != NULL) {
+            starpu_data_acquire(norm_b_h, STARPU_R);
+            norm_b = *((double *) starpu_data_get_local_ptr(norm_b_h));
+            starpu_data_release(norm_b_h);
+            starpu_data_unregister(norm_b_h);
+        }
+    }
 
     //
     // build arguments
@@ -2403,10 +2428,6 @@ cleanup:
     //
 
     starneig_free_segment_list(list);
-
-    starpu_data_unregister_submit(norm_a);
-    if (norm_b != NULL)
-        starpu_data_unregister_submit(norm_b);
 
     return ret;
 }
