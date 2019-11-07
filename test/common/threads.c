@@ -108,23 +108,6 @@ static int get_core_count()
     return num_hwloc_cpus;
 }
 
-static int get_pu_count()
-{
-    hwloc_topology_t topology;
-    hwloc_topology_init(&topology);
-    hwloc_topology_load(topology);
-
-    hwloc_cpuset_t mask = hwloc_bitmap_alloc();
-    hwloc_get_cpubind(topology, mask, HWLOC_CPUBIND_THREAD);
-
-    int num_hwloc_cpus = hwloc_bitmap_weight(mask);
-
-    hwloc_bitmap_free(mask);
-    hwloc_topology_destroy(topology);
-
-    return num_hwloc_cpus;
-}
-
 static void set_blas_threads(int threads)
 {
 #if defined(MKL_SET_NUM_THREADS_LOCAL_FOUND)
@@ -142,7 +125,7 @@ void threads_init(int worker_threads, int blas_threads)
         worker_threads = get_core_count();
 
     if (blas_threads == -1)
-        blas_threads = get_pu_count();
+        blas_threads = get_core_count();
 
     status.worker_threads = worker_threads;
     status.blas_threads = blas_threads;
