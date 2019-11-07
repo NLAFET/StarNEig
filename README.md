@@ -1,6 +1,6 @@
 # Introduction
 
-StarNEig library aims to provide a full suite of algorithms for solving
+StarNEig library aims to provide a full suite of algorithms for solving dense
 **non-symmetric** (generalized) eigenvalue problems. The library is built on top
 of the *StarPU* runtime system and targets both shared memory and distributed
 memory machines. Some components of the library support GPUs.
@@ -34,19 +34,21 @@ Current status:
 | Component                         |      Shared memory     | Distributed memory | Accelerators (GPUs)  |
 |-----------------------------------|:----------------------:|:------------------:|:--------------------:|
 | Hessenberg reduction              |      **Complete**      | ScaLAPACK wrapper  |     **Single GPU**   |
-| Schur reduction                   |      **Complete**      |    *Experimental*  |     *Experimental*   |
+| Schur reduction                   |      **Complete**      |    **Complete**    |     *Experimental*   |
 | Eigenvalue reordering             |      **Complete**      |    **Complete**    |     *Experimental*   |
 | Eigenvectors                      |      **Complete**      |Waiting integration |      Not planned     |
 | Hessenberg-triangular reduction   |LAPACK wrapper / Planned| ScaLAPACK wrapper  |      Not planned     |
-| Generalized Schur reduction       |      **Complete**      |    *Experimental*  |     *Experimental*   |
+| Generalized Schur reduction       |      **Complete**      |    **Complete**    |     *Experimental*   |
 | Generalized eigenvalue reordering |      **Complete**      |    **Complete**    |     *Experimental*   |
 | Generalized eigenvectors          |      **Complete**      |Waiting integration |      Not planned     |
+
+Please see the *Known problems* section in the StarNEig manual.
 
 ## Related publications
 
 ### Research papers
 
- - Mirko Myllykoski, Carl Christian Kjelgaard Mikkelsen: *Introduction to StarNEig — A Task-based Library for Solving Nonsymmetric Eigenvalue Problems*, Submitted to PPAM 2019, [arXiv:1905.04975](https://arxiv.org/abs/1905.04975)
+ - Mirko Myllykoski, Carl Christian Kjelgaard Mikkelsen: *Introduction to StarNEig — A Task-based Library for Solving Nonsymmetric Eigenvalue Problems*, Accepted to PPAM 2019, [arXiv:1905.04975](https://arxiv.org/abs/1905.04975)
  - Mirko Myllykoski: *A Task-Based Algorithm for Reordering the Eigenvalues of a Matrix in Real Schur Form*, In Parallel Processing and Applied Mathematics, 12th International Conference, PPAM 2017, Lublin, Poland, September 10-13, 2017, Revised Selected Papers, Part I, Lecture Notes in Computer Science, Vol. 10777, Wyrzykowski R., Dongarra J., Deelman E., Karczewski K. (eds), Springer International Publishing, pp. 207-216, 2018, doi: 10.1007/978-3-319-78024-5_19 
  - Carl Christian Kjelgaard Mikkelsen, Lars Karlsson. *Blocked Algorithms for Robust Solution of Triangular Linear Systems*, In Parallel Processing and Applied Mathematics, 12th International Conference, PPAM 2017, Lublin, Poland, September 10-13, 2017, Revised Selected Papers, Part I, Lecture Notes in Computer Science, Vol. 10777, Wyrzykowski R., Dongarra J., Deelman E., Karczewski K. (eds), Springer International Publishing, pp. 207-216, 2018
  - Carl Christian Kjelgaard Mikkelsen, Angelika Schwarz, and Lars Karlsson. *Parallel Robust Solution of Triangular Linear Systems. Concurrency and Computation: Practice and Experience*, 0(0):1–19, 2018
