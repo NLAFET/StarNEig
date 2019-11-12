@@ -93,20 +93,20 @@ int partial_hessenberg_check_args(
     if (n < 1 || begin < 0 || end < begin || n < end)
         return 1;
 
-    if (arg_cores.type == invalid)
+    if (arg_cores.type == MULTIARG_INVALID)
         return -1;
 
-    if (arg_gpus.type == invalid)
+    if (arg_gpus.type == MULTIARG_INVALID)
         return -1;
 
-    if (tile_size.type == invalid ||
-    (tile_size.type == integer && tile_size.int_value < 1)) {
+    if (tile_size.type == MULTIARG_INVALID ||
+    (tile_size.type == MULTIARG_INT && tile_size.int_value < 1)) {
         fprintf(stderr, "Invalid tile size.\n");
         return -1;
     }
 
-    if (panel_width.type == invalid ||
-    (panel_width.type == integer && panel_width.int_value < 1)) {
+    if (panel_width.type == MULTIARG_INVALID ||
+    (panel_width.type == MULTIARG_INT && panel_width.int_value < 1)) {
         fprintf(stderr, "Invalid panel width.\n");
         return -1;
     }
@@ -130,11 +130,11 @@ int partial_hessenberg_run(
         "--panel-width", argc, argv, NULL, "default", NULL);
 
     int cores = -1;
-    if (arg_cores.type == integer)
+    if (arg_cores.type == MULTIARG_INT)
         cores = arg_cores.int_value;
 
     int gpus = -1;
-    if (arg_gpus.type == integer)
+    if (arg_gpus.type == MULTIARG_INT)
         gpus = arg_gpus.int_value;
 
     init_helper_t helper = init_helper_init(
@@ -162,9 +162,9 @@ int partial_hessenberg_run(
     struct starneig_hessenberg_conf conf;
     starneig_hessenberg_init_conf(&conf);
 
-    if (tile_size.type == integer)
+    if (tile_size.type == MULTIARG_INT)
         conf.tile_size = tile_size.int_value;
-    if (panel_width.type == integer)
+    if (panel_width.type == MULTIARG_INT)
         conf.panel_width = panel_width.int_value;
 
     starneig_SEP_SM_Hessenberg_expert(&conf,

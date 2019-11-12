@@ -97,9 +97,14 @@ void func_name()                                                            \
 /// @brief Multi-value argument can be either an integer of a character string.
 ///
 struct multiarg_t {
-    enum { integer, str, invalid } type; ///< Argument type (integer or string)
+    enum {
+        MULTIARG_INT,
+        MULTIARG_FLOAT,
+        MULTIARG_STR,
+        MULTIARG_INVALID } type;         ///< Argument type
     union {
         int int_value;                   ///< Integer value
+        double double_value;             ///< Floating-point value
         char const *str_value;           ///< Pointer to string value
     };
 };

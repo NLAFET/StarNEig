@@ -182,14 +182,14 @@ static int starpu_check_args(int argc, char * const *argv, int *argr)
     struct multiarg_t tile_size = read_multiarg(
         "--tile-size", argc, argv, argr, "default", NULL);
 
-    if (arg_cores.type == invalid)
+    if (arg_cores.type == MULTIARG_INVALID)
         return -1;
 
-    if (arg_gpus.type == invalid)
+    if (arg_gpus.type == MULTIARG_INVALID)
         return -1;
 
-    if (tile_size.type == invalid ||
-    (tile_size.type == integer && tile_size.int_value < 1)) {
+    if (tile_size.type == MULTIARG_INVALID ||
+    (tile_size.type == MULTIARG_INT && tile_size.int_value < 1)) {
         fprintf(stderr, "Invalid tile size.\n");
         return -1;
     }
@@ -212,11 +212,11 @@ static hook_solver_state_t starpu_prepare(
         "--gpus", argc, argv, NULL, "default", NULL);
 
     int cores = -1;
-    if (arg_cores.type == integer)
+    if (arg_cores.type == MULTIARG_INT)
         cores = arg_cores.int_value;
 
     int gpus = -1;
-    if (arg_gpus.type == integer)
+    if (arg_gpus.type == MULTIARG_INT)
         gpus = arg_gpus.int_value;
 
 #ifdef STARNEIG_ENABLE_MPI
@@ -253,7 +253,7 @@ static int starpu_run(hook_solver_state_t state)
     struct multiarg_t tile_size = read_multiarg(
         "--tile-size", argc, argv, NULL, "default", NULL);
 
-    if (tile_size.type == integer)
+    if (tile_size.type == MULTIARG_INT)
         conf.tile_size = tile_size.int_value;
 
     int ret = 0;
@@ -358,10 +358,10 @@ static int starpu_simple_check_args(int argc, char * const *argv, int *argr)
     struct multiarg_t arg_gpus = read_multiarg(
         "--gpus", argc, argv, argr, "default", NULL);
 
-    if (arg_cores.type == invalid)
+    if (arg_cores.type == MULTIARG_INVALID)
         return -1;
 
-    if (arg_gpus.type == invalid)
+    if (arg_gpus.type == MULTIARG_INVALID)
         return -1;
 
     return 0;
@@ -376,11 +376,11 @@ static hook_solver_state_t starpu_simple_prepare(
         "--gpus", argc, argv, NULL, "default", NULL);
 
     int cores = -1;
-    if (arg_cores.type == integer)
+    if (arg_cores.type == MULTIARG_INT)
         cores = arg_cores.int_value;
 
     int gpus = -1;
-    if (arg_gpus.type == integer)
+    if (arg_gpus.type == MULTIARG_INT)
         gpus = arg_gpus.int_value;
 
 #ifdef STARNEIG_ENABLE_MPI

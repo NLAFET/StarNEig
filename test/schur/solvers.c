@@ -801,55 +801,56 @@ static int starpu_check_args(int argc, char * const *argv, int *argr)
     struct multiarg_t arg_gpus = read_multiarg(
         "--gpus", argc, argv, argr, "default", NULL);
 
-    if (arg_cores.type == invalid)
+    if (arg_cores.type == MULTIARG_INVALID)
         return -1;
 
-    if (arg_gpus.type == invalid)
+    if (arg_gpus.type == MULTIARG_INVALID)
         return -1;
 
     struct multiarg_t iteration_limit = read_multiarg(
         "--iteration-limit", argc, argv, argr, "default", NULL);
-    if (iteration_limit.type == invalid ||
-    (iteration_limit.type == integer && iteration_limit.int_value < 1)) {
+    if (iteration_limit.type == MULTIARG_INVALID ||
+    (iteration_limit.type == MULTIARG_INT && iteration_limit.int_value < 1)) {
         fprintf(stderr, "Invalid iteration limit.\n");
         return -1;
     }
 
     struct multiarg_t tile_size = read_multiarg(
         "--tile-size", argc, argv, argr, "default", NULL);
-    if (tile_size.type == invalid ||
-    (tile_size.type == integer && tile_size.int_value < 1)) {
+    if (tile_size.type == MULTIARG_INVALID ||
+    (tile_size.type == MULTIARG_INT && tile_size.int_value < 1)) {
         fprintf(stderr, "Invalid tile size.\n");
         return -1;
     }
 
     struct multiarg_t small_limit = read_multiarg(
         "--small-limit", argc, argv, argr, "default", NULL);
-    if (small_limit.type == invalid ||
-    (small_limit.type == integer && small_limit.int_value < 1)) {
+    if (small_limit.type == MULTIARG_INVALID ||
+    (small_limit.type == MULTIARG_INT && small_limit.int_value < 1)) {
         fprintf(stderr, "Invalid sequential QR switch point.\n");
         return -1;
     }
 
     struct multiarg_t aed_window_size = read_multiarg(
         "--aed-window-size", argc, argv, argr, "default", NULL);
-    if (aed_window_size.type == invalid ||
-    (aed_window_size.type == integer && aed_window_size.int_value < 5)) {
+    if (aed_window_size.type == MULTIARG_INVALID ||
+    (aed_window_size.type == MULTIARG_INT && aed_window_size.int_value < 5)) {
         fprintf(stderr, "Invalid AED window size.\n");
         return -1;
     }
 
     struct multiarg_t aed_shift_count = read_multiarg(
         "--aed-shift-count", argc, argv, argr, "default", NULL);
-    if (aed_shift_count.type == invalid ||
-    (aed_shift_count.type == integer && aed_shift_count.int_value < 2)) {
+    if (aed_shift_count.type == MULTIARG_INVALID ||
+    (aed_shift_count.type == MULTIARG_INT && aed_shift_count.int_value < 2)) {
         fprintf(stderr, "Invalid AED shift count.\n");
         return -1;
     }
 
     struct multiarg_t aed_nibble = read_multiarg(
         "--aed-nibble", argc, argv, argr, "default", NULL);
-    if (aed_nibble .type == invalid || (aed_nibble .type == integer &&
+    if (aed_nibble .type == MULTIARG_INVALID ||
+    (aed_nibble .type == MULTIARG_INT &&
     (aed_nibble.int_value < 1 || 99 < aed_nibble.int_value))) {
         fprintf(stderr, "Invalid aed_nibble point.\n");
         return -1;
@@ -857,8 +858,8 @@ static int starpu_check_args(int argc, char * const *argv, int *argr)
 
     struct multiarg_t aed_parallel_soft__limit = read_multiarg(
         "--aed-parallel-soft-limit", argc, argv, argr, "default", NULL);
-    if (aed_parallel_soft__limit.type == invalid ||
-    (aed_parallel_soft__limit.type == integer &&
+    if (aed_parallel_soft__limit.type == MULTIARG_INVALID ||
+    (aed_parallel_soft__limit.type == MULTIARG_INT &&
     aed_parallel_soft__limit.int_value < 1)) {
         fprintf(stderr, "Invalid soft sequential AED switching point.\n");
         return -1;
@@ -866,8 +867,8 @@ static int starpu_check_args(int argc, char * const *argv, int *argr)
 
     struct multiarg_t aed_parallel_hard_limit = read_multiarg(
         "--aed-parallel-hard-limit", argc, argv, argr, "default", NULL);
-    if (aed_parallel_hard_limit.type == invalid ||
-    (aed_parallel_hard_limit.type == integer &&
+    if (aed_parallel_hard_limit.type == MULTIARG_INVALID ||
+    (aed_parallel_hard_limit.type == MULTIARG_INT &&
     aed_parallel_hard_limit.int_value < 1)) {
         fprintf(stderr, "Invalid hard sequential AED switching point.\n");
         return -1;
@@ -875,32 +876,33 @@ static int starpu_check_args(int argc, char * const *argv, int *argr)
 
     struct multiarg_t window_size = read_multiarg(
         "--window-size", argc, argv, argr, "default", "rounded", NULL);
-    if (window_size.type == invalid ||
-    (window_size.type == integer && window_size.int_value < 5)) {
+    if (window_size.type == MULTIARG_INVALID ||
+    (window_size.type == MULTIARG_INT && window_size.int_value < 5)) {
         fprintf(stderr, "Invalid window size.\n");
         return -1;
     }
 
     struct multiarg_t shifts_per_window = read_multiarg(
         "--shifts-per-window", argc, argv, argr, "default", NULL);
-    if (shifts_per_window.type == invalid ||
-    (shifts_per_window.type == integer && shifts_per_window.int_value < 2)) {
+    if (shifts_per_window.type == MULTIARG_INVALID ||
+    (shifts_per_window.type == MULTIARG_INT &&
+    shifts_per_window.int_value < 2)) {
         fprintf(stderr, "Invalid number of shifts per window.\n");
         return -1;
     }
 
     struct multiarg_t update_width = read_multiarg(
         "--update-width", argc, argv, argr, "default", NULL);
-    if (update_width.type == invalid || (update_width.type == integer &&
-        update_width.int_value < 1)) {
+    if (update_width.type == MULTIARG_INVALID ||
+        (update_width.type == MULTIARG_INT && update_width.int_value < 1)) {
         fprintf(stderr, "Invalid update task width.\n");
         return -1;
     }
 
     struct multiarg_t update_height = read_multiarg(
         "--update-height", argc, argv, argr, "default", NULL);
-    if (update_height.type == invalid || (update_height.type == integer &&
-        update_height.int_value < 1)) {
+    if (update_height.type == MULTIARG_INVALID ||
+        (update_height.type == MULTIARG_INT && update_height.int_value < 1)) {
         fprintf(stderr, "Invalid update task height.\n");
         return -1;
     }
@@ -941,11 +943,11 @@ static hook_solver_state_t starpu_prepare(
         "--gpus", argc, argv, NULL, "default", NULL);
 
     int cores = -1;
-    if (arg_cores.type == integer)
+    if (arg_cores.type == MULTIARG_INT)
         cores = arg_cores.int_value;
 
     int gpus = -1;
-    if (arg_gpus.type == integer)
+    if (arg_gpus.type == MULTIARG_INT)
         gpus = arg_gpus.int_value;
 
 #ifdef STARNEIG_ENABLE_MPI
@@ -982,65 +984,65 @@ static int starpu_run(hook_solver_state_t state)
 
     struct multiarg_t iteration_limit = read_multiarg(
         "--iteration-limit", argc, argv, NULL, "default", NULL);
-    if (iteration_limit.type == integer)
+    if (iteration_limit.type == MULTIARG_INT)
         conf.iteration_limit = iteration_limit.int_value;
 
     struct multiarg_t tile_size = read_multiarg(
         "--tile-size", argc, argv, NULL, "default", NULL);
-    if (tile_size.type == integer)
+    if (tile_size.type == MULTIARG_INT)
         conf.tile_size = tile_size.int_value;
 
     struct multiarg_t small_limit = read_multiarg(
         "--small-limit", argc, argv, NULL, "default", NULL);
-    if (small_limit.type == integer)
+    if (small_limit.type == MULTIARG_INT)
         conf.small_limit = small_limit.int_value;
 
     struct multiarg_t aed_window_size = read_multiarg(
         "--aed-window-size", argc, argv, NULL, "default", NULL);
-    if (aed_window_size.type == integer)
+    if (aed_window_size.type == MULTIARG_INT)
         conf.aed_window_size = aed_window_size.int_value;
 
     struct multiarg_t aed_shift_count = read_multiarg(
         "--aed-shift-count", argc, argv, NULL, "default", NULL);
-    if (aed_shift_count.type == integer)
+    if (aed_shift_count.type == MULTIARG_INT)
         conf.aed_shift_count = aed_shift_count.int_value;
 
     struct multiarg_t aed_nibble = read_multiarg(
         "--aed-nibble", argc, argv, NULL, "default", NULL);
-    if (aed_nibble.type == integer)
+    if (aed_nibble.type == MULTIARG_INT)
         conf.aed_nibble = aed_nibble.int_value;
 
     struct multiarg_t aed_parallel_soft_limit = read_multiarg(
         "--aed-parallel-soft-limit", argc, argv, NULL, "default", NULL);
-    if (aed_parallel_soft_limit.type == integer)
+    if (aed_parallel_soft_limit.type == MULTIARG_INT)
         conf.aed_parallel_soft_limit = aed_parallel_soft_limit.int_value;
 
     struct multiarg_t aed_parallel_hard_limit = read_multiarg(
         "--aed-parallel-hard-limit", argc, argv, NULL, "default", NULL);
-    if (aed_parallel_hard_limit.type == integer)
+    if (aed_parallel_hard_limit.type == MULTIARG_INT)
         conf.aed_parallel_hard_limit = aed_parallel_hard_limit.int_value;
 
     struct multiarg_t window_size = read_multiarg(
         "--window-size", argc, argv, NULL, "default", "rounded", NULL);
-    if (window_size.type == str &&
+    if (window_size.type == MULTIARG_STR &&
     strcmp("rounded", window_size.str_value) == 0)
         conf.window_size = STARNEIG_SCHUR_ROUNDED_WINDOW_SIZE;
-    if (window_size.type == integer)
+    if (window_size.type == MULTIARG_INT)
         conf.window_size = window_size.int_value;
 
     struct multiarg_t shifts_per_window = read_multiarg(
         "--shifts-per-window", argc, argv, NULL, "default", NULL);
-    if (shifts_per_window.type == integer)
+    if (shifts_per_window.type == MULTIARG_INT)
         conf.shifts_per_window = shifts_per_window.int_value;
 
     struct multiarg_t update_width = read_multiarg(
         "--update-width", argc, argv, NULL, "default", NULL);
-    if (update_width.type == integer)
+    if (update_width.type == MULTIARG_INT)
         conf.update_width = update_width.int_value;
 
     struct multiarg_t update_height = read_multiarg(
         "--update-height", argc, argv, NULL, "default", NULL);
-    if (update_height.type == integer)
+    if (update_height.type == MULTIARG_INT)
         conf.update_height = update_height.int_value;
 
     int ret = 0;
@@ -1141,10 +1143,10 @@ static int starpu_simple_check_args(int argc, char * const *argv, int *argr)
     struct multiarg_t arg_gpus = read_multiarg(
         "--gpus", argc, argv, argr, "default", NULL);
 
-    if (arg_cores.type == invalid)
+    if (arg_cores.type == MULTIARG_INVALID)
         return -1;
 
-    if (arg_gpus.type == invalid)
+    if (arg_gpus.type == MULTIARG_INVALID)
         return -1;
 
     return 0;
@@ -1159,11 +1161,11 @@ static hook_solver_state_t starpu_simple_prepare(
         "--gpus", argc, argv, NULL, "default", NULL);
 
     int cores = -1;
-    if (arg_cores.type == integer)
+    if (arg_cores.type == MULTIARG_INT)
         cores = arg_cores.int_value;
 
     int gpus = -1;
-    if (arg_gpus.type == integer)
+    if (arg_gpus.type == MULTIARG_INT)
         gpus = arg_gpus.int_value;
 
 #ifdef STARNEIG_ENABLE_MPI

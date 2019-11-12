@@ -258,8 +258,8 @@ static int bulk_complex_distr_check_args(
     struct multiarg_t begin = read_multiarg(
         "--bulk-complex-begin", argc, argv, argr, "top", "middle", NULL);
 
-    if (begin.type == invalid ||
-    (begin.type == integer && begin.int_value < 0)) {
+    if (begin.type == MULTIARG_INVALID ||
+    (begin.type == MULTIARG_INT && begin.int_value < 0)) {
         fprintf(stderr, "Invalid --bulk-complex-begin value.\n");
         return -1;
     }
@@ -267,13 +267,13 @@ static int bulk_complex_distr_check_args(
     struct multiarg_t end = read_multiarg(
         "--bulk-complex-end", argc, argv, argr, "middle", "bottom", NULL);
 
-    if (end.type == invalid ||
-    (end.type == integer && end.int_value < 0)) {
+    if (end.type == MULTIARG_INVALID ||
+    (end.type == MULTIARG_INT && end.int_value < 0)) {
         fprintf(stderr, "Invalid --bulk-complex-end value.\n");
         return -1;
     }
 
-    if (begin.type == integer && end.type == integer) {
+    if (begin.type == MULTIARG_INT && end.type == MULTIARG_INT) {
         if (end.int_value < begin.int_value) {
             fprintf(stderr,
                 "Invalid --bulk-complex-begin or --bulk-complex-end.\n");
@@ -347,18 +347,22 @@ static int bulk_complex_distr_init(
         struct multiarg_t end_arg = read_multiarg(
             "--bulk-complex-end", argc, argv, NULL, "middle", "bottom", NULL);
 
-        if (begin_arg.type == str && strcmp("top", begin_arg.str_value) == 0)
+        if (begin_arg.type == MULTIARG_STR &&
+        strcmp("top", begin_arg.str_value) == 0)
             begin = 0;
-        if (begin_arg.type == str && strcmp("middle", begin_arg.str_value) == 0)
+        if (begin_arg.type == MULTIARG_STR &&
+        strcmp("middle", begin_arg.str_value) == 0)
             begin = n/2;
-        if (begin_arg.type == integer)
+        if (begin_arg.type == MULTIARG_INT)
             begin = MIN(n, begin_arg.int_value);
 
-        if (end_arg.type == str && strcmp("middle", end_arg.str_value) == 0)
+        if (end_arg.type == MULTIARG_STR &&
+        strcmp("middle", end_arg.str_value) == 0)
             end = n/2;
-        if (end_arg.type == str && strcmp("bottom", end_arg.str_value) == 0)
+        if (end_arg.type == MULTIARG_STR &&
+        strcmp("bottom", end_arg.str_value) == 0)
             end = n;
-        if (end_arg.type == integer)
+        if (end_arg.type == MULTIARG_INT)
             end = MIN(n, MAX(begin, end_arg.int_value));
     }
 

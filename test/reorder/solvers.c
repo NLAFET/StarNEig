@@ -223,20 +223,21 @@ static int scalapack_check_args(int argc, char * const *argv, int *argr)
     struct multiarg_t move_together = read_multiarg(
         "--move-together", argc, argv, argr, "default", NULL);
 
-    if (parallel_windows.type == invalid || (parallel_windows.type == integer &&
-    parallel_windows.int_value < 1)) {
+    if (parallel_windows.type == MULTIARG_INVALID ||
+    (parallel_windows.type == MULTIARG_INT && parallel_windows.int_value < 1)) {
         fprintf(stderr, "Invalid number of concurrent windows.\n");
         return -1;
     }
 
-    if (window_size.type == invalid ||
-    (window_size.type == integer && window_size.int_value < 4)) {
+    if (window_size.type == MULTIARG_INVALID ||
+    (window_size.type == MULTIARG_INT && window_size.int_value < 4)) {
         fprintf(stderr, "Invalid window size.\n");
         return -1;
     }
 
-    if (values_per_window.type == invalid ||
-    (values_per_window.type == integer && values_per_window.int_value < 2)) {
+    if (values_per_window.type == MULTIARG_INVALID ||
+    (values_per_window.type == MULTIARG_INT &&
+    values_per_window.int_value < 2)) {
         fprintf(stderr, "Invalid number of eigenvalues per window.\n");
         return -1;
     }
@@ -251,8 +252,8 @@ static int scalapack_check_args(int argc, char * const *argv, int *argr)
         return -1;
     }
 
-    if (move_together.type == invalid ||
-    (move_together.type == integer && move_together.int_value < 2)) {
+    if (move_together.type == MULTIARG_INVALID ||
+    (move_together.type == MULTIARG_INT && move_together.int_value < 2)) {
         fprintf(stderr, "Invalid number of eigenvalues moved together.\n");
         return -1;
     }
@@ -443,13 +444,13 @@ static int scalapack_run(hook_solver_state_t state)
     starneig_blacs_gridinfo(context, &srows, &scols, &my_row, &my_col);
 
     int _parallel_windows;
-    if (parallel_windows.type == integer)
+    if (parallel_windows.type == MULTIARG_INT)
         _parallel_windows = MIN(MIN(srows, scols), parallel_windows.int_value);
     else
         _parallel_windows = MIN(srows, scols);
 
     int _window_size;
-    if (window_size.type == integer)
+    if (window_size.type == MULTIARG_INT)
         _window_size = window_size.int_value;
     else
         _window_size = sn / 2;
@@ -460,7 +461,7 @@ static int scalapack_run(hook_solver_state_t state)
     }
 
     int _values_per_window;
-    if (values_per_window.type == integer)
+    if (values_per_window.type == MULTIARG_INT)
         _values_per_window = values_per_window.int_value;
     else
         _values_per_window = _window_size / 2;
@@ -472,7 +473,7 @@ static int scalapack_run(hook_solver_state_t state)
     }
 
     int _move_together;
-    if (move_together.type == integer)
+    if (move_together.type == MULTIARG_INT)
         _move_together = move_together.int_value;
     else
         _move_together = _values_per_window;
@@ -744,10 +745,10 @@ static int starpu_check_args(int argc, char * const *argv, int *argr)
     struct multiarg_t update_height = read_multiarg(
         "--update-height", argc, argv, argr, "default", NULL);
 
-    if (arg_cores.type == invalid)
+    if (arg_cores.type == MULTIARG_INVALID)
         return -1;
 
-    if (arg_gpus.type == invalid)
+    if (arg_gpus.type == MULTIARG_INVALID)
         return -1;
 
     // check plan and blueprint
@@ -764,7 +765,7 @@ static int starpu_check_args(int argc, char * const *argv, int *argr)
 
     // check tile size
 
-    if (tile_size.type == invalid || (tile_size.type == integer &&
+    if (tile_size.type == MULTIARG_INVALID || (tile_size.type == MULTIARG_INT &&
     tile_size.int_value < 2)) {
         fprintf(stderr, "Invalid tile size.\n");
         return -1;
@@ -772,28 +773,28 @@ static int starpu_check_args(int argc, char * const *argv, int *argr)
 
     // check window size
 
-    if (window_size.type == invalid ||
-    (window_size.type == integer && window_size.int_value < 4)) {
+    if (window_size.type == MULTIARG_INVALID ||
+    (window_size.type == MULTIARG_INT && window_size.int_value < 4)) {
         fprintf(stderr, "Invalid window size.\n");
         return -1;
     }
 
     // check values per chain parameter
 
-    if (values_per_chain.type == invalid) {
+    if (values_per_chain.type == MULTIARG_INVALID) {
         fprintf(stderr,
             "Invalid number of selected eigenvalues per window chain.\n");
         return -1;
     }
 
-    if (values_per_chain.type == integer) {
+    if (values_per_chain.type == MULTIARG_INT) {
         if (values_per_chain.int_value < 2) {
             fprintf(stderr,
                 "Invalid number of selected eigenvalues per window chain.\n");
             return -1;
         }
 
-        if (window_size.type == integer &&
+        if (window_size.type == MULTIARG_INT &&
         window_size.int_value < values_per_chain.int_value-1) {
             fprintf(stderr,
                 "Invalid number of selected eigenvalues per window chain.\n");
@@ -803,27 +804,28 @@ static int starpu_check_args(int argc, char * const *argv, int *argr)
 
     // check small window size
 
-    if (small_window_size.type == invalid &&
-    (small_window_size.type == integer && small_window_size.int_value < 4)) {
+    if (small_window_size.type == MULTIARG_INVALID &&
+    (small_window_size.type == MULTIARG_INT &&
+    small_window_size.int_value < 4)) {
         fprintf(stderr, "Invalid small window size.\n");
         return -1;
     }
 
     // check small window threshold
 
-    if (small_window_threshold.type == invalid) {
+    if (small_window_threshold.type == MULTIARG_INVALID) {
         fprintf(stderr, "Invalid small window threshold.\n");
         return -1;
     }
 
-    if (update_width.type == invalid || (update_width.type == integer &&
-        update_width.int_value < 1)) {
+    if (update_width.type == MULTIARG_INVALID ||
+        (update_width.type == MULTIARG_INT && update_width.int_value < 1)) {
         fprintf(stderr, "Invalid update task width.\n");
         return -1;
     }
 
-    if (update_height.type == invalid || (update_height.type == integer &&
-        update_height.int_value < 1)) {
+    if (update_height.type == MULTIARG_INVALID ||
+        (update_height.type == MULTIARG_INT && update_height.int_value < 1)) {
         fprintf(stderr, "Invalid update task height.\n");
         return -1;
     }
@@ -846,11 +848,11 @@ static hook_solver_state_t starpu_prepare(
         "--gpus", argc, argv, NULL, "default", NULL);
 
     int cores = -1;
-    if (arg_cores.type == integer)
+    if (arg_cores.type == MULTIARG_INT)
         cores = arg_cores.int_value;
 
     int gpus = -1;
-    if (arg_gpus.type == integer)
+    if (arg_gpus.type == MULTIARG_INT)
         gpus = arg_gpus.int_value;
 
 #ifdef STARNEIG_ENABLE_MPI
@@ -891,39 +893,40 @@ static int starpu_run(hook_solver_state_t state)
 
     struct multiarg_t tile_size = read_multiarg(
         "--tile-size", argc, argv, NULL, "default", NULL);
-    if (tile_size.type == integer)
+    if (tile_size.type == MULTIARG_INT)
         conf.tile_size = tile_size.int_value;
 
     struct multiarg_t window_size = read_multiarg(
         "--window-size", argc, argv, NULL, "default", "rounded", NULL);
-    if (window_size.type == str && !strcmp("rounded", window_size.str_value))
+    if (window_size.type == MULTIARG_STR &&
+    !strcmp("rounded", window_size.str_value))
         conf.window_size = STARNEIG_REORDER_ROUNDED_WINDOW_SIZE;
-    if (window_size.type == integer)
+    if (window_size.type == MULTIARG_INT)
         conf.window_size = window_size.int_value;
 
     struct multiarg_t values_per_chain = read_multiarg(
         "--values-per-chain", argc, argv, NULL, "default", NULL);
-    if (values_per_chain.type == integer)
+    if (values_per_chain.type == MULTIARG_INT)
         conf.values_per_chain = values_per_chain.int_value;
 
     struct multiarg_t small_window_size = read_multiarg(
         "--small-window-size", argc, argv, NULL, "default", NULL);
-    if (small_window_size.type == integer)
+    if (small_window_size.type == MULTIARG_INT)
         conf.small_window_size = small_window_size.int_value;
 
     struct multiarg_t small_window_threshold = read_multiarg(
         "--small-window-threshold", argc, argv, NULL, "default", NULL);
-    if (small_window_threshold.type == integer)
+    if (small_window_threshold.type == MULTIARG_INT)
         conf.small_window_threshold = small_window_threshold.int_value;
 
     struct multiarg_t update_width = read_multiarg(
         "--update-width", argc, argv, NULL, "default", NULL);
-    if (update_width.type == integer)
+    if (update_width.type == MULTIARG_INT)
         conf.update_width = update_width.int_value;
 
     struct multiarg_t update_height = read_multiarg(
         "--update-height", argc, argv, NULL, "default", NULL);
-    if (update_height.type == integer)
+    if (update_height.type == MULTIARG_INT)
         conf.update_height = update_height.int_value;
 
     int n = GENERIC_MATRIX_N(pencil->mat_a);
@@ -1021,10 +1024,10 @@ static int starpu_simple_check_args(int argc, char * const *argv, int *argr)
     struct multiarg_t arg_gpus = read_multiarg(
         "--gpus", argc, argv, argr, "default", NULL);
 
-    if (arg_cores.type == invalid)
+    if (arg_cores.type == MULTIARG_INVALID)
         return -1;
 
-    if (arg_gpus.type == invalid)
+    if (arg_gpus.type == MULTIARG_INVALID)
         return -1;
 
     return 0;
@@ -1039,11 +1042,11 @@ static hook_solver_state_t starpu_simple_prepare(
         "--gpus", argc, argv, NULL, "default", NULL);
 
     int cores = -1;
-    if (arg_cores.type == integer)
+    if (arg_cores.type == MULTIARG_INT)
         cores = arg_cores.int_value;
 
     int gpus = -1;
-    if (arg_gpus.type == integer)
+    if (arg_gpus.type == MULTIARG_INT)
         gpus = arg_gpus.int_value;
 
 #ifdef STARNEIG_ENABLE_MPI

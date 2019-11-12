@@ -153,10 +153,10 @@ static int starpu_check_args(int argc, char * const *argv, int *argr)
     struct multiarg_t arg_gpus = read_multiarg(
         "--gpus", argc, argv, argr, "default", NULL);
 
-    if (arg_cores.type == invalid)
+    if (arg_cores.type == MULTIARG_INVALID)
         return -1;
 
-    if (arg_gpus.type == invalid)
+    if (arg_gpus.type == MULTIARG_INVALID)
         return -1;
 
     return 0;
@@ -171,11 +171,11 @@ static hook_solver_state_t starpu_prepare(
         "--gpus", argc, argv, NULL, "default", NULL);
 
     int cores = -1;
-    if (arg_cores.type == integer)
+    if (arg_cores.type == MULTIARG_INT)
         cores = arg_cores.int_value;
 
     int gpus = -1;
-    if (arg_gpus.type == integer)
+    if (arg_gpus.type == MULTIARG_INT)
         gpus = arg_gpus.int_value;
 
 #ifdef STARNEIG_ENABLE_MPI

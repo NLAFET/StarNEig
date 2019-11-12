@@ -240,7 +240,7 @@ int main(int argc, char * const *argv)
         struct multiarg_t mpi_mode = read_multiarg(
             "--mpi-mode", argc, argv, argr, "serialized", "multiple", NULL);
 
-        if (mpi_mode.type != str) {
+        if (mpi_mode.type != MULTIARG_STR) {
             fprintf(stderr, "Invalid MPI mode.\n");
             ret = EXIT_FAILURE;
             goto cleanup;
@@ -296,8 +296,8 @@ int main(int argc, char * const *argv)
     struct multiarg_t worker_threads =
         read_multiarg("--test-workers", argc, argv, argr, "default", NULL);
 
-    if (worker_threads.type == invalid ||
-    (worker_threads.type == integer && worker_threads.int_value < 1)) {
+    if (worker_threads.type == MULTIARG_INVALID ||
+    (worker_threads.type == MULTIARG_INT && worker_threads.int_value < 1)) {
         fprintf(stderr, "Invalid number of StarPU worker threads.\n");
         ret = EXIT_FAILURE;
         goto cleanup;
@@ -306,16 +306,16 @@ int main(int argc, char * const *argv)
     struct multiarg_t blas_threads =
         read_multiarg("--test-threads", argc, argv, argr, "default", NULL);
 
-    if (blas_threads.type == invalid ||
-    (blas_threads.type == integer && blas_threads.int_value < 1)) {
+    if (blas_threads.type == MULTIARG_INVALID ||
+    (blas_threads.type == MULTIARG_INT && blas_threads.int_value < 1)) {
         fprintf(stderr, "Invalid number of BLAS threads.\n");
         ret = EXIT_FAILURE;
         goto cleanup;
     }
 
     threads_init(
-        worker_threads.type == integer ? worker_threads.int_value : -1,
-        blas_threads.type == integer ? blas_threads.int_value : -1);
+        worker_threads.type == MULTIARG_INT ? worker_threads.int_value : -1,
+        blas_threads.type == MULTIARG_INT ? blas_threads.int_value : -1);
 
     //
     // check experiment module command line arguments

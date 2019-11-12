@@ -290,8 +290,8 @@ int init_helper_check_args(
     struct multiarg_t section_height = read_multiarg(
         str2, argc, argv, argr, "default", NULL);
 
-    if (section_height.type == invalid || (section_height.type == integer &&
-    section_height.int_value < 8)) {
+    if (section_height.type == MULTIARG_INVALID ||
+    (section_height.type == MULTIARG_INT && section_height.int_value < 8)) {
         fprintf(stderr, "Invalid section height.\n");
         return 1;
     }
@@ -299,8 +299,8 @@ int init_helper_check_args(
     struct multiarg_t section_width = read_multiarg(
         str3, argc, argv, argr, "default", NULL);
 
-    if (section_width.type == invalid || (section_width.type == integer &&
-    section_width.int_value < 8)) {
+    if (section_width.type == MULTIARG_INVALID ||
+    (section_width.type == MULTIARG_INT && section_width.int_value < 8)) {
         fprintf(stderr, "Invalid section width.\n");
         return -1;
     }
@@ -373,12 +373,12 @@ init_helper_t init_helper_init(
         struct multiarg_t section_width = read_multiarg(
             str3, argc, argv, NULL, "default", NULL);
 
-        if (section_height.type == str)
+        if (section_height.type == MULTIARG_STR)
             helper->section_height = -1;
         else
             helper->section_height = section_height.int_value;
 
-        if (section_width.type == str)
+        if (section_width.type == MULTIARG_STR)
             helper->section_width = -1;
         else
             helper->section_width = section_width.int_value;

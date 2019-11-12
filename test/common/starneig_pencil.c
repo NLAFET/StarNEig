@@ -732,8 +732,8 @@ static int local_starneig_check_args(int argc, char * const *argv, int *argr)
     struct multiarg_t section_height = read_multiarg(
         "--section-height", argc, argv, argr, "default", NULL);
 
-    if (section_height.type == invalid || (section_height.type == integer &&
-    section_height.int_value < 8)) {
+    if (section_height.type == MULTIARG_INVALID ||
+    (section_height.type == MULTIARG_INT && section_height.int_value < 8)) {
         fprintf(stderr, "Invalid section height.\n");
         return -1;
     }
@@ -741,8 +741,8 @@ static int local_starneig_check_args(int argc, char * const *argv, int *argr)
     struct multiarg_t section_width = read_multiarg(
         "--section-width", argc, argv, argr, "default", NULL);
 
-    if (section_width.type == invalid || (section_width.type == integer &&
-    section_width.int_value < 8)) {
+    if (section_width.type == MULTIARG_INVALID ||
+    (section_width.type == MULTIARG_INT && section_width.int_value < 8)) {
         fprintf(stderr, "Invalid section width.\n");
         return -1;
     }
@@ -774,13 +774,13 @@ static int local_starneig_convert(
             "--section-width", argc, argv, NULL, "default", NULL);
 
         int sm;
-        if (section_height.type == str)
+        if (section_height.type == MULTIARG_STR)
             sm = -1;
         else
             sm = section_height.int_value;
 
         int sn;
-        if (section_width.type == str)
+        if (section_width.type == MULTIARG_STR)
             sn = -1;
         else
             sn = section_width.int_value;
@@ -861,8 +861,8 @@ static int local_blacs_check_args(int argc, char * const *argv, int *argr)
     struct multiarg_t section_height = read_multiarg(
         "--section-height", argc, argv, argr, "default", NULL);
 
-    if (section_height.type == invalid || (section_height.type == integer &&
-    section_height.int_value < 8)) {
+    if (section_height.type == MULTIARG_INVALID ||
+    (section_height.type == MULTIARG_INT && section_height.int_value < 8)) {
         fprintf(stderr, "Invalid section height.\n");
         return -1;
     }
@@ -870,8 +870,8 @@ static int local_blacs_check_args(int argc, char * const *argv, int *argr)
     struct multiarg_t section_width = read_multiarg(
         "--section-width", argc, argv, argr, "default", NULL);
 
-    if (section_width.type == invalid || (section_width.type == integer &&
-    section_width.int_value < 8)) {
+    if (section_width.type == MULTIARG_INVALID ||
+    (section_width.type == MULTIARG_INT && section_width.int_value < 8)) {
         fprintf(stderr, "Invalid section width.\n");
         return -1;
     }
@@ -900,13 +900,13 @@ static int local_blacs_convert(
             "--section-width", argc, argv, NULL, "default", NULL);
 
         int sm;
-        if (section_height.type == str)
+        if (section_height.type == MULTIARG_STR)
             sm = -1;
         else
             sm = section_height.int_value;
 
         int sn;
-        if (section_width.type == str)
+        if (section_width.type == MULTIARG_STR)
             sn = -1;
         else
             sn = section_width.int_value;

@@ -113,7 +113,7 @@ static int numbers_only(char const *s)
     if (s == NULL)
         return 0;
 
-    if (*s != '-' && isdigit(*s) == 0)
+    if (*s != '-' && *s != '+' && isdigit(*s) == 0)
         return 0;
 
     while (*(++s) != 0)
@@ -123,11 +123,43 @@ static int numbers_only(char const *s)
     return 1;
 }
 
+static int floats_only(char const *s)
+{
+    if (s == NULL)
+        return 0;
+
+    if (*s != '-' && *s != '+' && isdigit(*s) == 0)
+        return 0;
+
+    int dot = 0, exp = 0, sign = 0;
+    while (*(++s) != 0) {
+        if (*s == '.') {
+            if (1 < ++dot)
+                return 0;
+            continue;
+        }
+        if (*s == 'e' || *s == 'E') {
+            if (1 < ++exp)
+                return 0;
+            continue;
+        }
+        if (*s == '+' || *s == '-') {
+            if (exp == 0 || 1 < ++sign)
+                return 0;
+            continue;
+        }
+        if (isdigit(*s) == 0)
+            return 0;
+    }
+
+    return 1;
+}
+
 struct multiarg_t read_multiarg(
     char const *name, int argc, char * const *argv, int *argr, ...)
 {
     struct multiarg_t ret;
-    ret.type = invalid;
+    ret.type = MULTIARG_INVALID;
     ret.str_value = NULL;
 
     va_list vl;
@@ -138,7 +170,7 @@ struct multiarg_t read_multiarg(
 
     while (val != NULL) {
         if (strcmp(val, in) == 0) {
-            ret.type = str;
+            ret.type = MULTIARG_STR;
             ret.str_value = in;
             va_end(vl);
             return ret;
@@ -148,8 +180,14 @@ struct multiarg_t read_multiarg(
     va_end(vl);
 
     if (numbers_only(in)) {
-        ret.type = integer;
+        ret.type = MULTIARG_INT;
         ret.int_value = atoi(in);
+        ret.double_value = atof(in);
+    }
+    else if (floats_only(in)) {
+        ret.type = MULTIARG_FLOAT;
+        ret.int_value = atoi(in);
+        ret.double_value = atof(in);
     }
 
     return ret;
@@ -175,6 +213,10 @@ void print_multiarg(char const *name, int argc, char * const *argv, ...)
 
     if (numbers_only(in)) {
         printf(" %s %d", name, atoi(in));
+        return;
+    }
+    else if (floats_only(in)) {
+        printf(" %s %e", name, atof(in));
         return;
     }
 
