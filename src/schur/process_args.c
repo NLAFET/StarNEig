@@ -238,8 +238,9 @@ starneig_error_t starneig_build_process_args_from(
     args->matrix_q = matrix_q;
     args->matrix_z = matrix_z;
 
-    args->norm_a = source->norm_a;
-    args->norm_b = source->norm_b;
+    args->thres_a = source->thres_a;
+    args->thres_b = source->thres_b;
+    args->thres_inf = source->thres_inf;
 
     return STARNEIG_SUCCESS;
 }
@@ -250,7 +251,8 @@ starneig_error_t starneig_build_process_args(
     const starneig_matrix_descr_t matrix_z,
     const starneig_matrix_descr_t matrix_a,
     const starneig_matrix_descr_t matrix_b,
-    double norm_a, double norm_b, mpi_info_t mpi, struct process_args *args)
+    double thres_a, double thres_b, double thres_inf,
+    mpi_info_t mpi, struct process_args *args)
 {
     int n = STARNEIG_MATRIX_N(matrix_a);
 
@@ -512,8 +514,9 @@ starneig_error_t starneig_build_process_args(
     args->matrix_q = matrix_q;
     args->matrix_z = matrix_z;
 
-    args->norm_a = norm_a;
-    args->norm_b = norm_b;
+    args->thres_a = thres_a;
+    args->thres_b = thres_b;
+    args->thres_inf = thres_inf;
 
     return STARNEIG_SUCCESS;
 }

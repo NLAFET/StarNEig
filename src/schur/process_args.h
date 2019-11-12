@@ -106,8 +106,11 @@ struct process_args {
     starneig_matrix_descr_t matrix_b;     ///< matrix B descriptor
     starneig_matrix_descr_t matrix_q;     ///< matrix Q descriptor
     starneig_matrix_descr_t matrix_z;     ///< matrix Z descriptor
-    double norm_a;                        ///< Frobenius norm of A
-    double norm_b;                        ///< Frobenius norm of B
+    double thres_a;                       ///< threshold for matrix A
+    double thres_b;                       ///< threshold for off-diagonal
+                                          ///< entries of matrix B
+    double thres_inf;                     ///< threshold for diagonal entries
+                                          ///< of matrix B
 };
 
 ///
@@ -199,11 +202,17 @@ starneig_error_t starneig_build_process_args_from(
 /// @param[in] matrix_b
 ///         The matrix B descriptor.
 ///
-/// @param[in] norm_a
-///         The Frobenius norm of the matrix A.
+/// @param[in] thres_a
+///         Those entries of the matrix A that are smaller in magnitudes than
+///         this threshold may be set to zero.
 ///
-/// @param[in] norm_b
-///         The Frobenius norm of the matrix B.
+/// @param[in] thres_b
+///         Those off-diagonal entries of the matrix B that are smaller in
+///         magnitudes than this threshold may be set to zero.
+///
+/// @param[in] thres_inf
+///         Those diagonal entries of the matrix B that are smaller in
+///         magnitudes than this threshold may be set to zero.
 ///
 /// @param[in] mpi
 ///         The MPI info.
@@ -219,6 +228,7 @@ starneig_error_t starneig_build_process_args(
     const starneig_matrix_descr_t matrix_z,
     const starneig_matrix_descr_t matrix_a,
     const starneig_matrix_descr_t matrix_b,
-    double norm_a, double norm_b, mpi_info_t mpi, struct process_args *args);
+    double thres_a, double thres_b, double thres_inf,
+    mpi_info_t mpi, struct process_args *args);
 
 #endif

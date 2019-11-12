@@ -517,7 +517,7 @@ static void insert_push_inf_top(
             starpu_data_handle_t lQ_h, lZ_h;
             starneig_schur_insert_push_inf_top(
                 wbegin, wend, wbegin == begin, wend == segment->end,
-                args->max_prio, args->norm_b, args->matrix_a, args->matrix_b,
+                args->max_prio, args->thres_inf, args->matrix_a, args->matrix_b,
                 &lQ_h, &lZ_h, args->mpi);
 
             insert_segment_updates(
@@ -622,7 +622,7 @@ static void insert_bulges_fixed(
             starpu_data_handle_t lQ_h, lZ_h;
             starneig_schur_insert_push_bulges(
                 wbegin, wend, i, i+shifts, mode, args->max_prio,
-                args->norm_a, args->norm_b,
+                args->thres_a, args->thres_b, args->thres_inf,
                 segment->shifts_real, segment->shifts_imag,
                 j == 0 ? segment->bulges_aftermath : NULL,
                 args->matrix_a, args->matrix_b, &lQ_h, &lZ_h,
@@ -729,7 +729,7 @@ static void insert_bulges_rounded(
             starpu_data_handle_t lQ_h, lZ_h;
             starneig_schur_insert_push_bulges(
                 wbegin, wend, i, i+shifts, mode, args->max_prio,
-                args->norm_a, args->norm_b,
+                args->thres_a, args->thres_b, args->thres_inf,
                 segment->shifts_real, segment->shifts_imag,
                 j == 0 ? segment->bulges_aftermath : NULL,
                 args->matrix_a, args->matrix_b, &lQ_h, &lZ_h,
@@ -1151,7 +1151,7 @@ static enum segment_status perform_deflate_step(
                     // insert reordering window
                     starpu_data_handle_t lQ_h, lZ_h;
                     starneig_schur_insert_deflate(begin, end, 0, args->max_prio,
-                        args->norm_a, segment->aed_deflate_inducer_h,
+                        args->thres_a, segment->aed_deflate_inducer_h,
                         new_status_h, segment->aed_deflate_base,
                         segment->aed_args.matrix_a, segment->aed_args.matrix_b,
                         &lQ_h, &lZ_h);
@@ -1214,7 +1214,7 @@ static enum segment_status perform_deflate_step(
         // insert deflation window
         starpu_data_handle_t lQ_h, lZ_h;
         starneig_schur_insert_deflate(begin, end, 1, args->max_prio,
-            args->norm_a, segment->aed_deflate_inducer_h,
+            args->thres_a, segment->aed_deflate_inducer_h,
             segment->aed_deflate_status_h, segment->aed_deflate_base,
             segment->aed_args.matrix_a, segment->aed_args.matrix_b,
             &lQ_h, &lZ_h);
@@ -1321,8 +1321,9 @@ static enum segment_status perform_small(
     starpu_data_handle_t lQ_h, lZ_h;
     starneig_schur_insert_small_schur(
         segment->begin, segment->end, args->max_prio,
-        args->norm_a, args->norm_b, args->matrix_a, args->matrix_b,
-        &segment->small_status_h, &lQ_h, &lZ_h, args->mpi);
+        args->thres_a, args->thres_b, args->thres_inf,
+        args->matrix_a, args->matrix_b, &segment->small_status_h,
+        &lQ_h, &lZ_h, args->mpi);
 
     // insert related update tasks
 
@@ -1386,7 +1387,8 @@ static enum segment_status perform_small_aed(
 
     starneig_schur_insert_aggressively_deflate(
         segment->aed_begin, segment->end, args->max_prio,
-        args->norm_a, args->norm_b, args->matrix_a, args->matrix_b,
+        args->thres_a, args->thres_b, args->thres_inf,
+        args->matrix_a, args->matrix_b,
         segment->shifts_real, segment->shifts_imag, &segment->aed_status_h,
         &segment->aed_small_lQ_h, &segment->aed_small_lZ_h, args->mpi);
 
@@ -1792,9 +1794,7 @@ static void extract_aftermath(
     int size, int rbegin, int cbegin, int m, int n, int ldA, int ldB,
     void const *arg, void const *_A, void const *_B, void **masks)
 {
-    double norm_b = *((double *)arg);
-    double thres_b = dlamch("Precision") * norm_b;
-
+    double thres_inf = *((double *)arg);
     double const *A = _A;
     double const *B = _B;
     bulge_chasing_aftermath_t *mask = masks[0];
@@ -1810,7 +1810,7 @@ static void extract_aftermath(
 
     if (B != NULL) {
         for (int i = 0; i < size; i++) {
-            if (fabs(B[(cbegin+i)*ldB+rbegin+i]) < thres_b)
+            if (fabs(B[(cbegin+i)*ldB+rbegin+i]) < thres_inf)
                 mask[i] |= BULGE_CHASING_AFTERMATH_INFINITY;
         }
     }
@@ -1839,7 +1839,7 @@ static enum segment_status process_segment_bootstrap(
 
     starneig_insert_scan_diagonal(
         0, STARNEIG_MATRIX_M(args->matrix_a), 0, 0, 0, 1, 0, args->max_prio,
-        extract_aftermath, &args->norm_b, args->matrix_a, args->matrix_b,
+        extract_aftermath, &args->thres_inf, args->matrix_a, args->matrix_b,
         args->mpi, segment->bulges_aftermath, NULL);
 
 #ifdef STARNEIG_ENABLE_MPI
@@ -2354,28 +2354,109 @@ starneig_error_t starneig_schur_insert_tasks(
     struct segment_list *list = NULL;
 
     //
-    // compute norms
+    // check threshold arguments
     //
 
-    double norm_a, norm_b = 0.0;
-    {
-        starpu_data_handle_t norm_a_h =
+    if (conf->left_threshold != STARNEIG_SCHUR_DEFAULT_THRESHOLD &&
+    conf->left_threshold != STARNEIG_SCHUR_NORM_STABLE_THRESHOLD &&
+    conf->left_threshold != STARNEIG_SCHUR_LAPACK_THRESHOLD &&
+    conf->left_threshold <= 0.0) {
+        starneig_error("Invalid left threshold.");
+        ret = STARNEIG_INVALID_CONFIGURATION;
+        goto cleanup;
+    }
+
+    if (conf->right_threshold != STARNEIG_SCHUR_DEFAULT_THRESHOLD &&
+    conf->right_threshold != STARNEIG_SCHUR_NORM_STABLE_THRESHOLD &&
+    conf->right_threshold != STARNEIG_SCHUR_LAPACK_THRESHOLD &&
+    conf->right_threshold <= 0.0) {
+        starneig_error("Invalid right threshold.");
+        ret = STARNEIG_INVALID_CONFIGURATION;
+        goto cleanup;
+    }
+
+    if (conf->inf_threshold != STARNEIG_SCHUR_DEFAULT_THRESHOLD &&
+    conf->inf_threshold != STARNEIG_SCHUR_NORM_STABLE_THRESHOLD &&
+    conf->inf_threshold <= 0.0) {
+        starneig_error("Invalid infinity threshold.");
+        ret = STARNEIG_INVALID_CONFIGURATION;
+        goto cleanup;
+    }
+
+    //
+    // compute norms if necessary
+    //
+
+    starpu_data_handle_t norm_a_h = NULL;
+    if (conf->left_threshold == STARNEIG_SCHUR_DEFAULT_THRESHOLD ||
+    conf->left_threshold == STARNEIG_SCHUR_NORM_STABLE_THRESHOLD)
+        norm_a_h =
             starneig_schur_insert_compute_norm(STARPU_MAX_PRIO, A, mpi);
-        starpu_data_handle_t norm_b_h = NULL;
-        if (B != NULL)
+
+    starpu_data_handle_t norm_b_h = NULL;
+    if (B != NULL) {
+        if (conf->right_threshold == STARNEIG_SCHUR_DEFAULT_THRESHOLD ||
+        conf->right_threshold == STARNEIG_SCHUR_NORM_STABLE_THRESHOLD ||
+        conf->inf_threshold == STARNEIG_SCHUR_DEFAULT_THRESHOLD ||
+        conf->inf_threshold == STARNEIG_SCHUR_NORM_STABLE_THRESHOLD)
             norm_b_h =
                 starneig_schur_insert_compute_norm(STARPU_MAX_PRIO, B, mpi);
+    }
 
+    //
+    // set thresholds
+    //
+
+    double norm_a;
+    if (norm_a_h != NULL) {
         starpu_data_acquire(norm_a_h, STARPU_R);
         norm_a = *((double *) starpu_data_get_local_ptr(norm_a_h));
         starpu_data_release(norm_a_h);
         starpu_data_unregister(norm_a_h);
+    }
 
-        if (B != NULL) {
-            starpu_data_acquire(norm_b_h, STARPU_R);
-            norm_b = *((double *) starpu_data_get_local_ptr(norm_b_h));
-            starpu_data_release(norm_b_h);
-            starpu_data_unregister(norm_b_h);
+    double norm_b;
+    if (norm_b_h != NULL) {
+        starpu_data_acquire(norm_b_h, STARPU_R);
+        norm_b = *((double *) starpu_data_get_local_ptr(norm_b_h));
+        starpu_data_release(norm_b_h);
+        starpu_data_unregister(norm_b_h);
+    }
+
+    double thres_a;
+    if (conf->left_threshold == STARNEIG_SCHUR_DEFAULT_THRESHOLD ||
+    conf->left_threshold == STARNEIG_SCHUR_NORM_STABLE_THRESHOLD) {
+        thres_a = dlamch("Precision") * norm_a;
+    }
+    else if (conf->left_threshold == STARNEIG_SCHUR_LAPACK_THRESHOLD) {
+        thres_a = 0.0;
+    }
+    else {
+        thres_a = conf->left_threshold;
+    }
+
+    double thres_b = 0.0;
+    if (B != NULL) {
+        if (conf->right_threshold == STARNEIG_SCHUR_DEFAULT_THRESHOLD ||
+        conf->right_threshold == STARNEIG_SCHUR_NORM_STABLE_THRESHOLD) {
+            thres_b = dlamch("Precision") * norm_b;
+        }
+        else if (conf->right_threshold == STARNEIG_SCHUR_LAPACK_THRESHOLD) {
+            thres_b = 0.0;
+        }
+        else {
+            thres_b = conf->right_threshold;
+        }
+    }
+
+    double thres_inf = 0.0;
+    if (B != NULL) {
+        if (conf->inf_threshold == STARNEIG_SCHUR_DEFAULT_THRESHOLD ||
+        conf->inf_threshold == STARNEIG_SCHUR_NORM_STABLE_THRESHOLD) {
+            thres_inf = dlamch("Precision") * norm_b;
+        }
+        else {
+            thres_inf = conf->inf_threshold;
         }
     }
 
@@ -2385,7 +2466,7 @@ starneig_error_t starneig_schur_insert_tasks(
 
     struct process_args args;
     ret = starneig_build_process_args(
-        conf, Q, Z, A, B, norm_a, norm_b, mpi, &args);
+        conf, Q, Z, A, B, thres_a, thres_b, thres_inf, mpi, &args);
 
     if (ret != STARNEIG_SUCCESS)
         goto cleanup;

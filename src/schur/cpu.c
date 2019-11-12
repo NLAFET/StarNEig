@@ -56,15 +56,13 @@
 
 void starneig_cpu_push_inf_top(void *buffers[], void *cl_arg)
 {
-    double norm_b;
+    double thres_inf;
     struct packing_info packing_info_A, packing_info_B;
     int top, bottom;
     starpu_codelet_unpack_args(cl_arg,
-        &norm_b, &packing_info_A, &packing_info_B, &top, &bottom);
+        &thres_inf, &packing_info_A, &packing_info_B, &top, &bottom);
 
     STARNEIG_EVENT_BEGIN(&packing_info_A, starneig_event_red);
-
-    double thres_b = dlamch("Precision") * norm_b;
 
     int window_size = packing_info_A.rend - packing_info_A.rbegin;
 
@@ -111,10 +109,15 @@ void starneig_cpu_push_inf_top(void *buffers[], void *cl_arg)
     starneig_init_local_q(window_size, ldQ, Q);
     starneig_init_local_q(window_size, ldZ, Z);
 
+    // detect infinite eigenvalues
+
     for (int i = 0; i < window_size; i++) {
-        if (fabs(B[i*ldB+i]) < thres_b)
+        if (fabs(B[i*ldB+i]) < thres_inf)
             B[i*ldB+i] = 0.0;
     }
+
+    // move detected infinite eigenvalues to the upper left corner and deflate
+    // them if possible
 
     if (bottom)
         starneig_push_inf_top(
@@ -131,13 +134,13 @@ void starneig_cpu_push_inf_top(void *buffers[], void *cl_arg)
 
 void starneig_cpu_push_bulges(void *buffers[], void *cl_arg)
 {
-    double norm_a, norm_b;
+    double thres_a, thres_b, thres_inf;
     struct range_packing_info packing_info_shifts_real;
     struct range_packing_info packing_info_shifts_imag;
     struct range_packing_info packing_info_aftermath;
     struct packing_info packing_info_A, packing_info_B;
     bulge_chasing_mode_t mode;
-    starpu_codelet_unpack_args(cl_arg, &norm_a, &norm_b,
+    starpu_codelet_unpack_args(cl_arg, &thres_a, &thres_b, &thres_inf,
         &packing_info_shifts_real, &packing_info_shifts_imag,
         &packing_info_aftermath, &packing_info_A, &packing_info_B, &mode);
 
@@ -150,11 +153,6 @@ void starneig_cpu_push_bulges(void *buffers[], void *cl_arg)
         packing_info_shifts_real.end - packing_info_shifts_real.begin;
 
     int k = 0;
-
-    // thresholds
-
-    double thres_a = dlamch("Precision") * norm_a;
-    double thres_b = dlamch("Precision") * norm_b;
 
     // shifts (real parts)
 
@@ -234,8 +232,8 @@ void starneig_cpu_push_bulges(void *buffers[], void *cl_arg)
 
     // push bulges
 
-    starneig_push_bulges(mode, shifts, window_size, thres_a, thres_b,
-        ldQ, ldQ, ldA, ldB, real, imag, Q, Z, A, B);
+    starneig_push_bulges(mode, shifts, window_size, ldQ, ldQ, ldA, ldB,
+        thres_a, thres_b, thres_inf, real, imag, Q, Z, A, B);
 
     // check deflation
 
@@ -269,11 +267,11 @@ void starneig_cpu_push_bulges(void *buffers[], void *cl_arg)
 
 void starneig_cpu_aggressively_deflate(void *buffers[], void *cl_arg)
 {
-    double norm_a, norm_b;
+    double thres_a, thres_b, thres_inf;
     struct range_packing_info packing_info_shifts_real;
     struct range_packing_info packing_info_shifts_imag;
     struct packing_info packing_info_A, packing_info_B;
-    starpu_codelet_unpack_args(cl_arg, &norm_a, &norm_b,
+    starpu_codelet_unpack_args(cl_arg, &thres_a, &thres_b, &thres_inf,
         &packing_info_shifts_real, &packing_info_shifts_imag,
         &packing_info_A, &packing_info_B);
 
@@ -283,11 +281,6 @@ void starneig_cpu_aggressively_deflate(void *buffers[], void *cl_arg)
     int window_size = packing_info_A.rend - packing_info_A.rbegin;
 
     int k = 0;
-
-    // matrix norms thresholds
-
-    double thres_a = dlamch("Precision") * norm_a;
-    double thres_b = dlamch("Precision") * norm_b;
 
     // returns status
 
@@ -366,7 +359,7 @@ void starneig_cpu_aggressively_deflate(void *buffers[], void *cl_arg)
 
     int unconverged = 0, converged = 0;
     starneig_aggressively_deflate(
-        window_size, thres_a, thres_b, ldQ, ldQ, ldA, ldB,
+        window_size, ldQ, ldQ, ldA, ldB, thres_a, thres_b, thres_inf,
         real, imag, Q, Z, A, B, &unconverged, &converged);
 
     if (0 < converged || 2 <= unconverged)
@@ -405,10 +398,10 @@ void starneig_cpu_aggressively_deflate(void *buffers[], void *cl_arg)
 
 void starneig_cpu_small_schur(void *buffers[], void *cl_arg)
 {
-    double norm_a, norm_b;
+    double thres_a, thres_b, thres_inf;
     struct packing_info packing_info_A, packing_info_B;
     starpu_codelet_unpack_args(cl_arg,
-        &norm_a, &norm_b, &packing_info_A, &packing_info_B);
+        &thres_a, &thres_b, &thres_inf, &packing_info_A, &packing_info_B);
 
     STARNEIG_EVENT_BEGIN(&packing_info_A, starneig_event_red);
 
@@ -416,11 +409,6 @@ void starneig_cpu_small_schur(void *buffers[], void *cl_arg)
     int size = packing_info_A.rend - packing_info_A.rbegin;
 
     int k = 0;
-
-    // thresholds
-
-    double thres_a = dlamch("Precision") * norm_a;
-    double thres_b = dlamch("Precision") * norm_b;
 
     // returns status
 
@@ -484,7 +472,7 @@ void starneig_cpu_small_schur(void *buffers[], void *cl_arg)
     // reduce
 
     int info = starneig_schur_reduction(
-        size, thres_a, thres_b, ldQ, ldZ, ldA, ldB,
+        size, ldQ, ldZ, ldA, ldB, thres_a, thres_b, thres_inf,
         real, imag, beta, Q, Z, A, B);
 
     // store result
@@ -646,12 +634,12 @@ void starneig_cpu_embed_spike(void *buffers[], void *cl_arg)
 
 void starneig_cpu_deflate(void *buffers[], void *cl_arg)
 {
-    double norm_a;
+    double thres_a;
     struct range_packing_info packing_info_spike;
     struct packing_info packing_info_A, packing_info_B;
     int offset, deflate, corner;
     starpu_codelet_unpack_args(cl_arg,
-        &norm_a, &packing_info_spike, &packing_info_A, &packing_info_B,
+        &thres_a, &packing_info_spike, &packing_info_A, &packing_info_B,
         &offset, &deflate, &corner);
 
     STARNEIG_EVENT_BEGIN(&packing_info_A, starneig_event_red);
@@ -660,10 +648,6 @@ void starneig_cpu_deflate(void *buffers[], void *cl_arg)
     int size = packing_info_A.rend - packing_info_A.rbegin;
 
     int k = 0;
-
-    // threshold
-
-    double thres_a = dlamch("Precision") * norm_a;
 
     // spike inducer
 
@@ -883,44 +867,107 @@ void starneig_cpu_deflate(void *buffers[], void *cl_arg)
 
     if (deflate) {
 
-        int i = end-1;
+        //
+        // norm stable deflation condition
+        //
 
-        while (top <= i) {
+        if (0.0 < thres_a) {
+            int i = end-1;
+            while (top <= i) {
 
-            // if we are dealing with a 2-by-2 block, ...
-            if (top <= i-1 && _A(i,i-1) != 0.0) {
-                // and the 2-by-2 block is deflatable, ...
-                if (fabs(sub*_A(i-1,size)) < thres_a &&
-                fabs(sub*_A(i,size)) < thres_a) {
-                    // decrease the AED window
-                    i -= 2;
+                // if we are dealing with a 2-by-2 block, ...
+                if (top <= i-1 && _A(i,i-1) != 0.0) {
+                    // and the 2-by-2 block is deflatable, ...
+                    if (fabs(sub*_A(i-1,size)) < thres_a &&
+                    fabs(sub*_A(i,size)) < thres_a) {
+                        // decrease the AED window
+                        i -= 2;
+                    }
+                    // otherwise, ...
+                    else {
+                        // move the 2-by-2 block out of the way
+                        top = starneig_move_block(
+                            i, top, size+1, ldQ, ldZ, ldA, ldB,
+                            lwork, Q, Z, A, B, work);
+                        top += 2;
+                    }
                 }
                 // otherwise, ...
                 else {
-                    // move the 2-by-2 block out of the way
-                    top = starneig_move_block(
-                        i, top, size+1, ldQ, ldZ, ldA, ldB,
-                        lwork, Q, Z, A, B, work);
-                    top += 2;
-                }
-            }
-            // otherwise, ...
-            else {
-                // if the 1-by-1 block is deflatable, ...
-                if (fabs(sub*_A(i,size)) < thres_a) {
-                    // decrease the AED window
-                    i--;
-                }
-                // otherwise, ...
-                else {
-                    // move the 1-by-1 block out of the way
-                    top = starneig_move_block(
-                        i, top, size+1, ldQ, ldZ, ldA, ldB,
-                        lwork, Q, Z, A, B, work);
-                    top++;
+                    // if the 1-by-1 block is deflatable, ...
+                    if (fabs(sub*_A(i,size)) < thres_a) {
+                        // decrease the AED window
+                        i--;
+                    }
+                    // otherwise, ...
+                    else {
+                        // move the 1-by-1 block out of the way
+                        top = starneig_move_block(
+                            i, top, size+1, ldQ, ldZ, ldA, ldB,
+                            lwork, Q, Z, A, B, work);
+                        top++;
+                    }
                 }
             }
         }
+
+        //
+        // LAPACK-style deflation condition
+        //
+
+        else {
+            const double safmin = dlamch("Safe minimum");
+            const double ulp = dlamch("Precision");
+            double smlnum = safmin*(packing_info_A.n/ulp);
+
+            int i = end-1;
+            while (top <= i) {
+
+                // if we are dealing with a 2-by-2 block, ...
+                if (top <= i-1 && _A(i,i-1) != 0.0) {
+                    double foo = fabs(_A(i,i)) +
+                        sqrt(fabs(_A(i,i-1))) * sqrt(fabs(_A(i-1,i)));
+                    if (foo == 0.0)
+                        foo = fabs(sub);
+
+                    // and the 2-by-2 block is deflatable, ...
+                    if (MAX(fabs(sub*_A(i-1,size)), fabs(sub*_A(i,size))) <
+                    MAX(smlnum, ulp*foo)) {
+                        // decrease the AED window
+                        i -= 2;
+                    }
+                    // otherwise, ...
+                    else {
+                        // move the 2-by-2 block out of the way
+                        top = starneig_move_block(
+                            i, top, size+1, ldQ, ldZ, ldA, ldB,
+                            lwork, Q, Z, A, B, work);
+                        top += 2;
+                    }
+                }
+                // otherwise, ...
+                else {
+                    double foo = fabs(_A(i,i));
+                    if (foo == 0.0)
+                        foo = fabs(sub);
+
+                    // if the 1-by-1 block is deflatable, ...
+                    if (fabs(sub*_A(i,size)) < MAX(smlnum, ulp*foo)) {
+                        // decrease the AED window
+                        i--;
+                    }
+                    // otherwise, ...
+                    else {
+                        // move the 1-by-1 block out of the way
+                        top = starneig_move_block(
+                            i, top, size+1, ldQ, ldZ, ldA, ldB,
+                            lwork, Q, Z, A, B, work);
+                        top++;
+                    }
+                }
+            }
+        }
+
         _begin = begin;
         _end = top;
     }

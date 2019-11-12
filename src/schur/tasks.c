@@ -58,7 +58,7 @@
 /// codelet can also deflate the infite eigenvalues from the top of the window.
 ///
 ///  Arguments:
-///   - Frobenius norm of matrix B
+///   - tiny diagonal entry threshold for the matrix B
 ///   - packing information for the matrix A
 ///   - packing information for the matrix B
 ///   - top flag
@@ -95,8 +95,9 @@ static struct starpu_codelet push_inf_top_cl = {
 ///   - bulge chaining mode
 ///
 ///  Buffers:
-///   - Frobenius norm of matrix A
-///   - Frobenius norm of matrix B
+///   - tiny off-diagonal entry threshold for the matrix A
+///   - tiny off-diagonal entry threshold for the matrix B
+///   - tiny diagonal entry threshold for the matrix B
 ///   - shifts vector (real parts) tiles that correspond to the used shifts
 ///     (STARPU_R)
 ///   - shifts vector (imaginary parts) tiles that correspond to the used shifts
@@ -144,7 +145,9 @@ static size_t aggressively_deflate_size_base(
 ///  matrices are padded from top and left with one row and one column.
 ///
 ///  Arguments:
-///   - Frobenius norm of matrix A
+///   - tiny off-diagonal entry threshold for the matrix A
+///   - tiny off-diagonal entry threshold for the matrix B
+///   - tiny diagonal entry threshold for the matrix B
 ///   - packing information for the shift vector (real parts)
 ///   - packing information for the shift vector (imaginary parts)
 ///   - packing information for the matrix A
@@ -180,8 +183,9 @@ static struct starpu_codelet aggressively_deflate_sep_cl = {
 ///  matrices are padded from top and left with one row and one column.
 ///
 ///  Arguments:
-///   - Frobenius norm of matrix A
-///   - Frobenius norm of matrix B
+///   - tiny off-diagonal entry threshold for the matrix A
+///   - tiny off-diagonal entry threshold for the matrix B
+///   - tiny diagonal entry threshold for the matrix B
 ///   - packing information for the shift vector (real parts)
 ///   - packing information for the shift vector (imaginary parts)
 ///   - packing information for the matrix A
@@ -216,8 +220,9 @@ static struct starpu_codelet aggressively_deflate_gep_cl = {
 /// accumulated to local transformation matrices.
 ///
 ///  Arguments:
-///   - Frobenius norm of matrix A
-///   - Frobenius norm of matrix B
+///   - tiny off-diagonal entry threshold for the matrix A
+///   - tiny off-diagonal entry threshold for the matrix B
+///   - tiny diagonal entry threshold for the matrix B
 ///   - packing information for the sub-matrix that is part of the matrix A
 ///   - packing information for the sub-matrix that is part of the matrix B
 ///
@@ -335,7 +340,7 @@ static struct starpu_codelet embed_spike_cl = {
 ///  row.
 ///
 ///  Arguments:
-///   - Frobenius norm of matrix A
+///   - tiny off-diagonal entry threshold for the matrix A
 ///   - packing information for the spike base
 ///   - packing information for the matrix A
 ///   - packing information for the matrix B
@@ -435,7 +440,7 @@ static struct starpu_codelet compute_norm_b_cl = {
 ////////////////////////////////////////////////////////////////////////////////
 
 void starneig_schur_insert_push_inf_top(
-    int begin, int end, int top, int bottom, int prio, double norm_b,
+    int begin, int end, int top, int bottom, int prio, double thres_inf,
     starneig_matrix_descr_t matrix_a, starneig_matrix_descr_t matrix_b,
     starpu_data_handle_t *lQ_h, starpu_data_handle_t *lZ_h, mpi_info_t mpi)
 {
@@ -500,7 +505,7 @@ void starneig_schur_insert_push_inf_top(
             &push_inf_top_cl,
             STARPU_EXECUTE_ON_NODE, owner,
             STARPU_PRIORITY, prio,
-            STARPU_VALUE, &norm_b, sizeof(norm_b),
+            STARPU_VALUE, &thres_inf, sizeof(thres_inf),
             STARPU_VALUE, &packing_info_A, sizeof(packing_info_A),
             STARPU_VALUE, &packing_info_B, sizeof(packing_info_B),
             STARPU_VALUE, &top, sizeof(top),
@@ -511,7 +516,7 @@ void starneig_schur_insert_push_inf_top(
         starpu_task_insert(
             &push_inf_top_cl,
             STARPU_PRIORITY, prio,
-            STARPU_VALUE, &norm_b, sizeof(norm_b),
+            STARPU_VALUE, &thres_inf, sizeof(thres_inf),
             STARPU_VALUE, &packing_info_A, sizeof(packing_info_A),
             STARPU_VALUE, &packing_info_B, sizeof(packing_info_B),
             STARPU_VALUE, &top, sizeof(top),
@@ -538,7 +543,8 @@ void starneig_schur_insert_push_inf_top(
 
 void starneig_schur_insert_push_bulges(
     int begin, int end, int shifts_begin, int shifts_end,
-    bulge_chasing_mode_t mode, int prio, double norm_a, double norm_b,
+    bulge_chasing_mode_t mode, int prio,
+    double thres_a, double thres_b, double thres_inf,
     starneig_vector_descr_t shifts_real, starneig_vector_descr_t shifts_imag,
     starneig_vector_descr_t aftermath,
     starneig_matrix_descr_t matrix_a, starneig_matrix_descr_t matrix_b,
@@ -626,8 +632,9 @@ void starneig_schur_insert_push_bulges(
             &push_bulges_cl,
             STARPU_EXECUTE_ON_NODE, owner,
             STARPU_PRIORITY, prio,
-            STARPU_VALUE, &norm_a, sizeof(norm_a),
-            STARPU_VALUE, &norm_b, sizeof(norm_b),
+            STARPU_VALUE, &thres_a, sizeof(thres_a),
+            STARPU_VALUE, &thres_b, sizeof(thres_b),
+            STARPU_VALUE, &thres_inf, sizeof(thres_inf),
             STARPU_VALUE, &packing_info_shifts_real,
                 sizeof(packing_info_shifts_real),
             STARPU_VALUE, &packing_info_shifts_imag,
@@ -643,8 +650,9 @@ void starneig_schur_insert_push_bulges(
         starpu_task_insert(
             &push_bulges_cl,
             STARPU_PRIORITY, prio,
-            STARPU_VALUE, &norm_a, sizeof(norm_a),
-            STARPU_VALUE, &norm_b, sizeof(norm_b),
+            STARPU_VALUE, &thres_a, sizeof(thres_a),
+            STARPU_VALUE, &thres_b, sizeof(thres_b),
+            STARPU_VALUE, &thres_inf, sizeof(thres_inf),
             STARPU_VALUE, &packing_info_shifts_real,
                 sizeof(packing_info_shifts_real),
             STARPU_VALUE, &packing_info_shifts_imag,
@@ -718,7 +726,8 @@ double starneig_predict_aggressively_deflate(int generalized, int window_size)
 }
 
 void starneig_schur_insert_aggressively_deflate(
-    int begin, int end, int prio, double norm_a, double norm_b,
+    int begin, int end, int prio,
+    double thres_a, double thres_b, double thres_inf,
     starneig_matrix_descr_t matrix_a, starneig_matrix_descr_t matrix_b,
     starneig_vector_descr_t shifts_real, starneig_vector_descr_t shifts_imag,
     starpu_data_handle_t *status_h, starpu_data_handle_t *lQ_h,
@@ -815,8 +824,9 @@ void starneig_schur_insert_aggressively_deflate(
             codelet,
             STARPU_EXECUTE_ON_NODE, owner,
             STARPU_PRIORITY, prio,
-            STARPU_VALUE, &norm_a, sizeof(norm_a),
-            STARPU_VALUE, &norm_b, sizeof(norm_b),
+            STARPU_VALUE, &thres_a, sizeof(thres_a),
+            STARPU_VALUE, &thres_b, sizeof(thres_b),
+            STARPU_VALUE, &thres_inf, sizeof(thres_inf),
             STARPU_VALUE, &packing_info_shifts_real,
                 sizeof(packing_info_shifts_real),
             STARPU_VALUE, &packing_info_shifts_imag,
@@ -829,8 +839,9 @@ void starneig_schur_insert_aggressively_deflate(
         starpu_task_insert(
             codelet,
             STARPU_PRIORITY, prio,
-            STARPU_VALUE, &norm_a, sizeof(norm_a),
-            STARPU_VALUE, &norm_b, sizeof(norm_b),
+            STARPU_VALUE, &thres_a, sizeof(thres_a),
+            STARPU_VALUE, &thres_b, sizeof(thres_b),
+            STARPU_VALUE, &thres_inf, sizeof(thres_inf),
             STARPU_VALUE, &packing_info_shifts_real,
                 sizeof(packing_info_shifts_real),
             STARPU_VALUE, &packing_info_shifts_imag,
@@ -858,7 +869,8 @@ void starneig_schur_insert_aggressively_deflate(
 }
 
 void starneig_schur_insert_small_schur(
-    int begin, int end, int prio, double norm_a, double norm_b,
+    int begin, int end, int prio,
+    double thres_a, double thres_b, double thres_inf,
     starneig_matrix_descr_t matrix_a, starneig_matrix_descr_t matrix_b,
     starpu_data_handle_t *status_h, starpu_data_handle_t *lQ_h,
     starpu_data_handle_t *lZ_h, mpi_info_t mpi)
@@ -939,8 +951,9 @@ void starneig_schur_insert_small_schur(
             &small_schur_cl,
             STARPU_EXECUTE_ON_NODE, owner,
             STARPU_PRIORITY, prio,
-            STARPU_VALUE, &norm_a, sizeof(norm_a),
-            STARPU_VALUE, &norm_b, sizeof(norm_b),
+            STARPU_VALUE, &thres_a, sizeof(thres_a),
+            STARPU_VALUE, &thres_b, sizeof(thres_b),
+            STARPU_VALUE, &thres_inf, sizeof(thres_inf),
             STARPU_VALUE, &packing_info_A, sizeof(packing_info_A),
             STARPU_VALUE, &packing_info_B, sizeof(packing_info_B),
             STARPU_DATA_MODE_ARRAY, helper->descrs, helper->count, 0);
@@ -949,8 +962,9 @@ void starneig_schur_insert_small_schur(
         starpu_task_insert(
             &small_schur_cl,
             STARPU_PRIORITY, prio,
-            STARPU_VALUE, &norm_a, sizeof(norm_a),
-            STARPU_VALUE, &norm_b, sizeof(norm_b),
+            STARPU_VALUE, &thres_a, sizeof(thres_a),
+            STARPU_VALUE, &thres_b, sizeof(thres_b),
+            STARPU_VALUE, &thres_inf, sizeof(thres_inf),
             STARPU_VALUE, &packing_info_A, sizeof(packing_info_A),
             STARPU_VALUE, &packing_info_B, sizeof(packing_info_B),
             STARPU_DATA_MODE_ARRAY, helper->descrs, helper->count, 0);
@@ -1138,7 +1152,7 @@ void starneig_schur_insert_embed_spike(
 
 void starneig_schur_insert_deflate(
     int begin, int end, int deflate, int prio,
-    double norm_a, starpu_data_handle_t inducer_h,
+    double thres_a, starpu_data_handle_t inducer_h,
     starpu_data_handle_t status_h, starneig_vector_descr_t base,
     starneig_matrix_descr_t matrix_a, starneig_matrix_descr_t matrix_b,
     starpu_data_handle_t *lQ_h, starpu_data_handle_t *lZ_h)
@@ -1201,7 +1215,7 @@ void starneig_schur_insert_deflate(
     starpu_task_insert(
         &deflate_cl,
         STARPU_PRIORITY, prio,
-        STARPU_VALUE, &norm_a, sizeof(norm_a),
+        STARPU_VALUE, &thres_a, sizeof(thres_a),
         STARPU_VALUE, &packing_info_spike, sizeof(packing_info_spike),
         STARPU_VALUE, &packing_info_A, sizeof(packing_info_A),
         STARPU_VALUE, &packing_info_B, sizeof(packing_info_B),

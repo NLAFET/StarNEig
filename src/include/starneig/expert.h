@@ -173,6 +173,21 @@ void starneig_hessenberg_init_conf(struct starneig_hessenberg_conf *conf);
 #define STARNEIG_SCHUR_DEFAULT_UPDATE_HEIGHT           -1
 
 ///
+/// @brief Default deflation threshold.
+///
+#define STARNEIG_SCHUR_DEFAULT_THRESHOLD               -1
+
+///
+/// @brief Norm stable deflation threshold.
+///
+#define STARNEIG_SCHUR_NORM_STABLE_THRESHOLD           -2
+
+///
+/// @brief LAPACK-style deflation threshold.
+///
+#define STARNEIG_SCHUR_LAPACK_THRESHOLD                -3
+
+///
 /// @brief Schur reduction configuration structure.
 ///
 struct starneig_schur_conf {
@@ -288,6 +303,44 @@ struct starneig_schur_conf {
     /// @ref STARNEIG_SCHUR_DEFAULT_UPDATE_HEIGHT, then the implementation will
     /// determine a suitable height automatically.
     int update_height;
+
+    /// The QR/QZ algorithm is allowed to set tiny matrix entires to zero as
+    /// long as their magnitudes are smaller that a given threshold. This
+    /// parameter defines the threshold for the left-hand side matrix (\f$H\f$).
+    /// If the parameter is set to @ref STARNEIG_SCHUR_DEFAULT_THRESHOLD, then
+    /// the implementation will determine a suitable threshold automatically. If
+    /// the parameter is set to @ref STARNEIG_SCHUR_NORM_STABLE_THRESHOLD, then
+    /// the implementation will use the threshold \f$u |H|_F\f$, where \f$u\f$
+    /// is the unit roundoff and \f$|H|_F\f$ is the Frobenius norm of the matrix
+    /// \f$H\f$. If the parameter is set to
+    /// @ref STARNEIG_SCHUR_LAPACK_THRESHOLD, then the implementation will use
+    /// a deflation threshold that is compatible with LAPACK.
+    double left_threshold;
+
+    /// The QZ algorithm is allowed to set tiny matrix entires to zero as
+    /// long as their magnitudes are smaller that a given threshold. This
+    /// parameter defines the threshold for the right-hand side matrix
+    /// (\f$R\f$) off-diagonal entires. If the parameter is set to
+    /// @ref STARNEIG_SCHUR_DEFAULT_THRESHOLD, then the implementation will
+    /// determine a suitable threshold automatically. If the parameter is set to
+    /// @ref STARNEIG_SCHUR_NORM_STABLE_THRESHOLD, then the implementation will
+    /// use the threshold \f$u |R|_F\f$, where \f$u\f$ is the unit roundoff and
+    /// \f$|H|_F\f$ is the Frobenius norm of the matrix \f$R\f$. If the
+    /// parameter is set to @ref STARNEIG_SCHUR_LAPACK_THRESHOLD, then the
+    /// implementation will use a deflation threshold that is compatible with
+    /// LAPACK.
+    double right_threshold;
+
+    /// The QZ algorithm is allowed to set tiny matrix entires to zero as
+    /// long as their magnitudes are smaller that a given threshold. This
+    /// parameter defines the threshold for the right-hand side matrix
+    /// (\f$R\f$) diagonal entries. If the parameter is set to
+    /// @ref STARNEIG_SCHUR_DEFAULT_THRESHOLD, then the implementation will
+    /// determine a suitable threshold automatically. If the parameter is set to
+    /// @ref STARNEIG_SCHUR_NORM_STABLE_THRESHOLD, then the implementation will
+    /// use the threshold \f$u |R|_F\f$, where \f$u\f$ is the unit roundoff and
+    /// \f$|R|_F\f$ is the Frobenius norm of the matrix \f$R\f$.
+    double inf_threshold;
 };
 
 ///

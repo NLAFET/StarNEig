@@ -772,13 +772,15 @@ inline static void push_inf_bulge(
 ///         The leading dimension of B.
 ///
 /// @param[in,out] real
-///         Eigenvalues (real parts).
+///         Eigenvalues (real parts). If NULL, then the parameter is ignored.
 ///
 /// @param[in,out] imag
-///          Eigenvalues (imaginary parts).
+///          Eigenvalues (imaginary parts). If NULL, then the parameter is
+///         ignored.
 ///
 /// @param[in,out] beta
-///          Eigenvalues (scaling factors).
+///          Eigenvalues (scaling factors). If NULL, then the parameter is
+///         ignored.
 ///
 /// @param[in,out] Q
 ///         On entry, the matrix Q.
@@ -810,12 +812,21 @@ static void process_2x2_block(
     double csl, snl, csr, snr;
 
     if (B != NULL) {
+        double real__[2], imag__[2], beta__[2];
+        double *_real = real == NULL ? real__ : real+i;
+        double *_imag = imag == NULL ? imag__ : imag+i;
+        double *_beta = beta == NULL ? beta__ : beta+i;
+
         dlagv2_(_A_offset(i,i), &ldA, _B_offset(i,i), &ldB,
-            real+i, imag+i, beta+i, &csl, &snl, &csr, &snr);
+            _real, _imag, _beta, &csl, &snl, &csr, &snr);
     }
     else {
+        double real__[2], imag__[2];
+        double *_real = real == NULL ? real__ : real+i;
+        double *_imag = imag == NULL ? imag__ : imag+i;
+
         dlanv2_(&_A(i,i), &_A(i,i+1), &_A(i+1,i), &_A(i+1,i+1),
-            real+i, imag+i, real+i+1, imag+i+1, &csl, &snl);
+            _real, _imag, _real+1, _imag+1, &csl, &snl);
         csr = csl;
         snr = snl;
     }
@@ -1024,6 +1035,74 @@ inline static double create_right_reflector(
 }
 
 ///
+/// @brief If possible, sets a sub-diagonal entry of a matrix to zero.
+///
+/// @param[in] threshold
+///         The threshold.
+///
+/// @param[in] j
+///         Column.
+///
+/// @param[in] n
+///         The order of the matrix A.
+///
+/// @param[in] ldA
+///         The leading dimension of the matrix A.
+///
+/// @param[in,out] A
+///         The matrix A.
+///
+static void vigilant_deflation_check(
+    double threshold, int j, int n, int ldA, double *A)
+{
+    if (0.0 < threshold) {
+        if (_A(j+1,j) != 0.0 && fabs(_A(j+1,j)) < threshold) {
+            starneig_verbose("A vigilant deflation occured.");
+            _A(j+1,j) = 0.0;
+        }
+    }
+    else {
+        const double ulp = dlamch("Precision");
+        const double safmin = dlamch("Safe minimum");
+        double smlnum = safmin*(n/ulp);
+
+        if (0 <= j && j+1 < n && _A(j+1,j) != 0.0) {
+            double tst1 = fabs(_A(j,j)) + fabs(_A(j+1,j+1));
+            if (tst1 == 0.0) {
+                if (0 <= j-1)
+                    tst1 += fabs(_A(j,j-1));
+                if (0 <= j-2)
+                    tst1 += fabs(_A(j,j-2));
+                if (0 <= j-3)
+                    tst1 += fabs(_A(j,j-3));
+                if (j+2 < n)
+                    tst1 += fabs(_A(j+2,j+1));
+                if (j+3 < n)
+                    tst1 += fabs(_A(j+3,j+1));
+                if (j+4 < n)
+                    tst1 += fabs(_A(j+4,j+1));
+            }
+
+            if (fabs(_A(j+1,j)) <= MAX(smlnum, ulp*tst1)) {
+                double h12 = MAX(fabs(_A(j+1,j)), fabs(_A(j,j+1)));
+                double h21 = MIN(fabs(_A(j+1,j)), fabs(_A(j,j+1)));
+                double h11 = MAX(fabs(_A(j+1,j+1)), fabs(_A(j,j) - _A(j+1,j+1)));
+                double h22 = MIN(fabs(_A(j+1,j+1)), fabs(_A(j,j) - _A(j+1,j+1)));
+                double scl = h11 + h12;
+                double tst2 = h22*(h11/scl);
+                if (tst2 == 0.0 || h21*(h12/scl) <= MAX(smlnum, ulp*tst2)) {
+                    starneig_verbose("A vigilant deflation occured.");
+                    _A(j+1,j) = 0.0;
+                }
+            }
+        }
+    }
+
+
+}
+
+
+///
 /// @brief Small bulge chasing kernel.
 ///
 ///  Chases a set of bulges across a matrix pencil Q (A,B) Z^T. Produces an
@@ -1038,14 +1117,6 @@ inline static double create_right_reflector(
 /// @param[in] n
 ///         The order of matrices Q, Z, A and B.
 ///
-/// @param[in] thres_a
-///         Those elements of A that are smaller that this threshold are allowed
-///         to be set to zero.
-///
-/// @param[in] thres_b
-///         Those elements of B that are smaller that this threshold are allowed
-///         to be set to zero.
-///
 /// @param[in] ldQ
 ///         The leading dimension of the matrix Q.
 ///
@@ -1057,6 +1128,18 @@ inline static double create_right_reflector(
 ///
 /// @param[in] ldB
 ///         The leading dimension of the matrix B.
+///
+/// @param[in] thres_a
+///         Those off-diagonal entries of the matrix A that are smaller in
+///         magnitudes than this threshold may be set to zero.
+///
+/// @param[in] thres_b
+///         Those off-diagonal entries of the matrix B that are smaller in
+///         magnitudes than this threshold may be set to zero.
+///
+/// @param[in] thres_inf
+///         Those diagonal entries of the matrix B that are smaller in
+///         magnitudes than this threshold may be set to zero.
 ///
 /// @param[in] real
 ///         Shifts (real parts).
@@ -1082,7 +1165,8 @@ inline static double create_right_reflector(
 ///
 static void process_small_window(
     bulge_chasing_mode_t mode, int shifts, int n,
-    double thres_a, double thres_b, int ldQ, int ldZ, int ldA, int ldB,
+    int ldQ, int ldZ, int ldA, int ldB,
+    double thres_a, double thres_b, double thres_inf,
     double const * restrict real, double const * restrict imag,
     double * restrict Q, double * restrict Z, double * restrict A,
     double * restrict B)
@@ -1181,7 +1265,6 @@ static void process_small_window(
         //
         right = n-1 - 3*(shifts/2);
 
-
     //
     // deflate infinite eigenvalues
     //
@@ -1203,7 +1286,7 @@ static void process_small_window(
             if (0 < i) {
                 // if infinite eigenvalues can be deflated, ...
                 if (_A(1,0) == 0.0) {
-                    // deflate them;
+                    // deflate them
                     starneig_push_inf_top(
                         1, i, n, ldQ, ldZ, ldA, ldB, Q, Z, A, B, 1);
                 }
@@ -1258,44 +1341,15 @@ static void process_small_window(
             }
 #endif
 
-            if (j == -1) {
-
-                // The matrix pencil is in Hessenberg-triangular form. Try to
-                // deflate the first two columns.
-                if (fabs(_A(1,0)) < thres_a)
-                    _A(1,0) = 0.0;
-                if (fabs(_A(2,1)) < thres_a)
-                    _A(2,1) = 0.0;
-
-                if (_A(1,0) == 0.0 || _A(2,1) == 0.0)
-                    //
-                    // +-----------    +-----------
-                    // |x x x x x x    |x x x x x x
-                    // |0 x x x x x    |x x x x x x
-                    // |  x x x x x    |  0 x x x x
-                    // |    x x x x    |    x x x x
-                    // |      x x x    |      x x x
-                    // |        x x    |        x x
-                    //
-                    // skip a 1x1 or a 2x2 block in the top left corner
-                    continue;
-
-                // skip infinite eigenvalues
-                if (B != NULL &&
-                (_B(0,0) == 0.0 || _B(1,1) == 0.0 || _B(2,2) == 0.0))
-                    continue;
-            }
-
             // skip infinite eigenvalues
-            if (0 <= j && B != NULL && j+3 < n &&
-            _A(j+2,j) == 0.0 && _A(j+3,j) == 0.0 &&
-            _B(j,j) == 0.0 && _B(j+1,j+1) == 0.0 &&
-            _B(j+1,j) == 0.0 && _B(j+2,j+1) == 0.0)
+            if (B != NULL && 0 <= j &&
+            (n <= j+2 || (_A(j+2,j) == 0.0 && _B(j+2,j+1) == 0.0)) &&
+            (n <= j+3 ||  _A(j+3,j) == 0.0))
                 //
                 //  A              B
                 //  x x x x x x    x x x x x x
-                //  x j x x x x      0 x x x x
-                //    x x x x x      0 0 x x x
+                //  x j x x x x      x x x x x
+                //    0 x x x x        0 x x x
                 //    0 x x x x        0 x x x
                 //    0   x x x            x x
                 //          x x              x
@@ -1317,8 +1371,8 @@ static void process_small_window(
                 //
 
                 // try to deflate the second column of B
-                if (B != NULL && fabs(_B(j+2,j+1)) < thres_b)
-                    _B(j+2,j+1) = 0.0;
+                if (B != NULL)
+                    vigilant_deflation_check(thres_b, j+1, n, ldB, B);
 
                 if (B == NULL || _B(j+2,j+1) == 0.0) {
 
@@ -1332,9 +1386,9 @@ static void process_small_window(
                     //          x x              x
                     //
 
-                    // try to deflate the first column of A
-                    if (fabs(_A(j+1,j)) < thres_a)
-                        _A(j+1,j) = 0.0;
+                    if (_A(j+1,j) == 0.0)
+                        process_2x2_block(j, n, ldQ, ldZ, ldA, ldB,
+                            NULL, NULL, NULL, Q, Z, A, B);
 
                     // skip the 1x1 or 2x2 block
                     continue;
@@ -1367,8 +1421,7 @@ static void process_small_window(
                     lmul2ref(n-j-1, ldB, lV, _B_offset(j+1,j+1));
                 rmul2ref(n, ldQ, lV, _Q_offset(0,j+1));
 
-                if (fabs(_A(j+1,j)) < thres_a)
-                    _A(j+1,j) = 0.0;
+                vigilant_deflation_check(thres_a, j, n, ldA, A);
 
                 if (B != NULL) {
                     double rV[3];
@@ -1398,8 +1451,8 @@ static void process_small_window(
                 //
 
                 // try to deflate the second column of B
-                if (B != NULL && fabs(_B(j+2,j+1)) < thres_b)
-                    _B(j+2,j+1) = 0.0;
+                if (B != NULL)
+                    vigilant_deflation_check(thres_b, j+1, n, ldB, B);
 
                 if (B == NULL || (_B(j+1,j+1) != 0.0 && _B(j+2,j+2) != 0.0 &&
                 _B(j+3,j+3) != 0.0 && _B(j+2,j+1) == 0.0)) {
@@ -1497,8 +1550,7 @@ static void process_small_window(
                 // vigilant deflation check
                 //
 
-                if (fabs(_A(j+1,j)) < thres_a)
-                    _A(j+1,j) = 0.0;
+                vigilant_deflation_check(thres_a, j, n, ldA, A);
 
 #ifdef STARNEIG_ENABLE_SANITY_CHECKS
                 zeros[j] = zeros[j] || _A(j+1,j) == 0.0;
@@ -1574,7 +1626,45 @@ static void process_small_window(
                     double a20 = _A(j+2,j) - s0 * vt[1];
                     double a30 = _A(j+3,j) - s0 * vt[2];
 
-                    if (fabs(a20) < thres_a && fabs(a30) < thres_a) {
+                    //
+                    // check whether the two entries can be safely ignored
+                    //
+                    int can_be_ignored;
+                    if (0.0 < thres_a) {
+                        // compare the two entries agains the threshold
+                        can_be_ignored =
+                            fabs(a20) < thres_a && fabs(a30) < thres_a;
+                    }
+                    else {
+                        //
+                        // use the sum of the absolute values of diagonal
+                        // entries as a threshold
+                        //
+                        // x x x x x x
+                        // x_#_x_x_x_x
+                        //   X # X X X
+                        //   X X # X X
+                        // __X_X_X_#_X
+                        //         x x
+                        //
+
+                        double s1 = vt[0] * _A(j+1,j+1) + vt[1] * _A(j+2,j+1);
+                        double s2 = vt[0] * _A(j+1,j+2) + vt[1] * _A(j+2,j+2) +
+                            vt[2] * _A(j+3,j+2);
+                        double s3 = vt[0] * (_A(j+1,j+3) + vt[1] * _A(j+2,j+3) +
+                            vt[2] * _A(j+3,j+3));
+                        double a11 = _A(j+1,j+1) - s1 * vt[0];
+                        double a22 = _A(j+2,j+2) - s2 * vt[1];
+                        double a33 = _A(j+3,j+3) - s3 * vt[2];
+
+                        double ulp = dlamch("Precision");
+                        double eps = ulp *
+                            (fabs(_A(j,j)) + fabs(a11) + fabs(a22) + fabs(a33));
+
+                        can_be_ignored = fabs(a20) + fabs(a30) < eps;
+                    }
+
+                    if (can_be_ignored) {
                         // The two entires can be ignored. The original
                         // reflector is replaced with the new one.
                         _A(j+1,j) -= s0 * vt[0];
@@ -1648,8 +1738,7 @@ static void process_small_window(
                 // vigilant deflation check
                 //
 
-                if (fabs(_A(j+1,j)) < thres_a)
-                    _A(j+1,j) = 0.0;
+                vigilant_deflation_check(thres_a, j, n, ldA, A);
 
 #ifdef STARNEIG_ENABLE_SANITY_CHECKS
                 zeros[j] = zeros[j] || _A(j+1,j) == 0.0;
@@ -1659,7 +1748,7 @@ static void process_small_window(
                 // infinite eigenvalue check
                 //
 
-                if (B != NULL && fabs(_B(j+1,j+1)) < thres_b)
+                if (B != NULL && fabs(_B(j+1,j+1)) < thres_inf)
                     _B(j+1,j+1) = 0.0;
             }
 
@@ -1766,14 +1855,6 @@ static size_t get_push_bulges_workspace(
 /// @param[in] n
 ///         The order of matrices Q, Z, A and B.
 ///
-/// @param[in] thres_a
-///         Those elements of A that are smaller that this threshold are allowed
-///         to be set to zero.
-///
-/// @param[in] thres_b
-///         Those elements of B that are smaller that this threshold are allowed
-///         to be set to zero.
-///
 /// @param[in] ldQ
 ///         The leading dimension of the matrix Q.
 ///
@@ -1785,6 +1866,18 @@ static size_t get_push_bulges_workspace(
 ///
 /// @param[in] ldB
 ///         The leading dimension of the matrix B.
+///
+/// @param[in] thres_a
+///         Those off-diagonal entries of the matrix A that are smaller in
+///         magnitudes than this threshold may be set to zero.
+///
+/// @param[in] thres_b
+///         Those off-diagonal entries of the matrix B that are smaller in
+///         magnitudes than this threshold may be set to zero.
+///
+/// @param[in] thres_inf
+///         Those diagonal entries of the matrix B that are smaller in
+///         magnitudes than this threshold may be set to zero.
 ///
 /// @param[in] real
 ///         Shifts (real parts).
@@ -1813,8 +1906,9 @@ static size_t get_push_bulges_workspace(
 ///
 static void perform_push_bulges(
     bulge_chasing_mode_t mode, int begin, int end, int shifts, int n,
-    double thres_a, double thres_b, int ldQ, int ldZ, int ldA, int ldB,
-    size_t lwork, double const *real, double const *imag,
+    int ldQ, int ldZ, int ldA, int ldB, size_t lwork,
+    double thres_a, double thres_b, double thres_inf,
+    double const *real, double const *imag,
     double *Q, double *Z, double *A, double *B, double *work)
 {
     // the shifts are processed in batches
@@ -1975,7 +2069,8 @@ static void perform_push_bulges(
             // push the batch across a small diagonal window
             process_small_window(
                 window_mode, MIN(batch, shifts-i), wend-wbegin,
-                thres_a, thres_b, ldlQ, ldlZ, ldA, ldB, real+i, imag+i, lQ, lZ,
+                ldlQ, ldlZ, ldA, ldB, thres_a, thres_b, thres_inf,
+                real+i, imag+i, lQ, lZ,
                 _A_offset(wbegin,wbegin), _B_offset(wbegin,wbegin));
 
             starneig_small_gemm_updates(
@@ -2611,8 +2706,8 @@ static size_t get_schur_reduction_workspace(
     int begin, int end, int n, int ldQ, int ldZ, int ldA, int ldB);
 
 static int perform_schur_reduction(
-    int begin, int end, int n, double thres_a, double thres_b,
-    int ldQ, int ldZ, int ldA, int ldB, int lwork, double *work,
+    int begin, int end, int n, int ldQ, int ldZ, int ldA, int ldB, int lwork,
+    double thres_a, double thres_b, double thres_inf, double *work,
     double *real, double *imag, double *beta, double *Q,
     double *Z, double *A, double *B);
 
@@ -2668,14 +2763,6 @@ static size_t get_aggressively_deflate_workspace(
 /// @param[in] n
 ///         The order of the matrices A, B, Q and Z.
 ///
-/// @param[in] thres_a
-///         Those elements of A that are smaller that this threshold are allowed
-///         to be set to zero.
-///
-/// @param[in] thres_b
-///         Those elements of B that are smaller that this threshold are allowed
-///         to be set to zero.
-///
 /// @param[in] ldQ
 ///         The leading dimension of Q.
 ///
@@ -2690,6 +2777,18 @@ static size_t get_aggressively_deflate_workspace(
 ///
 /// @param[in] lwork
 ///         Size of the workspace buffer.
+///
+/// @param[in] thres_a
+///         Those off-diagonal entries of the matrix A that are smaller in
+///         magnitudes than this threshold may be set to zero.
+///
+/// @param[in] thres_b
+///         Those off-diagonal entries of the matrix B that are smaller in
+///         magnitudes than this threshold may be set to zero.
+///
+/// @param[in] thres_inf
+///         Those diagonal entries of the matrix B that are smaller in
+///         magnitudes than this threshold may be set to zero.
 ///
 /// @param[out] real
 ///         Returns the real parts of the computed shifts.
@@ -2723,8 +2822,8 @@ static size_t get_aggressively_deflate_workspace(
 ///         Returns the number of computed shifts.
 ///
 static void perform_aggressively_deflate(
-    int n, double thres_a, double thres_b,
-    int ldQ, int ldZ, int ldA, int ldB, int lwork,
+    int n,  int ldQ, int ldZ, int ldA, int ldB, int lwork,
+    double thres_a, double thres_b, double thres_inf,
     double * restrict real, double * restrict imag, double * restrict Q,
     double * restrict Z, double * restrict A, double * restrict B,
     double * restrict work, int * restrict unconverged,
@@ -2753,8 +2852,8 @@ static void perform_aggressively_deflate(
     // reduce the AED window to Schur form
     //
 
-    int roof = perform_schur_reduction(1, n, n, thres_a, thres_b,
-        ldQ, ldZ, ldA, ldB, lwork-3*n, work, work+n, work+2*n, Q, Z, A, B,
+    int roof = perform_schur_reduction(1, n, n, ldQ, ldZ, ldA, ldB, lwork-3*n,
+        thres_a, thres_b, thres_inf, work, work+n, work+2*n, Q, Z, A, B,
         work+3*n);
     if (1 < roof)
         starneig_verbose(
@@ -2772,39 +2871,105 @@ static void perform_aggressively_deflate(
 
     int top = roof;
     {
-        int i = n-1;
-        while (top <= i) {
+        //
+        // norm stable deflation condition
+        //
 
-            // if we are dealing with a 2-by-2 block, ...
-            if (top <= i-1 && _A(i,i-1) != 0.0) {
+        if (0.0 < thres_a) {
 
-                // and the 2-by-2 block is deflatable, ...
-                if (fabs(sub*_Q(1,i-1)) < thres_a &&
-                fabs(sub*_Q(1,i)) < thres_a) {
-                    // decrease the AED window
-                    i -= 2;
+            int i = n-1;
+            while (top <= i) {
+
+                // if we are dealing with a 2-by-2 block, ...
+                if (top <= i-1 && _A(i,i-1) != 0.0) {
+
+                    // and the 2-by-2 block is deflatable, ...
+                    if (fabs(sub*_Q(1,i-1)) < thres_a &&
+                    fabs(sub*_Q(1,i)) < thres_a) {
+                        // decrease the AED window
+                        i -= 2;
+                    }
+                    // otherwise, ...
+                    else {
+                        // move the 2-by-2 block out of the way
+                        top = starneig_move_block(
+                            i, top, n, ldQ, ldZ, ldA, ldB, lwork,
+                            Q, Z, A, B, work);
+                        top += 2;
+                    }
                 }
                 // otherwise, ...
                 else {
-                    // move the 2-by-2 block out of the way
-                    top = starneig_move_block(
-                        i, top, n, ldQ, ldZ, ldA, ldB, lwork, Q, Z, A, B, work);
-                    top += 2;
+                    // if the 1-by-1 block is deflatable, ...
+                    if (fabs(sub*_Q(1,i)) < thres_a) {
+                        // decrease the AED window
+                        i--;
+                    }
+                    // otherwise, ...
+                    else {
+                        // move the 1-by-1 block out of the way
+                        top = starneig_move_block(
+                            i, top, n, ldQ, ldZ, ldA, ldB, lwork,
+                            Q, Z, A, B, work);
+                        top++;
+                    }
                 }
             }
-            // otherwise, ...
-            else {
-                // if the 1-by-1 block is deflatable, ...
-                if (fabs(sub*_Q(1,i)) < thres_a) {
-                    // decrease the AED window
-                    i--;
+        }
+
+        //
+        // LAPACK-style deflation condition
+        //
+
+        else {
+            const double safmin = dlamch("Safe minimum");
+            const double ulp = dlamch("Precision");
+            double smlnum = safmin*(n/ulp);
+
+            int i = n-1;
+            while (top <= i) {
+
+                // if we are dealing with a 2-by-2 block, ...
+                if (top <= i-1 && _A(i,i-1) != 0.0) {
+                    double foo = fabs(_A(i,i)) +
+                        sqrt(fabs(_A(i,i-1))) * sqrt(fabs(_A(i-1,i)));
+                    if (foo == 0.0)
+                        foo = fabs(sub);
+
+                    // and the 2-by-2 block is deflatable, ...
+                    if (MAX(fabs(sub*_Q(1,i-1)), fabs(sub*_Q(1,i))) <
+                    MAX(smlnum, ulp*foo)) {
+                        // decrease the AED window
+                        i -= 2;
+                    }
+                    // otherwise, ...
+                    else {
+                        // move the 2-by-2 block out of the way
+                        top = starneig_move_block(
+                            i, top, n, ldQ, ldZ, ldA, ldB, lwork,
+                            Q, Z, A, B, work);
+                        top += 2;
+                    }
                 }
                 // otherwise, ...
                 else {
-                    // move the 1-by-1 block out of the way
-                    top = starneig_move_block(
-                        i, top, n, ldQ, ldZ, ldA, ldB, lwork, Q, Z, A, B, work);
-                    top++;
+                    double foo = fabs(_A(i,i));
+                    if (foo == 0.0)
+                        foo = fabs(sub);
+
+                    // if the 1-by-1 block is deflatable, ...
+                    if (fabs(sub*_Q(1,i)) < MAX(smlnum, ulp*foo)) {
+                        // decrease the AED window
+                        i--;
+                    }
+                    // otherwise, ...
+                    else {
+                        // move the 1-by-1 block out of the way
+                        top = starneig_move_block(
+                            i, top, n, ldQ, ldZ, ldA, ldB, lwork,
+                            Q, Z, A, B, work);
+                        top++;
+                    }
                 }
             }
         }
@@ -2947,14 +3112,6 @@ static size_t get_schur_reduction_workspace(
 /// @param[in] n
 ///         The order of the matrices A, B, Q and Z.
 ///
-/// @param[in] thres_a
-///         Those elements of A that are smaller that this threshold are allowed
-///         to be set to zero.
-///
-/// @param[in] thres_b
-///         Those elements of B that are smaller that this threshold are allowed
-///         to be set to zero.
-///
 /// @param[in] ldQ
 ///         The leading dimension of Q.
 ///
@@ -2969,6 +3126,18 @@ static size_t get_schur_reduction_workspace(
 ///
 /// @param[in] lwork
 ///         Size of the workspace buffer.
+///
+/// @param[in] thres_a
+///         Those off-diagonal entries of the matrix A that are smaller in
+///         magnitudes than this threshold may be set to zero.
+///
+/// @param[in] thres_b
+///         Those off-diagonal entries of the matrix B that are smaller in
+///         magnitudes than this threshold may be set to zero.
+///
+/// @param[in] thres_inf
+///         Those diagonal entries of the matrix B that are smaller in
+///         magnitudes than this threshold may be set to zero.
 ///
 /// @param[out] real
 ///         Returns the eigenvalues (real parts).
@@ -3001,8 +3170,8 @@ static size_t get_schur_reduction_workspace(
 /// @return The first column that has been reduced to Schur form.
 ///
 static int perform_schur_reduction(
-    int begin, int end, int n, double thres_a, double thres_b,
-    int ldQ, int ldZ, int ldA, int ldB, int lwork,
+    int begin, int end, int n, int ldQ, int ldZ, int ldA, int ldB, int lwork,
+    double thres_a, double thres_b, double thres_inf,
     double *real, double *imag, double *beta, double *Q, double *Z, double *A,
     double *B, double *work)
 {
@@ -3090,10 +3259,10 @@ static int perform_schur_reduction(
         // perform AED
 
         int unconverged, converged;
-        perform_aggressively_deflate(bottom-aed_begin, thres_a, thres_b,
-            __ld, __ld, __ld, __ld, __lwork,
-            real+aed_begin, imag+aed_begin, __Q, __Z, __A, __B,
-            __work, &unconverged, &converged);
+        perform_aggressively_deflate(
+            bottom-aed_begin, __ld, __ld, __ld, __ld, __lwork,
+            thres_a, thres_b, thres_inf, real+aed_begin, imag+aed_begin,
+            __Q, __Z, __A, __B, __work, &unconverged, &converged);
 
         // if AED managed to deflate eigenvalues, apply it
 
@@ -3136,7 +3305,7 @@ static int perform_schur_reduction(
 
         perform_push_bulges(
             BULGE_CHASING_MODE_FULL, top, bottom, aed_shift_count, n,
-            thres_a, thres_b, ldQ, ldZ, ldA, ldB, lwork,
+            ldQ, ldZ, ldA, ldB, lwork, thres_a, thres_b, thres_inf,
             real+aed_begin, imag+aed_begin, Q, Z, A, B, work);
 
         // deflate infinite eigenvalues
@@ -3160,8 +3329,9 @@ static int perform_schur_reduction(
                 }
                 else {
                     int _bottom = perform_schur_reduction(
-                        j, bottom, n, thres_a, thres_b, ldQ, ldZ, ldA, ldB,
-                        lwork, real, imag, beta, Q, Z, A, B, work);
+                        j, bottom, n, ldQ, ldZ, ldA, ldB, lwork,
+                        thres_a, thres_b, thres_inf, real, imag, beta,
+                        Q, Z, A, B, work);
                     if (_bottom == j)
                         bottom = _bottom;
                 }
@@ -3234,7 +3404,8 @@ int starneig_move_block(
 
 void starneig_push_bulges(
     bulge_chasing_mode_t mode, int shifts, int n,
-    double thres_a, double thres_b, int ldQ, int ldZ, int ldA, int ldB,
+    int ldQ, int ldZ, int ldA, int ldB,
+    double thres_a, double thres_b, double thres_inf,
     double const *real, double const *imag,
     double *Q, double *Z, double *A, double *B)
 {
@@ -3244,14 +3415,15 @@ void starneig_push_bulges(
         work = malloc(lwork*sizeof(double));
 
     perform_push_bulges(
-        mode, 0, n, shifts, n, thres_a, thres_b, ldQ, ldZ, ldA, ldB, lwork,
-        real, imag, Q, Z, A, B, work);
+        mode, 0, n, shifts, n, ldQ, ldZ, ldA, ldB, lwork,
+        thres_a, thres_b, thres_inf, real, imag, Q, Z, A, B, work);
 
     free(work);
 }
 
 void starneig_aggressively_deflate(
-    int n, double thres_a, double thres_b, int ldQ, int ldZ, int ldA, int ldB,
+    int n, int ldQ, int ldZ, int ldA, int ldB,
+    double thres_a, double thres_b, double thres_inf,
     double *real, double *imag, double *Q, double *Z, double *A, double *B,
     int *unconverged, int *converged)
 {
@@ -3261,14 +3433,15 @@ void starneig_aggressively_deflate(
         work = malloc(lwork*sizeof(double));
 
     perform_aggressively_deflate(
-        n, thres_a, thres_b, ldQ, ldZ, ldA, ldB, lwork, real, imag, Q, Z, A, B,
-        work, unconverged, converged);
+        n, ldQ, ldZ, ldA, ldB, lwork, thres_a, thres_b, thres_inf,
+        real, imag, Q, Z, A, B, work, unconverged, converged);
 
     free(work);
 }
 
 int starneig_schur_reduction(
-    int n, double thres_a, double thres_b, int ldQ, int ldZ, int ldA, int ldB,
+    int n, int ldQ, int ldZ, int ldA, int ldB,
+    double thres_a, double thres_b, double thres_inf,
     double *real, double *imag, double *beta,
     double *Q, double *Z, double *A, double *B)
 {
@@ -3278,8 +3451,8 @@ int starneig_schur_reduction(
         work = malloc(lwork*sizeof(double));
 
     int bottom = perform_schur_reduction(
-        0, n, n, thres_a, thres_b, ldQ, ldZ, ldA, ldB, lwork, real, imag, beta,
-        Q, Z, A, B, work);
+        0, n, n, ldQ, ldZ, ldA, ldB, lwork, thres_a, thres_b, thres_inf,
+        real, imag, beta, Q, Z, A, B, work);
 
     free(work);
 

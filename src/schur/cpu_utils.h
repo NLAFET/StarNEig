@@ -264,14 +264,6 @@ int starneig_move_block(
 /// @param[in] n
 ///         The order of matrices Q, Z, A and B.
 ///
-/// @param[in] thres_a
-///         Those elements of A that are smaller that this threshold are allowed
-///         to be set to zero.
-///
-/// @param[in] thres_b
-///         Those elements of B that are smaller that this threshold are allowed
-///         to be set to zero.
-///
 /// @param[in] ldQ
 ///         The leading dimension of the matrix Q.
 ///
@@ -283,6 +275,18 @@ int starneig_move_block(
 ///
 /// @param[in] ldB
 ///         The leading dimension of the matrix B.
+///
+/// @param[in] thres_a
+///         Those off-diagonal entries of the matrix A that are smaller in
+///         magnitudes than this threshold may be set to zero.
+///
+/// @param[in] thres_b
+///         Those off-diagonal entries of the matrix B that are smaller in
+///         magnitudes than this threshold may be set to zero.
+///
+/// @param[in] thres_inf
+///         Those diagonal entries of the matrix B that are smaller in
+///         magnitudes than this threshold may be set to zero.
 ///
 /// @param[in] real
 ///         Shifts (real parts).
@@ -308,7 +312,8 @@ int starneig_move_block(
 ///
 void starneig_push_bulges(
     bulge_chasing_mode_t mode, int shifts, int n,
-    double thres_a, double thres_b, int ldQ, int ldZ, int ldA, int ldB,
+    int ldQ, int ldZ, int ldA, int ldB,
+    double thres_a, double thres_b, double thres_inf,
     double const *real, double const *imag,
     double *Q, double *Z, double *A, double *B);
 
@@ -318,14 +323,6 @@ void starneig_push_bulges(
 ///
 /// @param[in] n
 ///         The order of matrices Q, Z, A and B.
-///
-/// @param[in] thres_a
-///         Those elements of A that are smaller that this threshold are allowed
-///         to be set to zero.
-///
-/// @param[in] thres_b
-///         Those elements of B that are smaller that this threshold are allowed
-///         to be set to zero.
 ///
 /// @param[in] ldQ
 ///         The leading dimension of the matrix Q.
@@ -338,6 +335,18 @@ void starneig_push_bulges(
 ///
 /// @param[in] ldB
 ///         The leading dimension of the matrix B.
+///
+/// @param[in] thres_a
+///         Those off-diagonal entries of the matrix A that are smaller in
+///         magnitudes than this threshold may be set to zero.
+///
+/// @param[in] thres_b
+///         Those off-diagonal entries of the matrix B that are smaller in
+///         magnitudes than this threshold may be set to zero.
+///
+/// @param[in] thres_inf
+///         Those diagonal entries of the matrix B that are smaller in
+///         magnitudes than this threshold may be set to zero.
 ///
 /// @param[out] real
 ///         Returns the shifts (real parts).
@@ -368,7 +377,8 @@ void starneig_push_bulges(
 ///         Returns the number of converged eigenvalues.
 ///
 void starneig_aggressively_deflate(
-    int n, double thres_a, double thres_b, int ldQ, int ldZ, int ldA, int ldB,
+    int n,  int ldQ, int ldZ, int ldA, int ldB,
+    double thres_a, double thres_b, double thres_inf,
     double *real, double *imag, double *Q, double *Z, double *A, double *B,
     int *unconverged, int *converged);
 
@@ -378,14 +388,6 @@ void starneig_aggressively_deflate(
 ///
 /// @param[in] n
 ///         The order of matrices Q, Z, A and B.
-///
-/// @param[in] thres_a
-///         Those elements of A that are smaller that this threshold are allowed
-///         to be set to zero.
-///
-/// @param[in] thres_b
-///         Those elements of B that are smaller that this threshold are allowed
-///         to be set to zero.
 ///
 /// @param[in] ldQ
 ///         The leading dimension of the matrix Q.
@@ -398,6 +400,18 @@ void starneig_aggressively_deflate(
 ///
 /// @param[in] ldB
 ///         The leading dimension of the matrix B.
+///
+/// @param[in] thres_a
+///         Those off-diagonal entries of the matrix A that are smaller in
+///         magnitudes than this threshold may be set to zero.
+///
+/// @param[in] thres_b
+///         Those off-diagonal entries of the matrix B that are smaller in
+///         magnitudes than this threshold may be set to zero.
+///
+/// @param[in] thres_inf
+///         Those diagonal entries of the matrix B that are smaller in
+///         magnitudes than this threshold may be set to zero.
 ///
 /// @param[out] real
 ///         Returns the eigenvalues (real parts).
@@ -427,7 +441,8 @@ void starneig_aggressively_deflate(
 /// @return The leftmost column that has been reduced to Schur form.
 ///
 int starneig_schur_reduction(
-    int n, double thres_a, double thres_b, int ldQ, int ldZ, int ldA, int ldB,
+    int n, int ldQ, int ldZ, int ldA, int ldB,
+    double thres_a, double thres_b, double thres_inf,
     double *real, double *imag, double *beta,
     double *Q, double *Z, double *A, double *B);
 

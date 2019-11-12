@@ -181,6 +181,9 @@ void starneig_schur_init_conf(struct starneig_schur_conf *conf)
     conf->shifts_per_window = STARNEIG_SCHUR_DEFAULT_SHIFTS_PER_WINDOW;
     conf->update_width = STARNEIG_SCHUR_DEFAULT_UPDATE_WIDTH;
     conf->update_height = STARNEIG_SCHUR_DEFAULT_UPDATE_HEIGHT;
+    conf->left_threshold = STARNEIG_SCHUR_DEFAULT_THRESHOLD;
+    conf->right_threshold = STARNEIG_SCHUR_DEFAULT_THRESHOLD;
+    conf->inf_threshold = STARNEIG_SCHUR_DEFAULT_THRESHOLD;
 }
 
 __attribute__ ((visibility ("default")))
