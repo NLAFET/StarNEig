@@ -2407,7 +2407,7 @@ starneig_error_t starneig_schur_insert_tasks(
     // set thresholds
     //
 
-    double norm_a;
+    double norm_a = 0.0;
     if (norm_a_h != NULL) {
         starpu_data_acquire(norm_a_h, STARPU_R);
         norm_a = *((double *) starpu_data_get_local_ptr(norm_a_h));
@@ -2415,7 +2415,7 @@ starneig_error_t starneig_schur_insert_tasks(
         starpu_data_unregister(norm_a_h);
     }
 
-    double norm_b;
+    double norm_b = 0.0;
     if (norm_b_h != NULL) {
         starpu_data_acquire(norm_b_h, STARPU_R);
         norm_b = *((double *) starpu_data_get_local_ptr(norm_b_h));
