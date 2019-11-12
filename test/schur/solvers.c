@@ -790,7 +790,12 @@ static void starpu_print_usage(int argc, char * const *argv)
         "  --shifts-per-window [default,(num)] -- Shifts per window\n"
         "  --update-width [default,(num)] -- Update task width\n"
         "  --update-height [default,(num)] -- Update task width\n"
-
+        "  --left-threshold [default,norm,lapack,(num)] -- Left-hand"
+        " side deflation threshold\n"
+        "  --right-threshold [default,norm,lapack,(num)] -- Right-hand"
+        " side deflation threshold\n"
+        "  --inf-threshold [default,norm,(num)] -- Infinite eigenvalue"
+        " threshold\n"
     );
 }
 
@@ -907,6 +912,32 @@ static int starpu_check_args(int argc, char * const *argv, int *argr)
         return -1;
     }
 
+    struct multiarg_t left_threshold = read_multiarg(
+        "--left-threshold", argc, argv, argr, "default", "norm", "lapack",
+        NULL);
+    if (left_threshold.type == MULTIARG_INVALID ||
+    left_threshold.double_value <= 0.0) {
+        fprintf(stderr, "Invalid left threshold.\n");
+        return -1;
+    }
+
+    struct multiarg_t right_threshold = read_multiarg(
+        "--right-threshold", argc, argv, argr, "default", "norm", "lapack",
+        NULL);
+    if (right_threshold.type == MULTIARG_INVALID ||
+    right_threshold.double_value <= 0.0){
+        fprintf(stderr, "Invalid right threshold.\n");
+        return -1;
+    }
+
+    struct multiarg_t inf_threshold = read_multiarg(
+        "--inf-threshold", argc, argv, argr, "default", "norm", NULL);
+    if (inf_threshold.type == MULTIARG_INVALID ||
+    inf_threshold.double_value <= 0.0){
+        fprintf(stderr, "Invalid infinity threshold.\n");
+        return -1;
+    }
+
     return 0;
 }
 
@@ -926,6 +957,12 @@ static void starpu_print_args(int argc, char * const *argv)
     print_multiarg("--shifts-per-window", argc, argv, "default", NULL);
     print_multiarg("--update-width", argc, argv, "default", NULL);
     print_multiarg("--update-height", argc, argv, "default", NULL);
+    print_multiarg("--left-threshold", argc, argv,
+        "default", "norm", "lapack", NULL);
+    print_multiarg("--right-threshold", argc, argv,
+        "default", "norm", "lapack", NULL);
+    print_multiarg("--inf-threshold", argc, argv,
+        "default", "norm", NULL);
 }
 
 static hook_solver_state_t starpu_prepare(
@@ -1044,6 +1081,39 @@ static int starpu_run(hook_solver_state_t state)
         "--update-height", argc, argv, NULL, "default", NULL);
     if (update_height.type == MULTIARG_INT)
         conf.update_height = update_height.int_value;
+
+    struct multiarg_t left_threshold = read_multiarg(
+        "--left-threshold", argc, argv, NULL, "default", "norm", "lapack",
+        NULL);
+    if (left_threshold.type == MULTIARG_STR) {
+        if (strcmp("norm", left_threshold.str_value) == 0)
+            conf.left_threshold = STARNEIG_SCHUR_NORM_STABLE_THRESHOLD;
+        if (strcmp("lapack", left_threshold.str_value) == 0)
+            conf.left_threshold = STARNEIG_SCHUR_LAPACK_THRESHOLD;
+    }
+    if (left_threshold.type == MULTIARG_INT)
+        conf.left_threshold = left_threshold.double_value;
+
+    struct multiarg_t right_threshold = read_multiarg(
+        "--right-threshold", argc, argv, NULL, "default", "norm", "lapack",
+        NULL);
+    if (right_threshold.type == MULTIARG_STR) {
+        if (strcmp("norm", right_threshold.str_value) == 0)
+            conf.right_threshold = STARNEIG_SCHUR_NORM_STABLE_THRESHOLD;
+        if (strcmp("lapack", right_threshold.str_value) == 0)
+            conf.right_threshold = STARNEIG_SCHUR_LAPACK_THRESHOLD;
+    }
+    if (right_threshold.type == MULTIARG_INT)
+        conf.right_threshold = right_threshold.double_value;
+
+    struct multiarg_t inf_threshold = read_multiarg(
+        "--inf-threshold", argc, argv, NULL, "default", "norm", NULL);
+    if (inf_threshold.type == MULTIARG_STR) {
+        if (strcmp("norm", inf_threshold.str_value) == 0)
+            conf.inf_threshold = STARNEIG_SCHUR_NORM_STABLE_THRESHOLD;
+    }
+    if (inf_threshold.type == MULTIARG_INT)
+        conf.inf_threshold = inf_threshold.double_value;
 
     int ret = 0;
 
