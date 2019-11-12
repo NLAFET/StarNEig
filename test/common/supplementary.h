@@ -85,6 +85,35 @@ struct supplementary * copy_supplementary(struct supplementary const *supp);
 ///
 void print_supplementary(struct supplementary const *supp);
 
+///
+/// @brief Loads supplementary data from a file.
+///
+/// @param[in] begin
+///         First entry to be read.
+///
+/// @param[in] end
+///         Last entry to be read + 1.
+///
+/// @param[in] name
+///         Filename.
+///
+/// @param[in,out] supp
+///         Supplementary data.
+///
+void load_supplementary(
+    int begin, int end, char const *name, struct supplementary **supp);
+
+///
+/// @brief Stores supplementary data into a file.
+///
+/// @param[in] name
+///         Filename.
+///
+/// @param[in] supp
+///         Supplementary data.
+///
+void store_supplementary(char const *name, struct supplementary *supp);
+
 #ifdef STARNEIG_ENABLE_MPI
 
 ///

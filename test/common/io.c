@@ -42,6 +42,7 @@
 #include "parse.h"
 #include "init.h"
 #include "crawler.h"
+#include "supplementary.h"
 #include "select_distr.h"
 #include "local_pencil.h"
 #ifdef STARNEIG_ENABLE_MPI
@@ -406,6 +407,8 @@ static hook_return_t store_raw_pencil_after_solver_run(
     char const *name = state;
     pencil_t pencil = (pencil_t) env->data;
 
+    store_supplementary(name, pencil->supp);
+
     char *filename = malloc(strlen(name) + 10);
 
     if (pencil->mat_a) {
@@ -524,6 +527,8 @@ static hook_return_t store_raw_input_pencil_before_solver_run(
 {
     char const *name = state;
     pencil_t pencil = (pencil_t) env->data;
+
+    store_supplementary(name, pencil->supp);
 
     char *filename = malloc(strlen(name) + 10);
 
@@ -813,6 +818,8 @@ static struct hook_data_env* raw_initializer_init(
         input_begin = 0;
     if (input_end == -1)
         input_end = n;
+
+    load_supplementary(input_begin, input_end, input, &pencil->supp);
 
     init_helper_t helper = init_helper_init_hook(
         "", format, m, n, PREC_DOUBLE | NUM_REAL, argc, argv);

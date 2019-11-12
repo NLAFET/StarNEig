@@ -40,6 +40,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <unistd.h>
 #include <assert.h>
 
 static void ** create_supplementary(
@@ -400,6 +401,119 @@ static void print_known_eigenvalues(void *ptr)
     printf("\n");
 }
 
+void load_known_eigenvalues(int begin, int end, char const *name, void **ptr)
+{
+    struct eigenvalues_load **load = (struct eigenvalues_load **) ptr;
+
+    FILE *file = fopen(name, "rb");
+    if (file == NULL) {
+        fprintf(stderr,
+            "load_known_eigenvalues encountered an invalid filename.\n");
+        abort();
+    }
+
+    int n;
+    if (fscanf(file,
+    "STARNEIG SUPPLEMENTARY KNOWN EIGENVALUES N %d\n", &n) == EOF) {
+        fprintf(stderr,
+            "load_known_eigenvalues encountered an invalid file.\n");
+        abort();
+    }
+    fseek(file, 0, SEEK_SET);
+
+    if (n < end)  {
+        fprintf(stderr,
+            "load_known_eigenvalues encountered an invalid file.\n");
+        abort();
+    }
+
+    printf("READING %d KNOWN EIGENVALUES...\n", end-begin);
+
+    fpos_t data_begin;
+    while (fgetc(file) != '\n');
+    fgetpos(file, &data_begin);
+
+    *load = malloc(sizeof(struct eigenvalues_load));
+    (*load)->size = end-begin;
+
+    {
+        (*load)->real = malloc((*load)->size*sizeof(double));
+        fsetpos(file, &data_begin);
+        fseek(file, (0*n + begin) * sizeof(double), SEEK_CUR);
+        int ret = fread((*load)->real , sizeof(double), end-begin, file);
+        if (ret < end-begin) {
+            fprintf(stderr,
+                "load_known_eigenvalues encountered an invalid file.\n");
+            abort();
+        }
+    }
+
+    {
+        (*load)->imag = malloc((*load)->size*sizeof(double));
+        fsetpos(file, &data_begin);
+        fseek(file, (1*n + begin) * sizeof(double), SEEK_CUR);
+        int ret = fread((*load)->imag , sizeof(double), end-begin, file);
+        if (ret < end-begin) {
+            fprintf(stderr,
+                "load_known_eigenvalues encountered an invalid file.\n");
+            abort();
+        }
+    }
+
+    {
+        (*load)->beta = malloc((*load)->size*sizeof(double));
+        fsetpos(file, &data_begin);
+        fseek(file, (2*n + begin) * sizeof(double), SEEK_CUR);
+        int ret = fread((*load)->beta , sizeof(double), end-begin, file);
+        if (ret < end-begin) {
+            fprintf(stderr,
+                "load_known_eigenvalues encountered an invalid file.\n");
+            abort();
+        }
+    }
+
+    fclose(file);
+}
+
+void store_known_eigenvalues(char const *name, void const *ptr)
+{
+    struct eigenvalues_load *load = (struct eigenvalues_load *) ptr;
+
+    FILE *file = fopen(name, "wb");
+    if (file == NULL) {
+        fprintf(stderr,
+            "store_known_eigenvalues encountered an invalid filename.\n");
+        abort();
+    }
+
+    if (fprintf(file,
+    "STARNEIG SUPPLEMENTARY KNOWN EIGENVALUES N %d\n", (int) load->size) < 0) {
+        fprintf(stderr,
+            "store_known_eigenvalues encountered a write error.\n");
+        abort();
+    }
+
+    if (fwrite(load->real , sizeof(double), load->size, file) < load->size) {
+        fprintf(stderr,
+            "store_known_eigenvalues encountered a write error.\n");
+        abort();
+    }
+
+    if (fwrite(load->imag , sizeof(double), load->size, file) < load->size) {
+        fprintf(stderr,
+            "store_known_eigenvalues encountered a write error.\n");
+        abort();
+    }
+
+    if (fwrite(load->beta , sizeof(double), load->size, file) < load->size) {
+        fprintf(stderr,
+            "store_known_eigenvalues encountered a write error.\n");
+        abort();
+    }
+
+    fclose(file);
+}
+
 void init_supplementary_known_eigenvalues(
     size_t size, double **real, double **imag, double **beta,
     struct supplementary **supp)
@@ -454,13 +568,16 @@ void get_supplementaty_known_eigenvalues(struct supplementary const *supp,
 /// @brief Supplementary data handler descriptor.
 ///
 struct handler {
-    supplementary_type_t type;                  ///< type
-    void (*free)(void *);                       ///< free function
-    void * (*copy)(void const *);               ///< copy function
+    supplementary_type_t type;                      ///< type
+    char const *name;                               ///< name
+    void (*free)(void *);                           ///< free function
+    void * (*copy)(void const *);                   ///< copy function
+    void (*load)(int, int, char const *, void **);  ///< load function
+    void (*store)(char const *, void const *);      ///< store function
 #ifdef STARNEIG_ENABLE_MPI
-    void (*broadcast)(int, MPI_Comm, void **);  ///< broadcast function
+    void (*broadcast)(int, MPI_Comm, void **);      ///< broadcast function
 #endif
-    void (*print)(void *);                      ///< print function
+    void (*print)(void *);                          ///< print function
 };
 
 ///
@@ -487,8 +604,11 @@ static const struct handler handlers[] = {
     },
     {
         .type = SUPPLEMENTARY_KNOWN_EIGENVALUES,
+        .name = "known_eigenvalues",
         .free = free_eigenvalues,
         .copy = copy_eigenvalues,
+        .load = load_known_eigenvalues,
+        .store = store_known_eigenvalues,
 #ifdef STARNEIG_ENABLE_MPI
         .broadcast = broadcast_eigenvalues,
 #endif
@@ -544,6 +664,43 @@ struct supplementary * copy_supplementary(struct supplementary const *supp)
     }
 
     return new;
+}
+
+void load_supplementary(
+    int begin, int end, char const *name, struct supplementary **supp)
+{
+    for (int i = 0; i < sizeof(handlers)/sizeof(handlers[0]); i++) {
+        if (handlers[i].load != NULL) {
+            assert(handlers[i].name != NULL);
+            char *filename = malloc(strlen(name) + strlen(handlers[i].name));
+            sprintf(filename, name, handlers[i].name);
+
+            if (access(filename, R_OK) == 0) {
+                printf("READING FROM %s...\n", filename);
+                void **load = create_supplementary(handlers[i].type, supp);
+                handlers[i].load(begin, end, filename, load);
+            }
+
+            free(filename);
+        }
+    }
+}
+
+void store_supplementary(char const *name, struct supplementary *supp)
+{
+    struct supplementary *iter = supp;
+    while (iter != NULL) {
+        struct handler const * handler = get_handler(iter->type);
+        if (handler->store != NULL && iter->ptr != NULL) {
+            assert(handler->name != NULL);
+            char *filename = malloc(strlen(name) + strlen(handler->name));
+            sprintf(filename, name, handler->name);
+
+            printf("WRITING TO %s...\n", filename);
+            handler->store(filename, iter->ptr);
+        }
+        iter = iter->next;
+    }
 }
 
 #ifdef STARNEIG_ENABLE_MPI
