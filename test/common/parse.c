@@ -182,11 +182,9 @@ struct multiarg_t read_multiarg(
     if (numbers_only(in)) {
         ret.type = MULTIARG_INT;
         ret.int_value = atoi(in);
-        ret.double_value = atof(in);
     }
     else if (floats_only(in)) {
         ret.type = MULTIARG_FLOAT;
-        ret.int_value = atoi(in);
         ret.double_value = atof(in);
     }
 
