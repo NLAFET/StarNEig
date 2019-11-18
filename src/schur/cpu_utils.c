@@ -1543,7 +1543,7 @@ static void process_small_window(
                 //     x x x x               x
                 //
 
-                STARNEIG_ASSERT_MSG(
+                STARNEIG_SANITY_CHECK(
                     _B(j+1,j+1) == 0.0, "An infinite eigenvalue was lost.");
 
                 //
