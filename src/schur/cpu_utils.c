@@ -1102,10 +1102,7 @@ static void vigilant_deflation_check(
             }
         }
     }
-
-
 }
-
 
 ///
 /// @brief Small bulge chasing kernel.
@@ -1346,58 +1343,65 @@ static void process_small_window(
             }
 #endif
 
-            // skip infinite eigenvalues
-            if (B != NULL && 0 <= j &&
-            (n <= j+2 || (_A(j+2,j) == 0.0 && _B(j+2,j+1) == 0.0)) &&
-            (n <= j+3 ||  _A(j+3,j) == 0.0))
-                //
-                //  A              B
-                //  x x x x x x    x x x x x x
-                //  x j x x x x      x x x x x
-                //    0 x x x x        0 x x x
-                //    0 x x x x        0 x x x
-                //    0   x x x            x x
-                //          x x              x
-                //
-                continue;
+            //
+            // try to deflate the first two columns
+            //
 
-            if (0 <= j && j+3 < n &&
-            _A(j+2,j) == 0.0 && _A(j+2,j+1) == 0.0 &&
-            _A(j+3,j) == 0.0 && _A(j+3,j+1) == 0.0) {
+            if (j == -1) {
 
-                //
-                //  A              B
-                //  x x x x x x    x x x x x x
-                //  x j x x x x      j x x x x
-                //    ? x x x x        x x x x
-                //    0 0 x x x        ? x x x
-                //    0 0 x x x            x x
-                //          x x              x
-                //
+                // this is "the column left of the first column" and the matrix
+                // pencil is in Hessenberg-triangular form
 
-                // try to deflate the second column of B
-                if (B != NULL)
-                    vigilant_deflation_check(thres_b, j+1, n, ldB, B);
-
-                if (B == NULL || _B(j+2,j+1) == 0.0) {
-
+                vigilant_deflation_check(thres_a, 1, n, ldA, A);
+                if (_A(2,1) == 0.0) {
                     //
                     //  A              B
-                    //  x x x x x x    x x x x x x
-                    //  x j x x x x      j x x x x
-                    //    ? x x x x        x x x x
-                    //        x x x        0 x x x
-                    //        x x x            x x
-                    //          x x              x
+                    // +-----------    +-----------
+                    // |x x x x x x    |x x x x x x
+                    // |? x x x x x    |  x x x x x
+                    // |  0 x x x x    |    x x x x
+                    // |    x x x x    |      x x x
+                    // |      x x x    |        x x
+                    // |        x x    |          x
                     //
-
-                    if (_A(j+1,j) == 0.0)
-                        process_2x2_block(j, n, ldQ, ldZ, ldA, ldB,
-                            NULL, NULL, NULL, Q, Z, A, B);
-
-                    // skip the 1x1 or 2x2 block
-                    continue;
+                    // skip two 1x1 or a 2x2 block in the top left corner
+                    process_2x2_block(
+                        0, n, ldQ, ldZ, ldA, ldB, NULL, NULL, NULL, Q, Z, A, B);
+                    goto skip_column;
                 }
+                else {
+                    vigilant_deflation_check(thres_a, 0, n, ldA, A);
+                    if (_A(1,0) == 0.0)
+                        //
+                        //  A              B
+                        // +-----------    +-----------
+                        // |x x x x x x    |x x x x x x
+                        // |0 x x x x x    |  x x x x x
+                        // |  x x x x x    |    x x x x
+                        // |    x x x x    |      x x x
+                        // |      x x x    |        x x
+                        // |        x x    |          x
+                        //
+                        // skip a 1x1 block in the top left corner
+                        goto skip_column;
+                }
+            }
+            else if (_A(j+2,j) == 0.0 && (n <= j+3 || _A(j+3,j) == 0.0)) {
+
+                //
+                //  A              B
+                // +-----------    +-----------
+                // |x x x x x x    |x x x x x x
+                // |x j x x x x    |  j x x x x
+                // |  ? x x x x    |    x x x x
+                // |  0 x x x x    |    ? x x x
+                // |  0 x x x x    |        x x
+                // |        x x    |          x
+                //
+
+                vigilant_deflation_check(thres_a, j, n, ldA, A);
+                if (B != NULL)
+                    vigilant_deflation_check(thres_b, j+1, n, ldB, B);
             }
 
             if (j == n-3 || (j+3 < n && ((j < 0 || _A(j+3,j) == 0.0) &&
@@ -1738,24 +1742,28 @@ static void process_small_window(
                 else {
                     rmul3ref(MIN(n, j+5), ldA, lV, _A_offset(0,j+1));
                 }
+            }
 
-                //
-                // vigilant deflation check
-                //
+skip_column:
 
+            //
+            // vigilant deflation check
+            //
+
+            if (j != -1) {
                 vigilant_deflation_check(thres_a, j, n, ldA, A);
 
 #ifdef STARNEIG_ENABLE_SANITY_CHECKS
                 zeros[j] = zeros[j] || _A(j+1,j) == 0.0;
 #endif
-
-                //
-                // infinite eigenvalue check
-                //
-
-                if (B != NULL && fabs(_B(j+1,j+1)) < thres_inf)
-                    _B(j+1,j+1) = 0.0;
             }
+
+            //
+            // infinite eigenvalue check
+            //
+
+            if (B != NULL && fabs(_B(j+1,j+1)) < thres_inf)
+                _B(j+1,j+1) = 0.0;
 
 #ifdef STARNEIG_ENABLE_SANITY_CHECKS
             for (int k = 0; k < n-1; k++) {
