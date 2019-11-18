@@ -214,7 +214,7 @@ static inline void starneig_sanity_check_orthogonality(
 
     double norm = ((long long)1<<52) * sqrt(dot)/sqrt(n);
 
-    if (1000 < norm || isnan(norm)) {
+    if (10000 < norm || isnan(norm)) {
         fprintf(stderr,
             "[starneig][sanity] %s:%d: Matrix %s is not orthogonal.\n",
             file, line, mat);
@@ -357,7 +357,7 @@ static inline void starneig_sanity_check_residuals_end(
 
         double norm = ((long long)1<<52) * sqrt(dot)/sqrt(a_dot);
 
-        if (1000 < norm || isnan(norm)) {
+        if (10000 < norm || isnan(norm)) {
             fprintf(stderr,
                 "[starneig][sanity] %s:%d: Residual check failed for the "
                 "matrix A.\n", file, line);
@@ -381,7 +381,7 @@ static inline void starneig_sanity_check_residuals_end(
 
         double norm = ((long long)1<<52) * sqrt(dot)/sqrt(a_dot);
 
-        if (1000 < norm || isnan(norm)) {
+        if (10000 < norm || isnan(norm)) {
             fprintf(stderr,
                 "[starneig][sanity] %s:%d: Residual check failed for the "
                 "matrix B.\n", file, line);
