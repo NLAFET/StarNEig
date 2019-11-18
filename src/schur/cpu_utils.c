@@ -886,6 +886,11 @@ inline static void create_bulge(
         double *);
 
     if (B != NULL) {
+        if (_B(0,0) == 0.0 || _B(1,1) == 0.0) {
+            v[0] = v[1] = v[2] = 0.0;
+            return;
+        }
+
         // z1 = A * B^-1 * e1
         double z1[2] = {
             _A(0,0) / _B(0,0),
