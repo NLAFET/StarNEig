@@ -3378,7 +3378,7 @@ int starneig_move_block(
         (B != NULL && 4*n+16 <= lwork) || (B == NULL && n <= lwork),
         "Invalid workspace size.");
 
-    STARNEIG_SANITY_CHECK_SCHUR(0, n, n, ldA, ldB, A, B);
+    STARNEIG_SANITY_CHECK_SCHUR(to, from, n, ldA, ldB, A, B);
     //STARNEIG_SANITY_CHECK_RESIDUALS_BEGIN(
     //    SANITY_1, n, ldQ, ldZ, ldA, ldB, Q, Z, A, B);
 
@@ -3395,7 +3395,7 @@ int starneig_move_block(
             "An unrecoverable internal error occured while calling dtrexc "
             "or dtgexc.");
 
-    STARNEIG_SANITY_CHECK_SCHUR(0, n, n, ldA, ldB, A, B);
+    STARNEIG_SANITY_CHECK_SCHUR(to, from, n, ldA, ldB, A, B);
     //STARNEIG_SANITY_CHECK_RESIDUALS_END(
     //    SANITY_1, n, ldQ, ldZ, ldA, ldB, Q, Z, A, B);
 
