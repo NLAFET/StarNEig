@@ -17,6 +17,8 @@ The four main components of the library are:
  - **Eigenvectors**: Computes (generalized) eigenvectors for a user-selected
    set of (generalized) eigenvalues.
 
+I brief summary of the library can be found from a recent poster (October 2019): http://www.nlafet.eu/starneig/escience_poster.pdf
+
 The library has been developed as a part of the NLAFET project. The project has
 received funding from the European Union’s Horizon 2020 research and innovation
 programme under grant agreement No. 671633. Support has also been received
