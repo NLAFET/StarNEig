@@ -57,7 +57,8 @@ Please see the *Known problems* section in the StarNEig manual.
 
 ### Research papers
 
- - Mirko Myllykoski, Carl Christian Kjelgaard Mikkelsen: *Introduction to StarNEig — A Task-based Library for Solving Nonsymmetric Eigenvalue Problems*, Accepted to PPAM 2019, [arXiv:1905.04975](https://arxiv.org/abs/1905.04975)
+ - Mirko Myllykoski, Carl Christian Kjelgaard Mikkelsen: *Introduction to StarNEig — A Task-based Library for Solving Nonsymmetric Eigenvalue Problems*, Presented at PPAM 2019, [arXiv:1905.04975](https://arxiv.org/abs/1905.04975)
+ - Carl Christian Kjelgaard Mikkelsen, Mirko Myllykoski: Parallel Robust Computation of Generalized Eigenvectors of Matrix Pencils, Presented at PPAM 2019
  - Mirko Myllykoski: *A Task-Based Algorithm for Reordering the Eigenvalues of a Matrix in Real Schur Form*, In Parallel Processing and Applied Mathematics, 12th International Conference, PPAM 2017, Lublin, Poland, September 10-13, 2017, Revised Selected Papers, Part I, Lecture Notes in Computer Science, Vol. 10777, Wyrzykowski R., Dongarra J., Deelman E., Karczewski K. (eds), Springer International Publishing, pp. 207-216, 2018, doi: 10.1007/978-3-319-78024-5_19 
  - Carl Christian Kjelgaard Mikkelsen, Lars Karlsson. *Blocked Algorithms for Robust Solution of Triangular Linear Systems*, In Parallel Processing and Applied Mathematics, 12th International Conference, PPAM 2017, Lublin, Poland, September 10-13, 2017, Revised Selected Papers, Part I, Lecture Notes in Computer Science, Vol. 10777, Wyrzykowski R., Dongarra J., Deelman E., Karczewski K. (eds), Springer International Publishing, pp. 207-216, 2018
  - Carl Christian Kjelgaard Mikkelsen, Angelika Schwarz, and Lars Karlsson. *Parallel Robust Solution of Triangular Linear Systems. Concurrency and Computation: Practice and Experience*, 0(0):1–19, 2018
