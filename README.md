@@ -1,30 +1,36 @@
 # Introduction
 
-StarNEig library aims to provide a full suite of algorithms for solving dense
-**non-symmetric** (generalized) eigenvalue problems. The library is built on top
-of the *StarPU* runtime system and targets both shared memory and distributed
-memory machines. Some components of the library support GPUs.
+StarNEig library aims to provide a complete task-based software stack for
+solving **dense** **nonsymmetric** (generalized) eigenvalue problems. The
+library is built on top of the [StarPU](http://starpu.gforge.inria.fr/)
+runtime system and targets both shared memory and distributed memory machines.
+Some components of the library support GPUs.
 
 The four main components of the library are:
 
  - **Hessenberg(-triangular) reduction**: A dense matrix (or a dense matrix
-   pencil) is reduced to upper Hessenberg (or Hessenberg-triangular) form.
+   pair) is reduced to upper Hessenberg (or Hessenberg-triangular) form.
  - **Schur reduction**: A upper Hessenberg matrix (or a Hessenberg-triangular
-   matrix pencil) is reduced to (generalized) Schur form. The (generalized)
+   matrix pair) is reduced to (generalized) Schur form. The (generalized)
    eigenvalues can be determined from the diagonal blocks.
  - **Eigenvalue reordering**: Reorders a user-selected set of (generalized)
    eigenvalues to the upper left corner of an updated (generalized) Schur form.
  - **Eigenvectors**: Computes (generalized) eigenvectors for a user-selected
    set of (generalized) eigenvalues.
 
-A brief summary of the library can be found from a recent poster: 
-*Task-based, GPU-accelerated and Robust Algorithms for Solving Dense Nonsymmetric Eigenvalue Problems*, Swedish eScience Academy, Lund, Sweden, October 15-16, 2019 ([download](http://www.nlafet.eu/starneig/escience_poster.pdf))
+**A brief summary of the StarNEig library** can be found from a recent poster: 
+*Task-based, GPU-accelerated and Robust Algorithms for Solving Dense
+Nonsymmetric Eigenvalue Problems*, Swedish eScience Academy, Lund, Sweden,
+October 15-16, 2019
+([download](http://www.nlafet.eu/starneig/escience_poster.pdf))
 
 The library has been developed as a part of the NLAFET project. The project has
 received funding from the European Union’s Horizon 2020 research and innovation
 programme under grant agreement No. 671633. Support has also been received
 from eSSENCE, a collaborative e-Science programme funded by the Swedish
 Government via the Swedish Research Council (VR).
+
+The library is open source and published under BSD 3-Clause licence.
 
 ## Current status
 
