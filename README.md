@@ -5,6 +5,8 @@ StarNEig library aims to provide a full suite of algorithms for solving dense
 of the *StarPU* runtime system and targets both shared memory and distributed
 memory machines. Some components of the library support GPUs.
 
+A summary of the library can be found from: http://www.nlafet.eu/starneig/escience_poster.pdf
+
 The four main components of the library are:
 
  - **Hessenberg(-triangular) reduction**: A dense matrix (or a dense matrix
@@ -16,8 +18,6 @@ The four main components of the library are:
    eigenvalues to the upper left corner of an updated (generalized) Schur form.
  - **Eigenvectors**: Computes (generalized) eigenvectors for a user-selected
    set of (generalized) eigenvalues.
-
-I brief summary of the library can be found from a recent poster (October 2019): http://www.nlafet.eu/starneig/escience_poster.pdf
 
 The library has been developed as a part of the NLAFET project. The project has
 received funding from the European Union’s Horizon 2020 research and innovation
