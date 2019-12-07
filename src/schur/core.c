@@ -2423,7 +2423,7 @@ starneig_error_t starneig_schur_insert_tasks(
         starpu_data_unregister(norm_b_h);
     }
 
-    double thres_a;
+    double thres_a = 0.0;
     if (conf->left_threshold == STARNEIG_SCHUR_DEFAULT_THRESHOLD ||
     conf->left_threshold == STARNEIG_SCHUR_NORM_STABLE_THRESHOLD) {
         thres_a = dlamch("Precision") * norm_a;
