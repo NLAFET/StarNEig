@@ -142,8 +142,6 @@ static void print_usage(int argc, char * const *argv)
         "  --mpi -- Enable MPI\n"
         "  --mpi-mode [serialized,multiple] -- MPI mode\n"
         "  --seed (num) -- Random number generator seed\n"
-        "  --test-workers [(num),default] -- Test program StarPU worker count\n"
-        "  --test-threads [(num),default] -- Test program BLAS thread count\n"
         "  --experiment (experiment) -- Experiment module\n",
         argv[0]);
 #else
@@ -152,11 +150,10 @@ static void print_usage(int argc, char * const *argv)
         "\n"
         "Global options:\n"
         "  --seed (num) -- Random number generator seed\n"
-        "  --test-workers [(num),default] -- Test program StarPU worker count\n"
-        "  --test-threads [(num),default] -- Test program BLAS thread count\n"
         "  --experiment (experiment) -- Experiment module\n",
         argv[0]);
 #endif
+    thread_print_usage(argc, argv);
 
     print_avail_experiments();
     printf("\n");
@@ -290,32 +287,14 @@ int main(int argc, char * const *argv)
     init_prand(seed);
 
     //
-    // read initialization and validation thread count
+    // check thread count arguments
     //
 
-    struct multiarg_t worker_threads =
-        read_multiarg("--test-workers", argc, argv, argr, "default", NULL);
-
-    if (worker_threads.type == MULTIARG_INVALID ||
-    (worker_threads.type == MULTIARG_INT && worker_threads.int_value < 1)) {
-        fprintf(stderr, "Invalid number of StarPU worker threads.\n");
-        ret = EXIT_FAILURE;
+    ret = thread_check_args(argc, argv, argr);
+    if (ret) {
+        fprintf(stderr, "Invalid arguments.\n");
         goto cleanup;
     }
-
-    struct multiarg_t blas_threads =
-        read_multiarg("--test-threads", argc, argv, argr, "default", NULL);
-
-    if (blas_threads.type == MULTIARG_INVALID ||
-    (blas_threads.type == MULTIARG_INT && blas_threads.int_value < 1)) {
-        fprintf(stderr, "Invalid number of BLAS threads.\n");
-        ret = EXIT_FAILURE;
-        goto cleanup;
-    }
-
-    threads_init(
-        worker_threads.type == MULTIARG_INT ? worker_threads.int_value : -1,
-        blas_threads.type == MULTIARG_INT ? blas_threads.int_value : -1);
 
     //
     // check experiment module command line arguments
@@ -359,8 +338,8 @@ int main(int argc, char * const *argv)
     }
 #endif
     printf(" --seed %d --experiment %s", seed, experiment->name);
-    print_multiarg("--test-workers", argc, argv, "default", NULL);
-    print_multiarg("--test-threads", argc, argv, "default", NULL);
+
+    thread_print_args(argc, argv);
 
     if (experiment->print_args != NULL)
         experiment->print_args(argc, argv, experiment->info);
@@ -370,6 +349,8 @@ int main(int argc, char * const *argv)
     //
     // run the experiment
     //
+
+    threads_init(argc, argv);
 
     ret = experiment->run(argc, argv, experiment->info);
 

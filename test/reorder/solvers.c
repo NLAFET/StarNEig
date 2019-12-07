@@ -40,6 +40,7 @@
 #include "solvers.h"
 #include "../common/common.h"
 #include "../common/parse.h"
+#include "../common/threads.h"
 #include "../common/local_pencil.h"
 #include <starneig/starneig.h>
 #include <stdlib.h>
@@ -513,6 +514,8 @@ static int scalapack_run(hook_solver_state_t state)
     int m, info = -1, lwork = -1, liwork = -1;
     double _work;
 
+    threads_set_mode(THREADS_MODE_SCALAPACK);
+
     if (pencil->mat_b != NULL) {
 #ifdef PDTGSEN_FOUND
         double pl, pr, dif[2];
@@ -534,6 +537,8 @@ static int scalapack_run(hook_solver_state_t state)
             &liwork, &info);
 #endif
     }
+
+    threads_set_mode(THREADS_MODE_DEFAULT);
 
     if (info != 0)
         goto cleanup;

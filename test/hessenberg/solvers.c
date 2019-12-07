@@ -126,7 +126,7 @@ static int lapack_run(hook_solver_state_t state)
     double *work = NULL;
     int info, ilo = 1, ihi = n;
 
-    threads_set_mode(THREADS_MODE_BLAS);
+    threads_set_mode(THREADS_MODE_LAPACK);
 
     if (data->mat_b != NULL) {
         B = LOCAL_MATRIX_PTR(data->mat_b);
@@ -333,6 +333,8 @@ static int scalapack_run(hook_solver_state_t state)
         double const *, double const *, double *, int const *, int const *,
         const starneig_blacs_descr_t *);
 
+    threads_set_mode(THREADS_MODE_SCALAPACK);
+
     struct hook_data_env *env = state;
     pencil_t pencil = (pencil_t) env->data;
 
@@ -368,8 +370,6 @@ static int scalapack_run(hook_solver_state_t state)
         fprintf(stderr, "Matrix Q has invalid dimension.\n");
         return -1;
     }
-
-    threads_set_mode(THREADS_MODE_BLAS);
 
     int ilo = 1, ihi = n, ia = 1, ja = 1, ic = 1, jc = 1, lwork, info;
     double *work = NULL, *tau = NULL, _work;
@@ -832,6 +832,8 @@ static int magma_dgehrd_run(hook_solver_state_t state)
     double *work = NULL;
     double *dT = NULL;
 
+    threads_set_mode(THREADS_MODE_LAPACK);
+
     // request optimal work space size
     double _work;
     magma_dgehrd(n, 1, n, A, ldA, tau, &_work, -1, dT, &info);
@@ -871,6 +873,8 @@ static int magma_dgehrd_run(hook_solver_state_t state)
         memset(A+i*ldA+i+2, 0, (n-i-2)*sizeof(double));
 
 finalize:
+
+    threads_set_mode(THREADS_MODE_DEFAULT);
 
     cudaFree(dT);
     free(work);

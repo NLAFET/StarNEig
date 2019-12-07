@@ -39,6 +39,7 @@
 #include "solvers.h"
 #include "../common/common.h"
 #include "../common/parse.h"
+#include "../common/threads.h"
 #include "../common/local_pencil.h"
 #include <starneig/starneig.h>
 #include <stdlib.h>
@@ -146,6 +147,8 @@ static int lapack_run(hook_solver_state_t state)
 
     init_supplementary_eigenvalues(n, &wr, &wi, &beta, &data->supp);
 
+    threads_set_mode(THREADS_MODE_LAPACK);
+
     // reduce
     if (B != NULL)
         dhgeqz_("S", "V", "V", &n, &ilo, &ihi,
@@ -154,6 +157,8 @@ static int lapack_run(hook_solver_state_t state)
     else
         dhseqr_("S", "V", &n, &ilo, &ihi,
             A, &ldA, wr, wi, Q, &ldQ, work, &lwork, &info);
+
+    threads_set_mode(THREADS_MODE_DEFAULT);
 
 finalize:
 
@@ -274,9 +279,13 @@ static int pdlahqr_run(hook_solver_state_t state)
 
     int info;
 
+    threads_set_mode(THREADS_MODE_SCALAPACK);
+
     pdlahqr_(&wantT, &wantZ, &n, &ilo, &ihi, local_a, &desc_a,
         wr, wi, &iloz, &ihiz, local_q, &desc_q, work, &lwork,
         iwork, &liwork, &info);
+
+    threads_set_mode(THREADS_MODE_DEFAULT);
 
     starneig_blacs_gridexit(context);
 
@@ -420,9 +429,13 @@ static int pdhseqr_run(hook_solver_state_t state)
         iwork = malloc(liwork*sizeof(int));
     }
 
+    threads_set_mode(THREADS_MODE_SCALAPACK);
+
     pdhseqr_("S", pencil->mat_q != NULL ? "V" : "N", &n, &ilo, &ihi,
         local_a, &desc_a, wr, wi, local_q, &desc_q,
         work, &lwork, iwork, &liwork, &info);
+
+    threads_set_mode(THREADS_MODE_DEFAULT);
 
 cleanup:
 
@@ -568,9 +581,13 @@ static int custom_pdhseqr_run(hook_solver_state_t state)
         iwork = malloc(liwork*sizeof(int));
     }
 
+    threads_set_mode(THREADS_MODE_SCALAPACK);
+
     pdhseqr__("S", pencil->mat_q != NULL ? "V" : "N", &n, &ilo, &ihi,
         local_a, &desc_a, wr, wi, local_q, &desc_q,
         work, &lwork, iwork, &liwork, &info);
+
+    threads_set_mode(THREADS_MODE_DEFAULT);
 
 cleanup:
 
@@ -732,12 +749,16 @@ static int pdhgeqz_run(hook_solver_state_t state)
     work = malloc(lwork*sizeof(double));
     iwork = malloc(liwork*sizeof(int));
 
+    threads_set_mode(THREADS_MODE_SCALAPACK);
+
     pdhgeqz_("S",
         pencil->mat_q != NULL ? "V" : "N",
         pencil->mat_z != NULL ? "V" : "N",
         &n, &ilo, &ihi, local_a, &desc_a, local_b, &desc_b, wr, wi, beta,
         local_q, &desc_q, local_z, &desc_z,
         work, &lwork, iwork, &liwork, &info);
+
+    threads_set_mode(THREADS_MODE_DEFAULT);
 
 cleanup:
 

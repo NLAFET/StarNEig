@@ -38,6 +38,7 @@
 #include <starneig_test_config.h>
 #include <starneig/configuration.h>
 #include "threads.h"
+#include "parse.h"
 #include "omp.h"
 #include <hwloc.h>
 #ifdef MKL_SET_NUM_THREADS_LOCAL_FOUND
@@ -51,9 +52,13 @@ defined(GOTO_SET_NUM_THREADS_FOUND)
 static struct {
     int worker_threads;
     int blas_threads;
+    int lapack_threads;
+    int scalapack_threads;
 } status = {
     .worker_threads = 1,
-    .blas_threads = 1
+    .blas_threads = 1,
+    .lapack_threads = 1,
+    .scalapack_threads = 1
 };
 
 static int get_core_count()
@@ -119,21 +124,108 @@ static void set_blas_threads(int threads)
 #endif
 }
 
-void threads_init(int worker_threads, int blas_threads)
+void thread_print_usage(int argc, char * const *argv)
 {
-    if (worker_threads == -1)
-        worker_threads = get_core_count();
-
-    if (blas_threads == -1)
-        blas_threads = get_core_count();
-
-    status.worker_threads = worker_threads;
-    status.blas_threads = blas_threads;
-
     printf(
-        "THREADS: Using %d StarPU worker threads and %d BLAS threads "
-        "during initialization and validation.\n",
-        status.worker_threads , status.blas_threads);
+        "  --test-workers [(num),default] -- Test program StarPU worker count\n"
+        "  --blas-threads [(num),default] -- Test program BLAS thread count\n"
+        "  --lapack-threads [(num),default] -- LAPACK solver thread count\n"
+        "  --scalapack-threads [(num),default] -- ScaLAPACK solver thread "
+        "count\n"
+    );
+}
+
+void thread_print_args(int argc, char * const *argv)
+{
+    print_multiarg("--test-workers", argc, argv, "default", NULL);
+    print_multiarg("--blas-threads", argc, argv, "default", NULL);
+    print_multiarg("--lapack-threads", argc, argv, "default", NULL);
+    print_multiarg("--scalapack-threads", argc, argv, "default", NULL);
+}
+
+int thread_check_args(int argc, char * const *argv, int *argr)
+{
+    struct multiarg_t worker_threads =
+        read_multiarg("--test-workers", argc, argv, argr, "default", NULL);
+
+    if (worker_threads.type == MULTIARG_INVALID ||
+    (worker_threads.type == MULTIARG_INT && worker_threads.int_value < 1)) {
+        fprintf(stderr, "Invalid number of StarPU worker threads.\n");
+        return 1;
+    }
+
+    struct multiarg_t blas_threads =
+        read_multiarg("--blas-threads", argc, argv, argr, "default", NULL);
+
+    if (blas_threads.type == MULTIARG_INVALID ||
+    (blas_threads.type == MULTIARG_INT && blas_threads.int_value < 1)) {
+        fprintf(stderr, "Invalid number of BLAS threads.\n");
+        return 1;
+    }
+
+    struct multiarg_t lapack_threads =
+        read_multiarg("--lapack-threads", argc, argv, argr, "default", NULL);
+
+    if (lapack_threads.type == MULTIARG_INVALID ||
+    (lapack_threads.type == MULTIARG_INT && lapack_threads.int_value < 1)) {
+        fprintf(stderr, "Invalid number of LAPACK threads.\n");
+        return 1;
+    }
+
+    struct multiarg_t scalapack_threads =
+        read_multiarg("--scalapack-threads", argc, argv, argr, "default", NULL);
+
+    if (scalapack_threads.type == MULTIARG_INVALID ||
+    (scalapack_threads.type == MULTIARG_INT &&
+    scalapack_threads.int_value < 1)) {
+        fprintf(stderr, "Invalid number of ScaLAPACK threads.\n");
+        return 1;
+    }
+
+    return 0;
+}
+
+void threads_init(int argc, char * const *argv)
+{
+    struct multiarg_t worker_threads =
+        read_multiarg("--test-workers", argc, argv, NULL, "default", NULL);
+    if (worker_threads.type == MULTIARG_INT)
+        status.worker_threads = worker_threads.int_value;
+    else
+        status.worker_threads = get_core_count();
+    printf(
+        "THREADS: Using %d StarPU worker threads during initialization and "
+        "validation.\n", status.worker_threads);
+
+    struct multiarg_t blas_threads =
+        read_multiarg("--blas-threads", argc, argv, NULL, "default", NULL);
+    if (blas_threads.type == MULTIARG_INT)
+        status.blas_threads = blas_threads.int_value;
+    else
+        status.blas_threads = get_core_count();
+    printf(
+        "THREADS: Using %d BLAS threads during initialization and "
+        "validation.\n", status.worker_threads);
+
+    struct multiarg_t lapack_threads =
+        read_multiarg("--lapack-threads", argc, argv, NULL, "default", NULL);
+    if (lapack_threads.type == MULTIARG_INT)
+        status.lapack_threads = lapack_threads.int_value;
+    else
+        status.lapack_threads = get_core_count();
+    printf(
+        "THREADS: Using %d BLAS threads in LAPACK solvers.\n",
+        status.lapack_threads);
+
+    struct multiarg_t scalapack_threads =
+        read_multiarg("--scalapack-threads", argc, argv, NULL, "default", NULL);
+    if (scalapack_threads.type == MULTIARG_INT)
+        status.scalapack_threads = scalapack_threads.int_value;
+    else
+        status.scalapack_threads = 1;
+    printf(
+        "THREADS: Using %d BLAS threads in ScaLAPACK solvers.\n",
+        status.scalapack_threads);
 
     threads_set_mode(THREADS_MODE_DEFAULT);
 }
@@ -143,6 +235,12 @@ void threads_set_mode(thread_mode_t mode)
     switch (mode) {
         case THREADS_MODE_BLAS:
             set_blas_threads(status.blas_threads);
+            break;
+        case THREADS_MODE_LAPACK:
+            set_blas_threads(status.lapack_threads);
+            break;
+        case THREADS_MODE_SCALAPACK:
+            set_blas_threads(status.scalapack_threads);
             break;
         default:
             set_blas_threads(1);

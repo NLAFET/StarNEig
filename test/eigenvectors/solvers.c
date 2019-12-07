@@ -38,6 +38,7 @@
 #include <starneig/configuration.h>
 #include "solvers.h"
 #include "../common/common.h"
+#include "../common/threads.h"
 #include "../common/parse.h"
 #include "../common/local_pencil.h"
 #ifdef STARNEIG_ENABLE_MPI
@@ -67,6 +68,8 @@ static int lapack_run(hook_solver_state_t state)
         double const *, int const *, double const *, int const *, double *,
         int const *, double *, int const *, int const *, int *, double *,
         int *);
+
+    threads_set_mode(THREADS_MODE_LAPACK);
 
     pencil_t data = (pencil_t) state;
     int const *selected = get_supplementaty_selected(data->supp);
@@ -133,6 +136,8 @@ static int lapack_run(hook_solver_state_t state)
     }
 
 cleanup:
+
+    threads_set_mode(THREADS_MODE_DEFAULT);
 
     free(_X);
     free(work);

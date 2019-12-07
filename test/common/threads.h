@@ -47,19 +47,60 @@
 ///
 typedef enum {
     THREADS_MODE_DEFAULT,   ///< Default mode.
-    THREADS_MODE_BLAS       ///< BLAS mode.
+    THREADS_MODE_BLAS,      ///< BLAS mode.
+    THREADS_MODE_LAPACK,    ///< LAPACK mode.
+    THREADS_MODE_SCALAPACK  ///< ScaLAPACK mode.
 } thread_mode_t;
+
+///
+/// @brief Prints instructions.
+///
+/// @param[in] argc
+///         The command line argument count.
+///
+/// @param[in] argv
+///         The command line arguments.
+///
+void thread_print_usage(int argc, char * const *argv);
+
+///
+/// @brief Prints command line arguments.
+///
+/// @param[in] argc
+///         The command line argument count.
+///
+/// @param[in] argv
+///         The command line arguments.
+///
+void thread_print_args(int argc, char * const *argv);
+
+///
+/// @brief Checks command line arguments.
+///
+/// @param[in] argc
+///         The command line argument count.
+///
+/// @param[in] argv
+///         The command line arguments.
+///
+/// @param[inout] argr
+///         An array that tracks which command line arguments have been
+///         processed.
+///
+/// @return 0 if the arguments are valid, non-zero otherwise
+///
+int thread_check_args(int argc, char * const *argv, int *argr);
 
 ///
 /// @brief Initializes the interface.
 ///
-/// @param[in] worker_threads
-///         The number of StarPU threads to use.
+/// @param[in] argc
+///         The command line argument count.
 ///
-/// @param[in] blas_threads
-///         The number of BLAS threads to use.
+/// @param[in] argv
+///         The command line arguments.
 ///
-void threads_init(int worker_threads, int blas_threads);
+void threads_init(int argc, char * const *argv);
 
 ///
 /// @brief Sets the threads mode.
