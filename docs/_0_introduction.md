@@ -1,9 +1,9 @@
 # Introduction
 
 StarNEig library aims to provide a full suite of algorithms for solving
-**non-symmetric** (generalized) eigenvalue problems. The library is built on top
-of the *StarPU* runtime system and targets both shared memory and distributed
-memory machines. Some components of the library support GPUs.
+**dense** **non-symmetric** (generalized) eigenvalue problems. The library is
+built on top of the *StarPU* runtime system and targets both shared memory and
+distributed memory machines. Some components of the library support GPUs.
 
 The four main components of the library are:
 
@@ -34,7 +34,7 @@ Current status with standard eigenvalue problems:
 | Component              |   Shared memory  | Distributed memory | Accelerators (GPUs)  |
 |------------------------|:----------------:|:------------------:|:--------------------:|
 | Hessenberg reduction   |   **Complete**   | ScaLAPACK wrapper  |     **Single GPU**   |
-| Schur reduction        |   **Complete**   |    *Experimental*  |     *Experimental*   |
+| Schur reduction        |   **Complete**   |    **Complete**    |     *Experimental*   |
 | Eigenvalue reordering  |   **Complete**   |    **Complete**    |     *Experimental*   |
 | Eigenvectors           |   **Complete**   |Waiting integration |      Not planned     |
 
@@ -43,7 +43,7 @@ Current status with generalized eigenvalue problems:
 | Component                         |      Shared memory     | Distributed memory | Accelerators (GPUs)  |
 |-----------------------------------|:----------------------:|:------------------:|:--------------------:|
 | Hessenberg-triangular reduction   |LAPACK wrapper / Planned| ScaLAPACK wrapper  |      Not planned     |
-| Generalized Schur reduction       |      **Complete**      |    *Experimental*  |     *Experimental*   |
+| Generalized Schur reduction       |      **Complete**      |    **Complete**    |     *Experimental*   |
 | Generalized eigenvalue reordering |      **Complete**      |    **Complete**    |     *Experimental*   |
 | Generalized eigenvectors          |      **Complete**      |Waiting integration |      Not planned     |
 
