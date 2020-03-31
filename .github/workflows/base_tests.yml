@@ -14,7 +14,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: Install dependences
-      run: sudo apt-get install gfortran libopenblas-dev libopenmpi-dev libscalapack-openmpi-dev libstarpu-dev
+      run: sudo apt-get install gfortran libopenblas-dev libopenmpi-dev libscalapack-openmpi-dev libstarpu-dev libgsl-dev
     - name: Configure
       run: cmake .
     - name: Build
