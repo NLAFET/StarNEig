@@ -315,7 +315,7 @@ foreach (alg hessenberg schur reorder eigenvectors full-chain)
             NAME simple-${alg}-mpi
             COMMAND mpirun -n 4 ${EXECUTABLE_OUTPUT_PATH}/starneig-test --mpi
                 --experiment ${alg} --n 5000 --solver starneig-simple
-                --cores 1 --gpus 0 --test-workers 1 --test-threads 1
+                --cores 1 --gpus 0 --test-workers 1 --blas-threads 1
                 --keep-going ${extra_args})
         set_property (TEST simple-${alg}-mpi
             PROPERTY ENVIRONMENT STARPU_WORKERS_NOBIND=1)
@@ -347,7 +347,7 @@ foreach (alg hessenberg schur reorder eigenvectors full-chain)
             COMMAND mpirun -n 4 ${EXECUTABLE_OUTPUT_PATH}/starneig-test --mpi
                 --experiment ${alg} --n 5000 --generalized
                 --solver starneig-simple --cores 1 --gpus 0 --test-workers 1
-                --test-threads 1 --keep-going ${extra_args})
+                --blas-threads 1 --keep-going ${extra_args})
         set_property (TEST simple-${alg}-generalized-mpi
             PROPERTY ENVIRONMENT STARPU_WORKERS_NOBIND=1)
     endif ()
@@ -457,7 +457,7 @@ if (STARNEIG_ENABLE_MPI)
                     --mpi --experiment schur --n 4000
                     --aed-window-size ${aed_size} --aed-parallel-soft-limit 9999
                     --aed-parallel-hard-limit 99999 --cores 1 --gpus 0
-                    --test-workers 1 --test-threads 1)
+                    --test-workers 1 --blas-threads 1)
             set_property (
                 TEST schur-mpi-standard-${ranks}-sequential-aed-${aed_size}
                     PROPERTY ENVIRONMENT STARPU_WORKERS_NOBIND=1)
@@ -468,7 +468,7 @@ if (STARNEIG_ENABLE_MPI)
                     --mpi --experiment schur --n 4000
                     --aed-window-size ${aed_size} --aed-parallel-soft-limit 9999
                     --aed-parallel-hard-limit 99999 --decouple 3
-                    --cores 1 --gpus 0 --test-workers 1 --test-threads 1)
+                    --cores 1 --gpus 0 --test-workers 1 --blas-threads 1)
             set_property (
                 TEST schur-mpi-standard-${ranks}-decouple-sequential-aed-${aed_size}
                     PROPERTY ENVIRONMENT STARPU_WORKERS_NOBIND=1)
@@ -479,7 +479,7 @@ if (STARNEIG_ENABLE_MPI)
                     --mpi --experiment schur --n 4000
                     --aed-window-size ${aed_size} --aed-parallel-soft-limit 1
                     --aed-parallel-hard-limit 1 --cores 1 --gpus 0
-                    --test-workers 1 --test-threads 1)
+                    --test-workers 1 --blas-threads 1)
             set_property (
                 TEST schur-mpi-standard-${ranks}-parallel-aed-${aed_size}
                     PROPERTY ENVIRONMENT STARPU_WORKERS_NOBIND=1)
@@ -490,7 +490,7 @@ if (STARNEIG_ENABLE_MPI)
                     --mpi --experiment schur --n 4000
                     --aed-window-size ${aed_size} --aed-parallel-soft-limit 1
                     --aed-parallel-hard-limit 1 --decouple 3 --cores 1 --gpus 0
-                    --test-workers 1 --test-threads 1)
+                    --test-workers 1 --blas-threads 1)
             set_property (
                 TEST schur-mpi-standard-${ranks}-decouple-parallel-aed-${aed_size}
                     PROPERTY ENVIRONMENT STARPU_WORKERS_NOBIND=1)
@@ -546,7 +546,7 @@ if (STARNEIG_ENABLE_MPI)
                     --mpi --experiment schur --generalized --n 4000
                     --aed-window-size ${aed_size} --aed-parallel-soft-limit 9999
                     --aed-parallel-hard-limit 99999 --cores 1 --gpus 0
-                    --test-workers 1 --test-threads 1)
+                    --test-workers 1 --blas-threads 1)
             set_property (
                 TEST schur-mpi-generalized-${ranks}-sequential-aed-${aed_size}
                     PROPERTY ENVIRONMENT STARPU_WORKERS_NOBIND=1)
@@ -558,7 +558,7 @@ if (STARNEIG_ENABLE_MPI)
                     --aed-window-size ${aed_size} --aed-parallel-soft-limit 9999
                     --aed-parallel-hard-limit 99999 --decouple 3
                     --set-to-inf 100 --cores 1 --gpus 0 --test-workers 1
-                    --test-threads 1)
+                    --blas-threads 1)
             set_property (
                 TEST schur-mpi-generalized-${ranks}-decouple-sequential-aed-${aed_size}
                     PROPERTY ENVIRONMENT STARPU_WORKERS_NOBIND=1)
@@ -569,7 +569,7 @@ if (STARNEIG_ENABLE_MPI)
                     --mpi --experiment schur --generalized --n 4000
                     --aed-window-size ${aed_size} --aed-parallel-soft-limit 1
                     --aed-parallel-hard-limit 1 --cores 1 --gpus 0
-                    --test-workers 1 --test-threads 1)
+                    --test-workers 1 --blas-threads 1)
             set_property (
                 TEST schur-mpi-generalized-${ranks}-parallel-aed-${aed_size}
                     PROPERTY ENVIRONMENT STARPU_WORKERS_NOBIND=1)
@@ -580,7 +580,7 @@ if (STARNEIG_ENABLE_MPI)
                     --mpi --experiment schur --generalized --n 4000
                     --aed-window-size ${aed_size} --aed-parallel-soft-limit 1
                     --aed-parallel-hard-limit 1 --decouple 3 --set-to-inf 100
-                    --cores 1 --gpus 0 --test-workers 1 --test-threads 1)
+                    --cores 1 --gpus 0 --test-workers 1 --blas-threads 1)
             set_property (
                 TEST schur-mpi-generalized-${ranks}-decouple-parallel-aed-${aed_size}
                     PROPERTY ENVIRONMENT STARPU_WORKERS_NOBIND=1)
@@ -612,7 +612,7 @@ if (STARNEIG_ENABLE_MPI)
             NAME reorder-mpi-${ranks}-standard
             COMMAND mpirun -n ${ranks} ${EXECUTABLE_OUTPUT_PATH}/starneig-test
                 --mpi --experiment reorder --n 4000 --fortify
-                --cores 1 --gpus 0 --test-workers 1 --test-threads 1)
+                --cores 1 --gpus 0 --test-workers 1 --blas-threads 1)
         set_property (TEST reorder-mpi-${ranks}-standard
             PROPERTY ENVIRONMENT STARPU_WORKERS_NOBIND=1)
     endforeach ()
@@ -623,7 +623,7 @@ if (STARNEIG_ENABLE_MPI)
             COMMAND mpirun ${EXECUTABLE_OUTPUT_PATH}/starneig-test
                 --mpi --experiment reorder --n 4000 --fortify
                 --blueprint ${blueprint} --cores 1 --gpus 0
-                --test-workers 1 --test-threads 1)
+                --test-workers 1 --blas-threads 1)
         set_property (TEST reorder-mpi-standard-blueprint-${blueprint}
             PROPERTY ENVIRONMENT STARPU_WORKERS_NOBIND=1)
     endforeach ()
@@ -653,7 +653,7 @@ if (STARNEIG_ENABLE_MPI)
             NAME reorder-mpi-${ranks}-generalized
             COMMAND mpirun -n ${ranks} ${EXECUTABLE_OUTPUT_PATH}/starneig-test
                 --mpi --experiment reorder --n 4000 --generalized --fortify
-                --cores 1 --gpus 0 --test-workers 1 --test-threads 1)
+                --cores 1 --gpus 0 --test-workers 1 --blas-threads 1)
         set_property (TEST reorder-mpi-${ranks}-generalized
             PROPERTY ENVIRONMENT STARPU_WORKERS_NOBIND=1)
     endforeach ()
@@ -664,7 +664,7 @@ if (STARNEIG_ENABLE_MPI)
             COMMAND mpirun ${EXECUTABLE_OUTPUT_PATH}/starneig-test --mpi
                 --experiment reorder --n 4000 --generalized --fortify
                 --blueprint ${blueprint} --cores 1 --gpus 0
-                --test-workers 1 --test-threads 1)
+                --test-workers 1 --blas-threads 1)
         set_property (TEST reorder-mpi-generalized-blueprint-${blueprint}
             PROPERTY ENVIRONMENT STARPU_WORKERS_NOBIND=1)
     endforeach ()
