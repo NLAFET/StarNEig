@@ -1,3 +1,8 @@
+v0.1-beta.5:
+ - Improve the performance of the Hessenberg reduction phase by limiting
+   the number of submitted tasks. This should reduce the task scheduling
+   overhead.
+
 v0.1-beta.4:
  - Fix a problem where infinite eigenvalues were detected too late.
  - Add an option to choose between the norm stable deflation condition
