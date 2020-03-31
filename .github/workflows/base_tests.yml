@@ -14,7 +14,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: Install xmllint
-      run: sudo apt-get install gfortran libopenblas-dev libstarpu-dev
+      run: sudo apt-get install gfortran libopenblas-dev libstarpu-dev libscalapack-openmpi-dev
     - name: configure
       run: cmake .
     - name: make
