@@ -105,7 +105,7 @@ static starneig_error_t hessenberg(
     starneig_error_t ret = starneig_hessenberg_insert_tasks(
         conf->panel_width, begin, end,
         STARPU_MAX_PRIO, STARPU_DEFAULT_PRIO, STARPU_MIN_PRIO,
-        matrix_q, matrix_a, NULL);
+        matrix_q, matrix_a, true, NULL);
 
     //
     // finalize

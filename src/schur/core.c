@@ -925,7 +925,7 @@ static enum segment_status perform_deflate_finalize(
                     panel_width, 0, padded_size-status->converged,
                     hessenberg_prio_high, hessenberg_prio_normal,
                     hessenberg_prio_low, segment->aed_args.matrix_q,
-                    segment->aed_args.matrix_a, NULL);
+                    segment->aed_args.matrix_a, false, NULL);
             }
 
             //

@@ -5,7 +5,7 @@
 ///
 /// @section LICENSE
 ///
-/// Copyright (c) 2019, Umeå Universitet
+/// Copyright (c) 2019-2020, Umeå Universitet
 ///
 /// Redistribution and use in source and binary forms, with or without
 /// modification, are permitted provided that the following conditions are met:
@@ -41,14 +41,110 @@
 #include "../common/scratch.h"
 #include "../common/tasks.h"
 
+///
+/// @brief The noncritical updates are added to a special update chain and
+/// inserted separately.
+///
+struct update {
+    int i;
+    int nb;
+    starpu_data_handle_t P_h;
+    starpu_data_handle_t V_h;
+    starpu_data_handle_t T_h;
+    struct update *next;
+};
+
+///
+/// @brief Inserts noncritical updates.
+///
+/// @param[in] panel_width
+///         Panel width.
+///
+/// @param[in] begin
+///         First row/column to be reduced.
+///
+/// @param[in] end
+///         Last row/column to be reduced + 1.
+///
+/// @param[in] critical_prio
+///         Panel reduction and trailing matrix update task priority.
+///
+/// @param[in] update_prio
+///         Update tasks priority.
+///
+/// @param[in] misc_prio
+///         Miscellaneous task priority.
+///
+/// @param[in,out] matrix_q
+///         Matrix Q.
+///
+/// @param[in,out] matrix_a
+///         Matrix A.
+///
+/// @param[in] updates
+///         Pointer to a update list.
+///
+/// @param[in,out] tag_offset
+///         MPI info
+///
+static void insert_remaining(
+    int panel_width, int begin, int end,
+    int critical_prio, int update_prio, int misc_prio,
+    starneig_matrix_descr_t matrix_q, starneig_matrix_descr_t matrix_a,
+    struct update **updates, mpi_info_t mpi)
+{
+    int n = STARNEIG_MATRIX_N(matrix_a);
+    int m = STARNEIG_MATRIX_M(matrix_a);
+
+    while (*updates != NULL) {
+        int i = (*updates)->i;
+        int nb = (*updates)->nb;
+        starpu_data_handle_t P_h = (*updates)->P_h;
+        starpu_data_handle_t V_h = (*updates)->V_h;
+        starpu_data_handle_t T_h = (*updates)->T_h;
+
+        int ver_part = STARNEIG_MATRIX_BM(matrix_a);
+        int hor_part = STARNEIG_MATRIX_BN(matrix_a);
+        int q_part = STARNEIG_MATRIX_BM(matrix_q);
+
+        starneig_insert_copy_handle_to_matrix(i+1, end, i, i+nb,
+            critical_prio, P_h, matrix_a, mpi);
+
+        // update A from the right
+        for (int j = 0; j < i+1; j += ver_part)
+            starneig_hessenberg_insert_update_right(update_prio,
+                j, MIN(i+1, j+ver_part), i+1, end, nb, V_h, T_h,
+                matrix_a, mpi);
+
+        // update A from the left
+        for (int j = (end/hor_part)*hor_part; j < n; j += hor_part)
+            starneig_hessenberg_insert_update_left(update_prio,
+                i+1, end, MAX(end, j), MIN(n, j+hor_part), nb,
+                V_h, T_h, matrix_a, mpi);
+
+        // update Q from the right
+        for (int j = 0; j < m; j += q_part)
+            starneig_hessenberg_insert_update_right(misc_prio,
+                j, MIN(m, j+q_part), i+1, end, nb, V_h, T_h,
+                matrix_q, mpi);
+
+        starpu_data_unregister_submit(V_h);
+        starpu_data_unregister_submit(T_h);
+
+        struct update *next = (*updates)->next;
+        free(*updates);
+        *updates = next;
+    }
+}
+
 starneig_error_t starneig_hessenberg_insert_tasks(
     int panel_width, int begin, int end,
     int critical_prio, int update_prio, int misc_prio,
     starneig_matrix_descr_t matrix_q, starneig_matrix_descr_t matrix_a,
-    mpi_info_t mpi)
+    bool limit_submitted, mpi_info_t mpi)
 {
-    int n = STARNEIG_MATRIX_N(matrix_a);
-    int m = STARNEIG_MATRIX_M(matrix_a);
+
+    int total_worker_count = starpu_worker_get_count();
 
     //
     // find a suitable GPU
@@ -79,15 +175,6 @@ starneig_error_t starneig_hessenberg_insert_tasks(
 
     // noncritical updates are added to a special update chain and are inserted
     // separately
-
-    struct update {
-        int i;
-        int nb;
-        starpu_data_handle_t P_h;
-        starpu_data_handle_t V_h;
-        starpu_data_handle_t T_h;
-        struct update *next;
-    };
 
     struct update *updates = NULL;
     struct update *tail = NULL;
@@ -213,56 +300,33 @@ starneig_error_t starneig_hessenberg_insert_tasks(
         tail->V_h = V_h;
         tail->T_h = T_h;
         tail->next = NULL;
+
+        //
+        // pause task insertion if necessary
+        //
+
+        if (limit_submitted &&
+        100*total_worker_count < starpu_task_nsubmitted()) {
+            starneig_scratch_unregister();
+            insert_remaining(
+                panel_width, begin, end, critical_prio, update_prio, misc_prio,
+                matrix_q, matrix_a, &updates, mpi);
+            starneig_scratch_unregister();
+            starpu_task_wait_for_n_submitted(10*total_worker_count);
+        }
     }
 
     starneig_free_vector_descr(v);
     starneig_free_vector_descr(y);
 
-    starneig_scratch_unregister();
-
     //
     // insert delayed update tasks
     //
 
-    while (updates != NULL) {
-        int i = updates->i;
-        int nb = updates->nb;
-        starpu_data_handle_t P_h = updates->P_h;
-        starpu_data_handle_t V_h = updates->V_h;
-        starpu_data_handle_t T_h = updates->T_h;
-
-        int ver_part = STARNEIG_MATRIX_BM(matrix_a);
-        int hor_part = STARNEIG_MATRIX_BN(matrix_a);
-        int q_part = STARNEIG_MATRIX_BM(matrix_q);
-
-        starneig_insert_copy_handle_to_matrix(i+1, end, i, i+nb,
-            critical_prio, P_h, matrix_a, mpi);
-
-        // update A from the right
-        for (int j = 0; j < i+1; j += ver_part)
-            starneig_hessenberg_insert_update_right(update_prio,
-                j, MIN(i+1, j+ver_part), i+1, end, nb, V_h, T_h,
-                matrix_a, mpi);
-
-        // update A from the left
-        for (int j = (end/hor_part)*hor_part; j < n; j += hor_part)
-            starneig_hessenberg_insert_update_left(update_prio,
-                i+1, end, MAX(end, j), MIN(n, j+hor_part), nb,
-                V_h, T_h, matrix_a, mpi);
-
-        // update Q from the right
-        for (int j = 0; j < m; j += q_part)
-            starneig_hessenberg_insert_update_right(misc_prio,
-                j, MIN(m, j+q_part), i+1, end, nb, V_h, T_h,
-                matrix_q, mpi);
-
-        starpu_data_unregister_submit(V_h);
-        starpu_data_unregister_submit(T_h);
-
-        struct update *next = updates->next;
-        free(updates);
-        updates = next;
-    }
+    starneig_scratch_unregister();
+    insert_remaining(
+        panel_width, begin, end, critical_prio, update_prio, misc_prio,
+        matrix_q, matrix_a, &updates, mpi);
 
     return STARNEIG_SUCCESS;
 }

@@ -42,6 +42,7 @@
 #include <starneig/error.h>
 #include "../common/common.h"
 #include "../common/matrix.h"
+#include <stdbool.h>
 
 ///
 /// @brief Inserts all Hessenberg reduction related tasks.
@@ -70,6 +71,10 @@
 /// @param[in,out] matrix_a
 ///         Matrix A.
 ///
+/// @param[in] limit_submitted
+///         If non-zero, then the implementation limits the number of submitted
+///         tasks.
+///
 /// @param[in,out] tag_offset
 ///         MPI info
 ///
@@ -77,6 +82,6 @@ starneig_error_t starneig_hessenberg_insert_tasks(
     int panel_width, int begin, int end,
     int critical_prio, int update_prio, int misc_prio,
     starneig_matrix_descr_t matrix_q, starneig_matrix_descr_t matrix_a,
-    mpi_info_t mpi);
+    bool limit_submitted, mpi_info_t mpi);
 
 #endif
