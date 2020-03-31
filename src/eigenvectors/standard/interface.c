@@ -233,7 +233,7 @@ static starneig_error_t eigenvectors(
 
     scaling_t *scales = (scaling_t*) malloc(num_segments*sizeof(scaling_t));
 #define scales(col, tilerow) scales[(col) + (tilerow) * (size_t)num_selected]
-    init_scaling_factor(num_tiles*num_selected, scales);
+    starneig_init_scaling_factor(num_tiles*num_selected, scales);
 
     double *Snorms =
         (double *) malloc((size_t)num_tiles*num_tiles*sizeof(double));
@@ -398,7 +398,7 @@ static starneig_error_t eigenvectors(
 
     starpu_task_wait_for_all();
 
-    unify_scaling(num_tiles, first_row, first_col, scales, X, ldX,
+    starneig_unify_scaling(num_tiles, first_row, first_col, scales, X, ldX,
         lambda_type, selected);
 
     starneig_std_eigvecs_insert_backtransform_tasks(first_row, num_tiles,

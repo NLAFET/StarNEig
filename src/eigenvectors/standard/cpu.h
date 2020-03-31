@@ -42,7 +42,7 @@
 #include <starneig/error.h>
 #include "typedefs.h"
 
-void unify_scaling(int num_tiles, int *first_row, int *first_col,
+void starneig_unify_scaling(int num_tiles, int *first_row, int *first_col,
     scaling_t *restrict scales,
     double *restrict X, int ldX,
     const int *restrict lambda_type, const int *restrict selected);
