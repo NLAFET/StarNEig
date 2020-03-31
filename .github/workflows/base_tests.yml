@@ -7,17 +7,17 @@ on:
     branches: [ master ]
 
 jobs:
-  build:
+  base tests:
 
     runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@v2
-    - name: Install xmllint
+    - name: Install dependences
       run: sudo apt-get install gfortran libopenblas-dev libopenmpi-dev libscalapack-openmpi-dev libstarpu-dev
-    - name: configure
+    - name: Configure
       run: cmake .
-    - name: make
+    - name: Build
       run: make
-    - name: make test
+    - name: Test
       run: make test
