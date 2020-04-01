@@ -146,13 +146,14 @@ starneig_error_t starneig_hessenberg_insert_tasks(
 
     int total_worker_count = starpu_worker_get_count();
 
+#ifdef STARNEIG_ENABLE_CUDA
+
     //
     // find a suitable GPU
     //
 
     unsigned gpu_memory_node = 0;
     ssize_t gpu_mem_size = 0;
-#ifdef STARNEIG_ENABLE_CUDA
     {
         int workers[STARPU_NMAXWORKERS];
         int worker_count = starpu_worker_get_ids_by_type(

@@ -48,9 +48,10 @@
 
 static int messages = 0;
 static int verbose = 0;
-static int pinning = 1;
 
 #ifdef STARNEIG_ENABLE_CUDA
+
+static int pinning = 1;
 
 __attribute__ ((visibility ("default")))
 void starneig_enable_pinning()
