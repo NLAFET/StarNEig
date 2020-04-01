@@ -1,4 +1,4 @@
-# Introduction
+# Introduction ![StarNEig base tests](https://github.com/NLAFET/StarNEig/workflows/StarNEig%20base%20tests/badge.svg)
 
 StarNEig library aims to provide a complete task-based software stack for
 solving **dense** **nonsymmetric** (generalized) eigenvalue problems. The
