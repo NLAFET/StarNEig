@@ -113,7 +113,7 @@ void starneig_create_blacs_matrix(
 __attribute__ ((visibility ("default")))
 void starneig_destroy_blacs_matrix(starneig_blacs_descr_t *descr, void **local)
 {
-    starneig_free_pinned_matrix(local);
+    starneig_free_pinned_matrix(*local);
 }
 
 __attribute__ ((visibility ("default")))
