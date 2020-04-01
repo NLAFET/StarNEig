@@ -129,6 +129,9 @@ void starneig_cpu_push_inf_top(void *buffers[], void *cl_arg)
     starneig_join_diag_window(&packing_info_A, ldA, A_i, A, 1);
     starneig_join_diag_window(&packing_info_B, ldB, B_i, B, 1);
 
+    starneig_free_matrix(A);
+    starneig_free_matrix(B);
+
     STARNEIG_EVENT_END();
 }
 
@@ -259,8 +262,8 @@ void starneig_cpu_push_bulges(void *buffers[], void *cl_arg)
 
     free(real);
     free(imag);
-    free(A);
-    free(B);
+    starneig_free_matrix(A);
+    starneig_free_matrix(B);
 
     STARNEIG_EVENT_END();
 }
@@ -388,8 +391,8 @@ void starneig_cpu_aggressively_deflate(void *buffers[], void *cl_arg)
             starneig_join_diag_window(&packing_info_B, ldB, B_i, B, 1);
     }
 
-    free(A);
-    free(B);
+    starneig_free_matrix(A);
+    starneig_free_matrix(B);
     free(real);
     free(imag);
 
@@ -483,8 +486,8 @@ void starneig_cpu_small_schur(void *buffers[], void *cl_arg)
 
     status->converged = size - info;
 
-    free(A);
-    free(B);
+    starneig_free_matrix(A);
+    starneig_free_matrix(B);
     free(real);
     free(imag);
     free(beta);
@@ -563,8 +566,8 @@ void starneig_cpu_small_hessenberg(void *buffers[], void *cl_arg)
     if (generalized)
         starneig_join_diag_window(&packing_info_B, ldB, B_i, B, 1);
 
-    free(A);
-    free(B);
+    starneig_free_matrix(A);
+    starneig_free_matrix(B);
 
     STARNEIG_EVENT_END();
 }
@@ -992,11 +995,11 @@ void starneig_cpu_deflate(void *buffers[], void *cl_arg)
         starneig_copy_matrix(size, size, ldZ, ldlZ, sizeof(double), Z, lZ);
     }
 
-    free(A);
-    free(B);
-    free(Q);
+    starneig_free_matrix(A);
+    starneig_free_matrix(B);
+    starneig_free_matrix(Q);
     if (Z != Q)
-        free(Z);
+        starneig_free_matrix(Z);
     free(work);
 
     STARNEIG_EVENT_END();
@@ -1052,8 +1055,8 @@ void starneig_cpu_extract_shifts(void *buffers[], void *cl_args)
     starneig_join_range(&packing_info_real, real_i, real, 1);
     starneig_join_range(&packing_info_imag, imag_i, imag, 1);
 
-    free(A);
-    free(B);
+    starneig_free_matrix(A);
+    starneig_free_matrix(B);
     free(real);
     free(imag);
 }

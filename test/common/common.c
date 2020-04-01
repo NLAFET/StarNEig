@@ -41,6 +41,9 @@
 #include <string.h>
 #include <stdio.h>
 #include <math.h>
+#ifdef STARNEIG_ENABLE_CUDA
+#include <cuda_runtime_api.h>
+#endif
 
 static unsigned long seed = 2019;
 
@@ -88,7 +91,22 @@ void * alloc_matrix(
     int m, int n, size_t elemsize, size_t *ld)
 {
     *ld = divceil(m, 64/elemsize)*(64/elemsize);
-    return aligned_alloc(64, n*(*ld)*elemsize);
+    void *ptr;
+#ifdef STARNEIG_ENABLE_CUDA
+    cudaHostAlloc(&ptr, n*(*ld)*elemsize, cudaHostRegisterPortable);
+#else
+    ptr = aligned_alloc(64, n*(*ld)*elemsize);
+#endif
+    return ptr;
+}
+
+void free_matrix(void *matrix)
+{
+#ifdef STARNEIG_ENABLE_CUDA
+    cudaFree(matrix);
+#else
+    free(matrix);
+#endif
 }
 
 void copy_matrix(

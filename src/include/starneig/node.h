@@ -203,6 +203,33 @@ void starneig_node_set_gpus(int gpus);
 ///
 void starneig_node_finalize();
 
+#ifdef STARNEIG_ENABLE_CUDA
+
+///
+/// @name Pinned host memory
+/// @{
+///
+
+///
+/// @brief Enable CUDA host memory pinning.
+///
+/// Should be called before any memory allocations are made.
+///
+void starneig_node_enable_pinning();
+
+///
+/// @brief Disables CUDA host memory pinning.
+///
+/// Should be called before any memory allocations are made.
+///
+void starneig_node_disable_pinning();
+
+///
+/// @}
+///
+
+#endif
+
 #ifdef STARNEIG_ENABLE_MPI
 
 ///

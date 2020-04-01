@@ -482,7 +482,8 @@ starneig_error_t starneig_GEP_DM_HessenbergTriangular(
 
 cleanup:
 
-    free(local_w);
+    starneig_destroy_blacs_matrix(&descr_w, (void **)&local_w);
+
     free(tau);
     free(work);
     starneig_blacs_gridexit(context);

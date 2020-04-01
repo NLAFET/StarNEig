@@ -267,7 +267,7 @@ void starneig_cpu_set_to_identity(void *buffers[], void *cl_args)
 
     starneig_join_window(&packing_info, ld, dest_i, tmp, 1);
 
-    free(tmp);
+    starneig_free_matrix(tmp);
 }
 
 void starneig_cpu_scan_diagonal(void *buffers[], void *cl_args)
@@ -349,8 +349,8 @@ void starneig_cpu_scan_diagonal(void *buffers[], void *cl_args)
     // cleanup
     //
 
-    free(A);
-    free(B);
+    starneig_free_matrix(A);
+    starneig_free_matrix(B);
 
     for (int i = 0; i < num_masks; i++)
         free(mask[i]);

@@ -250,6 +250,40 @@ static inline int divfloor(int a, int b)
 ///
 void * starneig_alloc_matrix(
     int m, int n, size_t elemsize, size_t *ld);
+///
+/// @brief Frees a matrix.
+///
+/// @param[in] A
+///         The matrix.
+///
+void starneig_free_matrix(void *A);
+
+///
+/// @brief Allocates a matrix using pinned memory.
+///
+/// @param[in] m
+///         The number of rows in the matrix.
+///
+/// @param[in] n
+///         The number of columns in the matrix.
+///
+/// @param[in] elemsize
+///         The matrix element size.
+///
+/// @param[out] ld
+///         Returns the leading dimension of the matrix.
+///
+/// @return Pointer to the allocated matrix.
+///
+void * starneig_alloc_pinned_matrix(
+    int m, int n, size_t elemsize, size_t *ld);
+///
+/// @brief Frees a pinned matrix.
+///
+/// @param[in] A
+///         The matrix.
+///
+void starneig_free_pinned_matrix(void *A);
 
 ///
 /// @brief Copies a matrix.

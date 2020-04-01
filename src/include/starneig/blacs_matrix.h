@@ -193,6 +193,17 @@ void starneig_create_blacs_matrix(
     starneig_blacs_descr_t *descr, void **local);
 
 ///
+/// @brief Destroyes a BLACS matrix.
+///
+/// @param[in,out] descr
+///         The BLACS descriptor.
+///
+/// @param[in,out] local
+///         A pointer to the local array.
+///
+void starneig_destroy_blacs_matrix(starneig_blacs_descr_t *descr, void **local);
+
+///
 /// @brief Convers a distributed matrix to a BLACS descriptor and a matching
 /// local array.
 ///

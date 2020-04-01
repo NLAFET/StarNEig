@@ -137,7 +137,7 @@ starneig_error_t starneig_GEP_SM_Eigenvectors_expert(
 
 cleanup:
 
-    free(_X);
+    starneig_free_matrix(_X);
 
     return ret;
 }

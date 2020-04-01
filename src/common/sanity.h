@@ -224,7 +224,7 @@ static inline void starneig_sanity_check_orthogonality(
         abort();
     }
 
-    free(T);
+    starneig_free_matrix(T);
 }
 
 ///
@@ -285,7 +285,7 @@ starneig_sanity_check_residuals_begin(
             T, ldT, Z, ldZ, 0.0, ret->B, ret->ldB);
     }
 
-    free(T);
+    starneig_free_matrix(T);
 
     starneig_sanity_check_inf(0, n, 0, n, ret->ldA, ret->A, "A", file, line);
     starneig_sanity_check_inf(0, n, 0, n, ret->ldB, ret->B, "B", file, line);
@@ -395,8 +395,8 @@ static inline void starneig_sanity_check_residuals_end(
     if (failure)
         abort();
 
-    free(ret->A);
-    free(ret->B);
+    starneig_free_matrix(ret->A);
+    starneig_free_matrix(ret->B);
     free(ret);
 }
 
@@ -439,8 +439,8 @@ static inline void starneig_sanity_check_residuals_end(
     starneig_sanity_check_residuals_end( \
         n, ldQ, ldZ, ldA, ldB, Q, Z, A, B, name, __FILE__, __LINE__); \
     if (name != NULL) { \
-        free(name->A); \
-        free(name->B); \
+        starneig_free_matrix(name->A); \
+        starneig_free_matrix(name->B); \
         free(name); \
         name = NULL; \
     }
@@ -455,8 +455,8 @@ static inline void starneig_sanity_check_residuals_end(
 ///
 #define STARNEIG_SANITY_CHECK_RESIDUALS_SKIP(name) \
     if (name != NULL) { \
-        free(name->A); \
-        free(name->B); \
+        starneig_free_matrix(name->A); \
+        starneig_free_matrix(name->B); \
         free(name); \
         name = NULL; \
     }

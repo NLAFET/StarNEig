@@ -48,6 +48,23 @@
 
 static int messages = 0;
 static int verbose = 0;
+static int pinning = 1;
+
+#ifdef STARNEIG_ENABLE_CUDA
+
+__attribute__ ((visibility ("default")))
+void starneig_enable_pinning()
+{
+    pinning = 1;
+}
+
+__attribute__ ((visibility ("default")))
+void starneig_disable_pinning()
+{
+    pinning = 0;
+}
+
+#endif
 
 void starneig_set_message_mode(int _messages, int _verbose)
 {
@@ -153,6 +170,43 @@ void * starneig_alloc_matrix(int m, int n, size_t elemsize, size_t *ld)
         starneig_fatal_error("starneig_alloc_matrix failed.");
 
     return ptr;
+}
+
+void starneig_free_matrix(void *matrix)
+{
+    free(matrix);
+}
+
+void * starneig_alloc_pinned_matrix(int m, int n, size_t elemsize, size_t *ld)
+{
+#ifdef STARNEIG_ENABLE_CUDA
+    if (pinning) {
+        STARNEIG_ASSERT_MSG(
+            0 < m && 0 < n && 0 < elemsize, "Invalid dimensions.");
+        STARNEIG_ASSERT_MSG(ld != NULL, "NULL pointer.");
+
+        *ld = divceil(m, 64/elemsize)*(64/elemsize);
+        void *ptr;
+        cudaError_t ret =
+            cudaHostAlloc(&ptr, n*(*ld)*elemsize, cudaHostRegisterPortable);
+        if (ret != cudaSuccess || ptr == NULL)
+            starneig_fatal_error("cudaHostAlloc failed.");
+
+        return ptr;
+    }
+#endif
+    return starneig_alloc_matrix(m, n, elemsize, ld);
+}
+
+void starneig_free_pinned_matrix(void *matrix)
+{
+#ifdef STARNEIG_ENABLE_CUDA
+    if (pinning) {
+        cudaFree(matrix);
+        return;
+    }
+#endif
+    starneig_free_matrix(matrix);
 }
 
 void starneig_copy_matrix(

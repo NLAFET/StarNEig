@@ -197,6 +197,14 @@ void * alloc_matrix(
     int m, int n, size_t elemsize, size_t *ld);
 
 ///
+/// @brief Frees a matrix.
+///
+/// @param[in] matrix
+///         A pointer to the destination matrix.
+///
+void free_matrix(void *matrix);
+
+///
 /// @brief Copies a matrix.
 ///
 /// @param[in] m

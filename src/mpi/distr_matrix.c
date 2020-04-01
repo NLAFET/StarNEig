@@ -331,7 +331,7 @@ starneig_distr_matrix_t starneig_distr_matrix_create(
             1.0E-6 * local_block_rows*row_blksz *
             local_block_cols*col_blksz * elemsize);
 
-        matrix->ptr = starneig_alloc_matrix(
+        matrix->ptr = starneig_alloc_pinned_matrix(
             local_block_rows*row_blksz,
             local_block_cols*col_blksz,
             elemsize, &matrix->ld);
@@ -373,7 +373,7 @@ starneig_distr_matrix_t starneig_distr_matrix_create(
         matrix->blocks =
             malloc(block_count*sizeof(struct starneig_distr_block));
 
-        matrix->ptr = starneig_alloc_matrix(
+        matrix->ptr = starneig_alloc_pinned_matrix(
             row_blksz, block_count*col_blksz, elemsize, &matrix->ld);
 
         int k = 0;
@@ -443,11 +443,8 @@ void starneig_distr_matrix_destroy(starneig_distr_matrix_t matrix)
 
     starneig_distr_destroy(matrix->distr);
     free(matrix->blocks);
-    if (matrix->free_ptr) {
-        starneig_verbose("Freeing a %.0f MB local buffer.",
-            1.0E-6 * malloc_usable_size(matrix->ptr));
-        free(matrix->ptr);
-    }
+    if (matrix->free_ptr)
+        starneig_free_pinned_matrix(matrix->ptr);
     free(matrix);
 }
 

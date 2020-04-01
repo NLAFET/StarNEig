@@ -253,7 +253,7 @@ cleanup:
 
     for (int i = 0; i < matrix_count; i++) {
         starneig_distr_matrix_destroy(handles[i]);
-        free(ptrs[i]);
+        free_matrix(ptrs[i]);
     }
 
     unsigned seed = prand();
@@ -346,7 +346,7 @@ cleanup:
 
     for (int i = 0; i < matrix_count; i++) {
         starneig_distr_matrix_destroy(handles[i]);
-        free(ptrs[i]);
+        free_matrix(ptrs[i]);
     }
 
     unsigned seed = prand();
@@ -442,7 +442,7 @@ cleanup:
 
     for (int i = 0; i < matrix_count; i++) {
         starneig_distr_matrix_destroy(handles[i]);
-        free(ptrs[i]);
+        free_matrix(ptrs[i]);
     }
 
     unsigned seed = prand();

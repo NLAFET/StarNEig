@@ -103,10 +103,17 @@ void starneig_create_blacs_matrix(
     int local_cols = starneig_numroc(cols, col_blksz, col_rank, 0, grid_cols);
 
     size_t ld;
-    *local = starneig_alloc_matrix(local_rows, local_cols, sizeof(double), &ld);
+    *local = starneig_alloc_pinned_matrix(
+        local_rows, local_cols, sizeof(double), &ld);
 
     starneig_descinit(
         descr, rows, cols, row_blksz, col_blksz, 0, 0, context, ld);
+}
+
+__attribute__ ((visibility ("default")))
+void starneig_destroy_blacs_matrix(starneig_blacs_descr_t *descr, void **local)
+{
+    starneig_free_pinned_matrix(local);
 }
 
 __attribute__ ((visibility ("default")))

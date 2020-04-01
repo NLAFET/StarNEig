@@ -206,11 +206,11 @@ static int reorder_window(
 cleanup:
 
     free(work);
-    free(vT);
-    free(hT);
-    free(lQ);
+    starneig_free_matrix(vT);
+    starneig_free_matrix(hT);
+    starneig_free_matrix(lQ);
     if (B != NULL)
-        free(lZ);
+        starneig_free_matrix(lZ);
 
     STARNEIG_SANITY_CHECK_SCHUR(0, n, n, ldA, ldB, A, B);
     STARNEIG_SANITY_CHECK_RESIDUALS_END(

@@ -62,7 +62,7 @@ static void free_local_matrix(local_matrix_t descr)
     if (descr == NULL)
         return;
 
-    free(descr->ptr);
+    free_matrix(descr->ptr);
     free(descr);
 }
 
