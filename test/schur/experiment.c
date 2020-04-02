@@ -486,7 +486,8 @@ static int hessrand_crawler(
         for (int i = 0; i < width; i++) {
             for (int j = 0; j < offset+i+1; j++)
                 A[i*ldA+j] = gsl_ran_gaussian(r, 1.0);
-            A[i*ldA+offset+i+1] = sqrt(gsl_ran_chisq(r, n-offset-i-1));
+            if (offset+i+1 < m)
+                A[i*ldA+offset+i+1] = sqrt(gsl_ran_chisq(r, n-offset-i-1));
             for (int j = offset+i+2; j < m; j++)
                 A[i*ldA+j] = 0.0;
         }
