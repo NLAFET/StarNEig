@@ -364,7 +364,6 @@ if (STARNEIG_ENABLE_FULL_TESTS)
 set (BLUEPRINTS dsa dsb csa csb csc csd cse csf)
 set (TILE_SIZES 48 549 611 883 448 340 526 197)
 set (PANEL_WIDTHS 45 314 400 410 170 35 303)
-set (PWORKERS 1 2 3 4 5 6 7 8)
 set (AED_SIZES default 50 500 1000 2000)
 set (RANKS 1 2 3 4)
 
@@ -384,13 +383,6 @@ foreach (pwidth ${PANEL_WIDTHS})
         NAME hessenberg-panel-${pwidth}
         COMMAND ${EXECUTABLE_OUTPUT_PATH}/starneig-test --experiment hessenberg
             --n 4000 --panel-width ${pwidth})
-endforeach ()
-
-foreach (pworkers ${PWORKERS})
-    add_test(
-        NAME hessenberg-pworkers-${pworkers}
-        COMMAND ${EXECUTABLE_OUTPUT_PATH}/starneig-test --experiment hessenberg
-            --n 4000 --parallel-worker-size ${pworkers}  --gpus 0)
 endforeach ()
 
 if (STARNEIG_ENABLE_FULL_TESTS)
