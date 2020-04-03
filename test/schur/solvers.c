@@ -937,7 +937,8 @@ static int starpu_check_args(int argc, char * const *argv, int *argr)
         "--left-threshold", argc, argv, argr, "default", "norm", "lapack",
         NULL);
     if (left_threshold.type == MULTIARG_INVALID ||
-    left_threshold.double_value <= 0.0) {
+    (left_threshold.type != MULTIARG_STR &&
+    left_threshold.double_value <= 0.0)) {
         fprintf(stderr, "Invalid left threshold.\n");
         return -1;
     }
@@ -946,7 +947,8 @@ static int starpu_check_args(int argc, char * const *argv, int *argr)
         "--right-threshold", argc, argv, argr, "default", "norm", "lapack",
         NULL);
     if (right_threshold.type == MULTIARG_INVALID ||
-    right_threshold.double_value <= 0.0){
+    (right_threshold.type != MULTIARG_STR &&
+    right_threshold.double_value <= 0.0)) {
         fprintf(stderr, "Invalid right threshold.\n");
         return -1;
     }
@@ -954,7 +956,8 @@ static int starpu_check_args(int argc, char * const *argv, int *argr)
     struct multiarg_t inf_threshold = read_multiarg(
         "--inf-threshold", argc, argv, argr, "default", "norm", NULL);
     if (inf_threshold.type == MULTIARG_INVALID ||
-    inf_threshold.double_value <= 0.0){
+    (inf_threshold.type != MULTIARG_STR &&
+    inf_threshold.double_value <= 0.0)) {
         fprintf(stderr, "Invalid infinity threshold.\n");
         return -1;
     }
