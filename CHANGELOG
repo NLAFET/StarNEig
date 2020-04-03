@@ -1,3 +1,7 @@
+v0.1-beta.6:
+ - Fix starneig_node_enable_pinning() and starneig_node_disable_pinning()
+   functions.
+
 v0.1-beta.5:
  - Improve the performance of the Hessenberg reduction phase by limiting
    the number of submitted tasks. This should reduce the task scheduling
