@@ -54,13 +54,13 @@ static int verbose = 0;
 static int pinning = 1;
 
 __attribute__ ((visibility ("default")))
-void starneig_enable_pinning()
+void starneig_node_enable_pinning()
 {
     pinning = 1;
 }
 
 __attribute__ ((visibility ("default")))
-void starneig_disable_pinning()
+void starneig_node_disable_pinning()
 {
     pinning = 0;
 }
