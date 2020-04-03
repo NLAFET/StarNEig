@@ -260,35 +260,6 @@ void starneig_eigvec_std_unify_scaling(int num_tiles, int *first_row, int *first
 #undef scales
 }
 
-
-void starneig_eigvec_std_cpu_bound_DM(void *buffers[], void *cl_args)
-{
-    struct packing_info packing_info;
-    starpu_codelet_unpack_args(cl_args, &packing_info);
-
-    // extract tile dimensions from the packing information struct
-    int m = packing_info.rend - packing_info.rbegin;
-    int n = packing_info.cend - packing_info.cbegin;
-
-    int k = 0;
-
-    double *norm = (double *) STARPU_VARIABLE_GET_PTR(buffers[k]);
-    k++;
-
-    double *T = (double *) STARPU_MATRIX_GET_PTR(buffers[k]);
-    int ldT = STARPU_MATRIX_GET_LD(buffers[k]);
-    k++;
-
-    struct starpu_matrix_interface **A_i =
-        (struct starpu_matrix_interface **)buffers + k;
-    k += packing_info.handles;
-
-    starneig_join_diag_window(&packing_info, ldT, A_i, T, 0);
-
-    *norm = mat_infnorm(m, n, T, ldT);
-}
-
-
 void starneig_eigvec_std_cpu_bound(void *buffers[], void *cl_args)
 {
     double *T = (double *) STARPU_MATRIX_GET_PTR(buffers[0]);
