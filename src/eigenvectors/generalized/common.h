@@ -36,13 +36,17 @@
 /// POSSIBILITY OF SUCH DAMAGE.
 ///
 
-#ifndef COMMON_H_
-#define COMMON_H_
+#ifndef STARNEIG_EIGVEC_STD_COMMON_H_
+#define STARNEIG_EIGVEC_STD_COMMON_H_
 
-#include <time.h>
-#include <cblas.h>
+#include <starneig_config.h>
+#include <starneig/configuration.h>
+#include "../../common/common.h"
 
+//
 // Formatting constants
+//
+
 static char *const shorte="%12.4e";
 static char *const longi="%12d";
 static char *const shorti="%4d";
@@ -50,6 +54,7 @@ static char *const shorti="%4d";
 //
 //  Constants needed for calls to BLAS and LAPACK
 //
+
 static int const int_zero = 0;
 static int const int_one = 1;
 static int const int_two = 2;
@@ -64,65 +69,34 @@ static double const smin = 1e-300;
 // These wrappers cast the leading dimension as int and then call LAPACK.
 
 // Solver for small shifted linear systems
-void starneig_dlaln2(int ltrans, int na, int nw, double smin, double ca,
-	    double *a, size_t lda, double d1, double d2,
-	    double *b, size_t ldb, double wr, double wi,
-	    double *x, size_t ldx, double *scale, double *xnorm,
-	    int *info);
+void starneig_eigvec_gen_dlaln2(
+    int ltrans, int na, int nw, double smin, double ca, double *a, size_t lda,
+    double d1, double d2, double *b, size_t ldb, double wr, double wi,
+	double *x, size_t ldx, double *scale, double *xnorm, int *info);
 
 // Copy matrices
-void starneig_dlacpy(char *uplo, int m, int n,
-	    double *a, size_t lda, double *b, size_t ldb);
+void starneig_eigvec_gen_dlacpy(
+    char *uplo, int m, int n, double *a, size_t lda, double *b, size_t ldb);
 
 // Compute norms
-double starneig_dlange(char *norm, int m, int n, double *a, size_t lda, double *work);
+double starneig_eigvec_gen_dlange(
+    char *norm, int m, int n, double *a, size_t lda, double *work);
 
 // Matrix matrix multiplication
-void starneig_dgemm(char *transa, char *transb, int m, int n, int k, double alpha,
-	   double *a, size_t lda,
-	   double* b, size_t ldb, double beta,
-	   double* c, size_t ldc);
-
-// Reduction to upper Hessenberg and triangular form
-void starneig_dgghrd(char *compq, char *compz, int m, int ilo, int ilh,
-	    double *a, size_t lda,
-	    double *b, size_t ldb,
-	    double *q, size_t ldq,
-	    double *z, size_t ldz,
-	    int *info);
-
-// Reduction to generalised real Schur form using QZ algorithm
-void starneig_dhgeqz(char *job, char *compq, char *compz, int n, int ilo, int iho,
-	    double *h, size_t ldh,
-	    double *t, size_t ldt,
-	    double *alphar,
-	    double *alphai,
-	    double *beta,
-	    double *q, size_t ldq,
-	    double *z, size_t ldz,
-	    double *work,
-	    int lwork,
-	    int *info);
+void starneig_eigvec_gen_dgemm(
+    char *transa, char *transb, int m, int n, int k, double alpha, double *a,
+    size_t lda, double* b, size_t ldb, double beta, double* c, size_t ldc);
 
 // Generalised eigenvalues of 2-by-2 matrices
-void starneig_dlag2(double *a, size_t lda,
-	   double *b, size_t ldb,
-	   double safemin,
-	   double *scale1,
-	   double *scale2,
-	   double *wr1,
-	   double *wr2,
-	   double *wi);
+void starneig_eigvec_gen_dlag2(
+    double *a, size_t lda, double *b, size_t ldb, double safemin,
+    double *scale1, double *scale2, double *wr1, double *wr2, double *wi);
 
 // Generalized eigenvectors
-void starneig_dtgevc(char *side, char *howmany, int *select, int m,
-	    double *s, size_t lds,
-	    double *t, size_t ldt,
-	    double *x, size_t ldx,
-	    double *y, size_t ldy,
-	    int n, int *used,
-	    double *work,
-	    int *info);
+void starneig_eigvec_gen_dtgevc(
+    char *side, char *howmany, int *select, int m, double *s, size_t lds,
+	double *t, size_t ldt, double *x, size_t ldx, double *y, size_t ldy,
+	int n, int *used, double *work, int *info);
 
 //
 // BLAS and LAPACK subroutines and functions
@@ -131,153 +105,62 @@ void starneig_dtgevc(char *side, char *howmany, int *select, int m,
 // Routines which do NOT read a leading dimension
 
 // Linear update of vector
-extern void daxpy_(int const *, double const *, double const *, int const *,
-		   double *, int const *);
+extern void daxpy_(
+    int const *, double const *, double const *, int const *, double *,
+    int const *);
 
 // Scale vector
 extern void dscal_(int const *, double const *, double *, int const *);
 
-
 // Routines which read a leading dimension
 
 // Solve small shifted equation
-extern void dlaln2_(int const *, int const *, int const *,
-		    double const *, double const *,
-		    double const *, int const *,
-		    double const *, double const *,
-		    double const *, int const *,
-		    double const *, double const *,
-		    double const *, int const *,
-		    double const *, double const *,
-		    int const *);
+extern void dlaln2_(
+    int const *, int const *, int const *, double const *, double const *,
+	double const *, int const *, double const *, double const *, double const *,
+    int const *, double const *, double const *, double const *, int const *,
+	double const *, double const *, int const *);
 
 // Copies all or part of a 2-d array to another
-extern void dlacpy_(char const *, int const *, int const *, double const *,
-		    int const *, double *, int const *);
+extern void dlacpy_(
+    char const *, int const *, int const *, double const *, int const *,
+    double *, int const *);
 
 // 1-norm, inf-norm, Frobenius-norm, largest absolute value
-extern double dlange_(char const *, int const *, int const *, double const *,
-		      int const *, double *);
+extern double dlange_(
+    char const *, int const *, int const *, double const *, int const *,
+    double *);
 
 // Dense matrix times dense matrix
-extern void dgemm_(char const *, char const *, int const *, int const *,
-		   int const *, double const *, double const *, int const *,
-		   double const *,
-		   int const *, double const *, double *, int const *);
+extern void dgemm_(
+    char const *, char const *, int const *, int const *, int const *,
+    double const *, double const *, int const *, double const *, int const *,
+    double const *, double *, int const *);
 
 // Reduction to upper Hessenberg and triangular form
-extern void dgghrd_(char const *, char const *,
-		    int const *, int const *, int const *,
-		    double const *, int const *,
-		    double const *, int const *,
-		    double const *, int const *,
-		    double const *, int const *,
-		    int const *);
+extern void dgghrd_(
+    char const *, char const *, int const *, int const *, int const *,
+    double const *, int const *, double const *, int const *, double const *,
+    int const *, double const *, int const *, int const *);
 
 // Reduction to generalised real Schur form using QZ algorithm
-extern void dhgeqz_(char const *, char const *, char const *,
-		    int const *, int const *, int const *,
-		    double const *, int const *,
-		    double const *, int const *,
-		    double const *, double const *, double const *,
-		    double const *, int const *,
-		    double const *, int const *,
-		    double const *, int const *,
-		    int const *);
+extern void dhgeqz_(
+    char const *, char const *, char const *, int const *, int const *,
+    int const *, double const *, int const *, double const *, int const *,
+	double const *, double const *, double const *, double const *, int const *,
+	double const *, int const *, double const *, int const *, int const *);
 
 // Generalised eigenvalues of 2-by-2 matrices
-extern void dlag2_(double const *, int const *,
-		   double const *, int const *,
-		   double const *,
-		   double const *,
-		   double const *,
-		   double const *,
-		   double const *,
-		   double const *);
+extern void dlag2_(
+    double const *, int const *, double const *, int const *, double const *,
+	double const *, double const *, double const *, double const *,
+    double const *);
 
 // Generalised eigenvectors from real Schur forms
-extern void dtgevc_(char const *, char const *,
-		    int const *, int const *,
-		    double const *, int const *,
-		    double const *, int const *,
-		    double const *, int const *,
-		    double const *, int const *,
-		    int const *, int const *,
-		    double const *,
-		    int const *);
+extern void dtgevc_(
+    char const *, char const *, int const *, int const *, double const *,
+    int const *, double const *, int const *, double const *, int const *,
+	double const *, int const *, int const *, int const *, double const *,
+	int const *);
 
-///
-/// Return the ceil of a/b
-///
-/// @param[in] a - denominator
-/// @param[in] b - numerator
-///
-/// @returns ceil of a/b
-///
-static inline int divceil(int a, int b)
-{
-  return (a+b-1)/b;
-}
-
-///
-/// @brief Returns the largest of two values.
-///
-/// @param[in] x - first value
-/// @param[in] y - second value
-///
-/// @returns the largest of the two values
-///
-static inline int max(int x, int y)
-{
-  return x > y ? x : y;
-}
-
-///
-/// @brief Returns the smallest of two values.
-///
-/// @param[in] x - first value
-/// @param[in] y - second value
-///
-/// @returns the smallest of the two values
-///
-static inline int min(int x, int y)
-{
-  return x < y ? x : y;
-}
-
-///
-/// @brief Returns the largest of two values.
-///
-/// @param[in] x - first value
-/// @param[in] y - second value
-///
-/// @returns the largest of the two values
-///
-static inline double maxf(double x, double y)
-{
-  return x > y ? x : y;
-}
-
-///
-/// @brief Returns the smallest of two values.
-///
-/// @param[in] x - first value
-/// @param[in] y - second value
-///
-/// @returns the smallest of the two values
-///
-static inline double minf(double x, double y)
-{
-  return x < y ? x : y;
-}
-
-///
-///
-/// @Brief Returns the elapsed time between tic and toc
-///
-/// @param[in] t0 first timespec (tic)
-/// @param[in] t1 second timespec (toc)
-///
-double starneig_elapsed(struct timespec t0, struct timespec t1);
-
-#endif
+#endif // STARNEIG_EIGVEC_STD_COMMON_H_

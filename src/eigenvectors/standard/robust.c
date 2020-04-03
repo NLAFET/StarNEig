@@ -61,7 +61,7 @@ static const double g_omega_inv = 1.e-300; ///< inverse of the overflow threshol
 ///////////////////////////////////////////////////////////////////////////////
 // initialize scaling factors
 ////////////////////////////////////////////////////////////////////////////////
-void starneig_init_scaling_factor(int n, scaling_t *alpha)
+void starneig_eigvec_std_init_scaling_factor(int n, scaling_t *alpha)
 {
 #ifdef STARNEIG_ENABLE_INTEGER_SCALING
     for (int i = 0; i < n; i++)
@@ -76,12 +76,12 @@ void starneig_init_scaling_factor(int n, scaling_t *alpha)
 ///////////////////////////////////////////////////////////////////////////////
 // find the smallest scaling factor
 ////////////////////////////////////////////////////////////////////////////////
-void starneig_find_smallest_scaling(int num_tiles, int num_selected,
+void starneig_eigvec_std_find_smallest_scaling(int num_tiles, int num_selected,
     const scaling_t *restrict scales, scaling_t *restrict smin)
 {
 #define scales(col, tilerow) scales[(col) + (tilerow) * (size_t)num_selected]
 
-    starneig_init_scaling_factor(num_selected, smin);
+    starneig_eigvec_std_init_scaling_factor(num_selected, smin);
 
     // Find the minimum scaling factor for each column.
     for (int j = 0; j < num_selected; j++) {
@@ -102,7 +102,7 @@ void starneig_find_smallest_scaling(int num_tiles, int num_selected,
 ///////////////////////////////////////////////////////////////////////////////
 // manipulation of scaling factors
 ///////////////////////////////////////////////////////////////////////////////
-void starneig_scale(int n, double *restrict const x, const scaling_t *beta)
+void starneig_eigvec_std_scale(int n, double *restrict const x, const scaling_t *beta)
 {
 #ifdef STARNEIG_ENABLE_INTEGER_SCALING
     double alpha = ldexp(1.0, beta[0]);
@@ -119,7 +119,7 @@ void starneig_scale(int n, double *restrict const x, const scaling_t *beta)
 }
 
 
-void starneig_update_global_scaling(scaling_t *global, scaling_t phi)
+void starneig_eigvec_std_update_global_scaling(scaling_t *global, scaling_t phi)
 {
 #ifdef STARNEIG_ENABLE_INTEGER_SCALING
     *global = phi + (*global);
@@ -129,7 +129,7 @@ void starneig_update_global_scaling(scaling_t *global, scaling_t phi)
 }
 
 
-void starneig_update_norm(double *norm, scaling_t phi)
+void starneig_eigvec_std_update_norm(double *norm, scaling_t phi)
 {
 #ifdef STARNEIG_ENABLE_INTEGER_SCALING
     *norm = ldexp(1.0, phi) * (*norm);
@@ -139,7 +139,7 @@ void starneig_update_norm(double *norm, scaling_t phi)
 }
 
 
-double starneig_compute_upscaling(scaling_t alpha_min, scaling_t alpha)
+double starneig_eigvec_std_compute_upscaling(scaling_t alpha_min, scaling_t alpha)
 {
     double scaling;
 
@@ -155,7 +155,7 @@ double starneig_compute_upscaling(scaling_t alpha_min, scaling_t alpha)
 }
 
 
-double starneig_convert_scaling(scaling_t alpha)
+double starneig_eigvec_std_convert_scaling(scaling_t alpha)
 {
 #ifdef STARNEIG_ENABLE_INTEGER_SCALING
     double scaling = ldexp(1.0, alpha);
@@ -167,7 +167,7 @@ double starneig_convert_scaling(scaling_t alpha)
 }
 
 
-double starneig_compute_combined_upscaling(
+double starneig_eigvec_std_compute_combined_upscaling(
     scaling_t alpha_min, scaling_t alpha, scaling_t beta)
 {
     double scaling;
@@ -279,7 +279,7 @@ static double protect_mul(double tnorm, double xnorm)
 ////////////////////////////////////////////////////////////////////////////////
 
 #ifdef STARNEIG_ENABLE_INTEGER_SCALING
-scaling_t /* == int*/ starneig_protect_update(
+scaling_t /* == int*/ starneig_eigvec_std_protect_update(
     double tnorm, double xnorm, double ynorm)
 {
     // Initialize scaling factor.
@@ -304,7 +304,7 @@ scaling_t /* == int*/ starneig_protect_update(
 
 // Returns scaling alpha such that y := (alpha * y) - t * (alpha * x) cannot
 // overflow.
-scaling_t /* == double*/ starneig_protect_update(
+scaling_t /* == double*/ starneig_eigvec_std_protect_update(
     double tnorm, double xnorm, double ynorm)
 {
     // Initialize scaling factor.
@@ -360,7 +360,7 @@ static double protect_update_scalar(double t, double x, double y)
 ////////////////////////////////////////////////////////////////////////////////
 
 #ifdef STARNEIG_ENABLE_INTEGER_SCALING
-int starneig_protect_multi_rhs_update(
+int starneig_eigvec_std_protect_multi_rhs_update(
     const double *restrict const Xnorms, int num_rhs,
     const double tnorm,
     const double *restrict const Ynorms,
@@ -372,7 +372,7 @@ int starneig_protect_multi_rhs_update(
 
     for (int k = num_rhs - 1; k >= 0; k--) {
         // Compute scaling factor for the k-th eigenvector.
-        scales[k] = starneig_protect_update(tnorm, Xnorms[k], Ynorms[k]);
+        scales[k] = starneig_eigvec_std_protect_update(tnorm, Xnorms[k], Ynorms[k]);
 
         if (lambda_type[k] == CMPLX) {
             // We have only one scaling factor per complex conjugate pair.
@@ -391,7 +391,7 @@ int starneig_protect_multi_rhs_update(
 
 #else
 
-int starneig_protect_multi_rhs_update(
+int starneig_eigvec_std_protect_multi_rhs_update(
     const double *restrict const Xnorms, int num_rhs,
     const double tnorm,
     const double *restrict const Ynorms,
@@ -403,7 +403,7 @@ int starneig_protect_multi_rhs_update(
 
     for (int k = num_rhs - 1; k >= 0; k--) {
         // Compute scaling factor for the k-th eigenvector.
-        scales[k] = starneig_protect_update(tnorm, Xnorms[k], Ynorms[k]);
+        scales[k] = starneig_eigvec_std_protect_update(tnorm, Xnorms[k], Ynorms[k]);
 
         if (lambda_type[k] == CMPLX) {
             // We have only one scaling factor per complex conjugate pair.
@@ -428,7 +428,7 @@ int starneig_protect_multi_rhs_update(
 ////////////////////////////////////////////////////////////////////////////////
 
 #ifdef STARNEIG_ENABLE_INTEGER_SCALING
-int starneig_solve_1x1_real_system(
+int starneig_eigvec_std_solve_1x1_real_system(
     double smin, double t, double lambda, double *x,
     scaling_t /* == int*/ *scale)
 {
@@ -460,7 +460,7 @@ int starneig_solve_1x1_real_system(
 
 /// Solves the real 1x1 system (t - lambda) x = b robustly.
 /// x = x / (t - lambda)
-int starneig_solve_1x1_real_system(
+int starneig_eigvec_std_solve_1x1_real_system(
     double smin, double t, double lambda, double *x,
     scaling_t /* == double*/ *scale)
 {
@@ -652,7 +652,7 @@ static void dladiv(double a, double b, double c, double d,
 
 #ifdef STARNEIG_ENABLE_INTEGER_SCALING
 
-int starneig_solve_1x1_cmplx_system(
+int starneig_eigvec_std_solve_1x1_cmplx_system(
     double smin, double t, double lambda_re, double lambda_im,
     double* x_re, double *x_im, scaling_t /* == int*/ *scale)
 {
@@ -699,7 +699,7 @@ int starneig_solve_1x1_cmplx_system(
 
 #else
 
-int starneig_solve_1x1_cmplx_system(
+int starneig_eigvec_std_solve_1x1_cmplx_system(
     double smin, double t, double lambda_re, double lambda_im,
     double* x_re, double *x_im, scaling_t /* == double*/ *scale)
 {
@@ -780,9 +780,9 @@ static double backsolve_real_2x2_system(double *T, int ldT, double *b)
     b[1] = b[1] / T(1,1);
 
 #ifdef STARNEIG_ENABLE_INTEGER_SCALING
-    s = ldexp(1.0, starneig_protect_update(fabs(T(0,1)), fabs(b[1]), xnorm));
+    s = ldexp(1.0, starneig_eigvec_std_protect_update(fabs(T(0,1)), fabs(b[1]), xnorm));
 #else
-    s = starneig_protect_update(fabs(T(0,1)), fabs(b[1]), xnorm);
+    s = starneig_eigvec_std_protect_update(fabs(T(0,1)), fabs(b[1]), xnorm);
 #endif
 
     if (s != 1.0) {
@@ -984,7 +984,7 @@ static int solve_2x2_real_system_internal(
 
 #ifdef STARNEIG_ENABLE_INTEGER_SCALING
 
-int starneig_solve_2x2_real_system(
+int starneig_eigvec_std_solve_2x2_real_system(
     double smin, const double *restrict const T, int ldT,
     double lambda,
     double *restrict const b, int *restrict const scale)
@@ -1004,7 +1004,7 @@ int starneig_solve_2x2_real_system(
 
 #else
 
-int starneig_solve_2x2_real_system(
+int starneig_eigvec_std_solve_2x2_real_system(
     double smin, const double *restrict const T, int ldT,
     double lambda,
     double *restrict const b, double *restrict const scale)
@@ -1374,7 +1374,7 @@ static int solve_2x2_cmplx_system_internal(
 
 
 #ifdef STARNEIG_ENABLE_INTEGER_SCALING
-int starneig_solve_2x2_cmplx_system(
+int starneig_eigvec_std_solve_2x2_cmplx_system(
     double smin,
     const double *restrict const T, int ldT,
     double lambda_re, double lambda_im,
@@ -1395,7 +1395,7 @@ int starneig_solve_2x2_cmplx_system(
 
 #else
 
-int starneig_solve_2x2_cmplx_system(
+int starneig_eigvec_std_solve_2x2_cmplx_system(
     double smin,
     const double *restrict const T, int ldT,
     double lambda_re, double lambda_im,

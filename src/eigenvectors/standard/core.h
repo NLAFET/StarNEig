@@ -34,8 +34,8 @@
 /// POSSIBILITY OF SUCH DAMAGE.
 ///
 
-#ifndef STARNEIG_EIGENVECTORS_STANDARD_CORE_H
-#define STARNEIG_EIGENVECTORS_STANDARD_CORE_H
+#ifndef STARNEIG_EIGENVECTORS_STD_CORE_H
+#define STARNEIG_EIGENVECTORS_STD_CORE_H
 
 #include <starneig_config.h>
 #include <starneig/configuration.h>
@@ -47,7 +47,7 @@
 ///
 /// @brief Inserts all tasks for computing eigenvectors of the Schur matrix S.
 ///
-starneig_error_t starneig_std_eigvecs_insert_backsolve_tasks(
+starneig_error_t starneig_eigvec_std_insert_backsolve_tasks(
     int num_tiles,
     starpu_data_handle_t **S_tiles,
     starpu_data_handle_t **S_tiles_norms,
@@ -66,7 +66,7 @@ starneig_error_t starneig_std_eigvecs_insert_backsolve_tasks(
 ///
 /// @brief Inserts all tasks for backtransforming the eigenvectors.
 ///
-starneig_error_t starneig_std_eigvecs_insert_backtransform_tasks(
+starneig_error_t starneig_eigvec_std_insert_backtransform_tasks(
     int *first_row, int num_tiles,
     starpu_data_handle_t **Q_tiles,
     starpu_data_handle_t **X_tiles,

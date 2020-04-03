@@ -36,16 +36,34 @@
 /// POSSIBILITY OF SUCH DAMAGE.
 ///
 
-#ifndef SIROBUST_GEIG_H_
-#define SIROBUST_GEIG_H_
+#ifndef STARNEIG_EIGVEG_GEN_SIROBUST_GEIG_H_
+#define STARNEIG_EIGVEG_GEN_SIROBUST_GEIG_H_
 
+#include <starneig_config.h>
+#include <starneig/configuration.h>
 #include <stddef.h>
 
-// STARPU, robust computation of user's selection of generalised eigenvectors.
-int starneig_sinew(int m,
-	  double *s, size_t lds,
-	  double *t, size_t ldt,
-	  int *select, double *y, size_t ldy,
-	  int mb, int nb);
+///
+/// @brief Computes selected generalized eigenvectors from real Schur forms
+///
+/// @param[in] m the dimension of matrices S, T
+/// @param[in] s array containing the matrix S
+/// @param[in] lds leading dimension of array s
+/// @param[in] t array containing the matrix T
+/// @param[in] ldt leading dimension of array t
+/// @param[in] select LAPACK style selection array of length at least m
+/// @param[out] y array large enough to store an m by n matrix
+/// @param[in] ldy leading dimension of y
+/// @param[in] mb number of rows pr. block row of Y (target value)
+/// @param[in] nb number of colums pr. block column of Y (target value)
+///
+/// The different tilings used will never split a 2-by-2 block.
+/// Tiles are expanded/reduce by one row/column prevent the splitting of
+/// a 2-by-2 block or the separationg of the real and imaginary part of a
+/// complex eigenvector.
+///
+int starneig_eigvec_gen_sinew(
+    int m, double *s, size_t lds, double *t, size_t ldt, int *select,
+    double *y, size_t ldy, int mb, int nb);
 
-#endif
+#endif // STARNEIG_EIGVEG_GEN_SIROBUST_GEIG_H_

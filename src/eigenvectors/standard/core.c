@@ -43,14 +43,14 @@
 // TODO: move codelets
 static struct starpu_codelet bound_cl = {
     .name = "bound",
-    .cpu_funcs = {starneig_cpu_bound},
+    .cpu_funcs = {starneig_eigvec_std_cpu_bound},
     .nbuffers = 2,
     .modes = {STARPU_R, STARPU_W}
 };
 
 static struct starpu_codelet backsolve_cl = {
     .name = "backsolve",
-    .cpu_funcs = {starneig_cpu_backsolve},
+    .cpu_funcs = {starneig_eigvec_std_cpu_backsolve},
     .nbuffers = 8,
     .modes = {STARPU_R, STARPU_R, STARPU_W, STARPU_W, STARPU_W,
               STARPU_R, STARPU_R, STARPU_W}
@@ -58,7 +58,7 @@ static struct starpu_codelet backsolve_cl = {
 
 static struct starpu_codelet solve_cl = {
     .name = "solve",
-    .cpu_funcs = {starneig_cpu_solve},
+    .cpu_funcs = {starneig_eigvec_std_cpu_solve},
     .nbuffers = 10,
     .dyn_modes = (enum starpu_data_access_mode[])
     { STARPU_R, STARPU_R, STARPU_RW, STARPU_RW, STARPU_RW,
@@ -67,7 +67,7 @@ static struct starpu_codelet solve_cl = {
 
 static struct starpu_codelet update_cl = {
     .name = "update",
-    .cpu_funcs = {starneig_cpu_update},
+    .cpu_funcs = {starneig_eigvec_std_cpu_update},
     .nbuffers = 9,
     .dyn_modes = (enum starpu_data_access_mode[])
     { STARPU_R, STARPU_R, STARPU_R, STARPU_R, STARPU_R,
@@ -76,7 +76,7 @@ static struct starpu_codelet update_cl = {
 
 static struct starpu_codelet backtransform_cl = {
     .name = "backtransform",
-    .cpu_funcs = {starneig_cpu_backtransform},
+    .cpu_funcs = {starneig_eigvec_std_cpu_backtransform},
     .nbuffers = 3,
     .modes = {STARPU_R, STARPU_R, STARPU_W}
 };
@@ -85,7 +85,7 @@ static struct starpu_codelet backtransform_cl = {
 
 
 
-starneig_error_t starneig_std_eigvecs_insert_backsolve_tasks(
+starneig_error_t starneig_eigvec_std_insert_backsolve_tasks(
     int num_tiles,
     starpu_data_handle_t **S_tiles,
     starpu_data_handle_t **S_tiles_norms,
@@ -183,7 +183,7 @@ starneig_error_t starneig_std_eigvecs_insert_backsolve_tasks(
 }
 
 
-starneig_error_t starneig_std_eigvecs_insert_backtransform_tasks(
+starneig_error_t starneig_eigvec_std_insert_backtransform_tasks(
     int *first_row, int num_tiles,
     starpu_data_handle_t **Q_tiles,
     starpu_data_handle_t **X_tiles,

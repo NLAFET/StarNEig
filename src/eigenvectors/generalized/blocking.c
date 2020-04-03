@@ -36,93 +36,75 @@
 /// POSSIBILITY OF SUCH DAMAGE.
 ///
 
-// This header includes the definition of size_t
-#include <stddef.h>
+#include <starneig_config.h>
+#include <starneig/configuration.h>
+#include "blocking.h"
 
 // This macro ensures that addresses are computed as size_t
 #define _a(i,j) a[(size_t)(j)*lda+(i)]
 
-
-///
-/// @brief  Count mini-blocks of a quasi-upper triangular matrix
-///
-/// @param[in] m  dimension of matrix
-/// @param[in] a  array containing matrix
-/// @param[in] lda leading dimension of array a
-///
-/// @return  the number of 1-by-1 and 2-by-2 blocks found along the main diagonal
-int starneig_CountBlocks(int m, double *a, size_t lda)
+int starneig_eigvec_gen_count_blocks(int m, double *a, size_t lda)
 {
-  // Column index
-  int j=0;
-  // Block index
-  int k=0;
+    // Column index
+    int j=0;
+    // Block index
+    int k=0;
 
-  // Loop over the columns of A
-  while (j<m) {
-    if (j<m-1) {
-      // Check subdiagonal entry
-      if (_a(j+1,j)!=0) {
-	// 2 by 2 block detected
-	j=j+2;
-      } else {
-	// 1 by 1 block detected
-	j++;
-      }
-    } else {
-      // We have j=m-1, i.e., last column
-      j++;
+    // Loop over the columns of A
+    while (j<m) {
+        if (j<m-1) {
+            // Check subdiagonal entry
+            if (_a(j+1,j)!=0) {
+                // 2 by 2 block detected
+                j=j+2;
+            } else {
+                // 1 by 1 block detected
+                j++;
+            }
+        } else {
+            // We have j=m-1, i.e., last column
+            j++;
+        }
+        // Increment the number of blocks detected
+        k++;
     }
-    // Increment the number of blocks detected
-    k++;
-  }
-  // Return the number of blocks detected
-  return k;
+    // Return the number of blocks detected
+    return k;
 }
 
-///
-/// @brief Map the mini-block structure of a quasi-upper triangular matrix
-///
-/// @param[in] m  dimension of matrix
-/// @param[in] a  array containing matrix
-/// @param[in] lda leading dimension of array a
-/// @param[out] blocks  array of length at least numBlocks+1
-/// @param[in] numBlocks maximum number of blocks to find
-///
-/// @return the number of 1-by-1 and 2-by-2 blocks mapped along the main diagonal
-int starneig_FindBlocks(int m, double *a, size_t lda, int *blocks, int numBlocks)
+int starneig_eigvec_gen_find_blocks(
+    int m, double *a, size_t lda, int *blocks, int numBlocks)
 {
+    // Column pointer
+    int j=0;
+    // Block pointer
+    int k=0;
 
-  // Column pointer
-  int j=0;
-  // Block pointer
-  int k=0;
+    // The first block starts at the first column;
+    blocks[0]=0;
 
-  // The first block starts at the first column;
-  blocks[0]=0;
-
-  // Find at most numBlocks blocks
-  while ((j<m) && (k<numBlocks)) {
-    if (j<m-1) {
-      // Check subdiagonal entry A(j+1,j)
-      if (_a(j+1,j)!=0) {
-	// 2-by-2 block found
-	j=j+2;
-      } else {
-	// 1-by-1 block found
-	j++;
-      }
-    } else {
-      // j=m-1, last column of the matrix
-      j++;
+    // Find at most numBlocks blocks
+    while ((j<m) && (k<numBlocks)) {
+        if (j<m-1) {
+            // Check subdiagonal entry A(j+1,j)
+            if (_a(j+1,j)!=0) {
+                // 2-by-2 block found
+                j=j+2;
+            } else {
+                // 1-by-1 block found
+                j++;
+            }
+        } else {
+            // j=m-1, last column of the matrix
+            j++;
+        }
+        // Mark start of next block
+        blocks[k+1]=j;
+        // Move to next block
+        k++;
     }
-    // Mark start of next block
-    blocks[k+1]=j;
-    // Move to next block
-    k++;
-  }
-  // Return the number of blocks found
-  return k;
+    // Return the number of blocks found
+    return k;
 }
 
 #undef _a

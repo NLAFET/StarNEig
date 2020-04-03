@@ -43,7 +43,7 @@
 #include "partition.h"
 
 
-void starneig_partition(int n, const int *lambda_type, int tile_size, int *p)
+void starneig_eigvec_std_partition(int n, const int *lambda_type, int tile_size, int *p)
 {
     int num_tiles = (n+tile_size-1)/tile_size;
 
@@ -86,7 +86,7 @@ void starneig_partition(int n, const int *lambda_type, int tile_size, int *p)
 }
 
 
-int starneig_count_selected(int n, const int *selected)
+int starneig_eigvec_std_count_selected(int n, const int *selected)
 {
     int count = 0;
     for (int i = 0; i < n; i++)
@@ -97,10 +97,10 @@ int starneig_count_selected(int n, const int *selected)
 }
 
 
-void starneig_partition_selected(
+void starneig_eigvec_std_partition_selected(
     int n, const int *pr, int *selected, int num_tiles, int *pc)
 {
-    int num_selected = starneig_count_selected(n, selected);
+    int num_selected = starneig_eigvec_std_count_selected(n, selected);
 
     // Fill pad so that #cols = pr[i]-pr[i-1].
     pc[0] = 0;
@@ -109,7 +109,7 @@ void starneig_partition_selected(
     for (int i = 1; i < num_tiles; i++) {
         // Shrink width of tile column to number of selected.
         int width = pr[i]-pr[i-1];
-        int quantity = starneig_count_selected(width, selected+pr[i-1]);
+        int quantity = starneig_eigvec_std_count_selected(width, selected+pr[i-1]);
         pc[i] = pc[i-1]+quantity;
     }
 }

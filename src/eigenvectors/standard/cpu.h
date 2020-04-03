@@ -34,26 +34,26 @@
 /// POSSIBILITY OF SUCH DAMAGE.
 ///
 
-#ifndef STARNEIG_EIGENVECTORS_STANDARD_CPU_H
-#define STARNEIG_EIGENVECTORS_STANDARD_CPU_H
+#ifndef STARNEIG_EIGENVECTORS_STD_CPU_H
+#define STARNEIG_EIGENVECTORS_STD_CPU_H
 
 #include <starneig_config.h>
 #include <starneig/configuration.h>
 #include <starneig/error.h>
 #include "typedefs.h"
 
-void starneig_unify_scaling(int num_tiles, int *first_row, int *first_col,
+void starneig_eigvec_std_unify_scaling(int num_tiles, int *first_row, int *first_col,
     scaling_t *restrict scales,
     double *restrict X, int ldX,
     const int *restrict lambda_type, const int *restrict selected);
 
 
-void starneig_cpu_bound(void *buffers[], void *cl_args);
-void starneig_cpu_bound_DM(void *buffers[], void *cl_args);
-void starneig_cpu_backsolve(void *buffers[], void *cl_args);
-void starneig_cpu_solve(void *buffers[], void *cl_args);
-void starneig_cpu_update(void *buffers[], void *cl_args);
-void starneig_cpu_find_max_entry(void *buffers[], void *cl_args);
-void starneig_cpu_backtransform(void *buffers[], void *cl_args);
+void starneig_eigvec_std_cpu_bound(void *buffers[], void *cl_args);
+void starneig_eigvec_std_cpu_bound_DM(void *buffers[], void *cl_args);
+void starneig_eigvec_std_cpu_backsolve(void *buffers[], void *cl_args);
+void starneig_eigvec_std_cpu_solve(void *buffers[], void *cl_args);
+void starneig_eigvec_std_cpu_update(void *buffers[], void *cl_args);
+void starneig_eigvec_std_cpu_find_max_entry(void *buffers[], void *cl_args);
+void starneig_eigvec_std_cpu_backtransform(void *buffers[], void *cl_args);
 
 #endif

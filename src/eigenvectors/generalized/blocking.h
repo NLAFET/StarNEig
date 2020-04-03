@@ -36,13 +36,52 @@
 /// POSSIBILITY OF SUCH DAMAGE.
 ///
 
-#ifndef BLOCKING_GUARD_H_
-#define BLOCKING_GUARD_H_
+#ifndef STARNEIG_EIGVEC_GEN_BLOCKING_H_
+#define STARNEIG_EIGVEC_GEN_BLOCKING_H_
 
-// Count the number of mini-blocks in a quasi-upper triangular matrix
-int starneig_CountBlocks(int m, double *a, size_t lda);
+#include <starneig_config.h>
+#include <starneig/configuration.h>
+#include <stddef.h>
 
-// Find mini-blocks in a quasi-upper triangular matrix
-int starneig_FindBlocks(int m, double *a, size_t lda, int *bp, int numBlocks);
+///
+/// @brief Count mini-blocks of a quasi-upper triangular matrix.
+///
+/// @param[in] m
+///         Dimension of matrix.
+///
+/// @param[in] a
+///         Array containing matrix.
+///
+/// @param[in] lda
+///         Leading dimension of array a.
+///
+/// @return The number of 1-by-1 and 2-by-2 blocks found along the main
+/// diagonal.
+///
+int starneig_eigvec_gen_count_blocks(int m, double *a, size_t lda);
 
-#endif
+///
+/// @brief Map the mini-block structure of a quasi-upper triangular matrix
+///
+/// @param[in] m
+///         dimension of matrix
+///
+/// @param[in] a
+///         array containing matrix
+///
+/// @param[in] lda
+///         leading dimension of array a
+///
+/// @param[out] blocks
+///         array of length at least numBlocks+1
+///
+/// @param[in] numBlocks
+///         maximum number of blocks to find
+///
+/// @return the number of 1-by-1 and 2-by-2 blocks mapped along the main
+/// diagonal
+///
+int starneig_eigvec_gen_find_blocks(
+    int m, double *a, size_t lda, int *bp, int numBlocks);
+
+#endif // STARNEIG_EIGVEC_GEN_BLOCKING_H_

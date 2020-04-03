@@ -109,8 +109,8 @@ starneig_error_t starneig_GEP_SM_Eigenvectors_expert(
     starneig_node_set_mode(STARNEIG_MODE_SM);
     starneig_node_resume_starpu();
 
-    starneig_InitializeOmega(100);
-    int _ret = starneig_sinew(n, S, ldS, T, ldT, selected, _X, ld_X,
+    starneig_eigvec_gen_initialize_omega(100);
+    int _ret = starneig_eigvec_gen_sinew(n, S, ldS, T, ldT, selected, _X, ld_X,
         conf->tile_size, conf->tile_size);
 
     starpu_task_wait_for_all();

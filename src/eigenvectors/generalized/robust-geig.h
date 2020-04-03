@@ -36,11 +36,47 @@
 /// POSSIBILITY OF SUCH DAMAGE.
 ///
 
-#ifndef ROBUST_GEIG_H_
-#define ROBUST_GEIG_H_
+#ifndef STARNEIG_EIGVEC_GEN_ROBUST_GEIG_H_
+#define STARNEIG_EIGVEC_GEN_ROBUST_GEIG_H_
 
-// Generalization of Edward Anderson's column majorants for triangular matrices
-void starneig_GeneralisedColumnMajorants(int m, double *a, size_t lda,
-				int *blocks, int numBlocks, double *ac);
+#include <starneig_config.h>
+#include <starneig/configuration.h>
 
-#endif
+///
+/// @brief Generalised column majorants for quasi-upper triangular matrix A
+///
+/// Computes the infinity norm of the strictly super-diagonal portion of each
+/// mini-block column. A mini-block column is either a single column or a pair
+/// of adjacent columns.
+///
+///        x|xx|x|x|xx|x|x|x|
+///        ------------------
+///         |xx|x|x|xx|x|x|x|
+///         |xx|x|x|xx|x|x|x|
+///        ------------------
+///         |  |x|x|xx|x|x|x|
+///        ------------------
+///         |  | |x|xx|x|x|x|
+///        ------------------
+///         |  | | |xx|x|x|x|
+///         |  | | |xx|x|x|x|
+///        ------------------
+///         |  | | |  |x|x|x|
+///        ------------------
+///         |  | | |  | |x|x|
+///        ------------------
+///         |  | | |  | | |x|
+///        ------------------
+///
+///
+/// @param[in] m dimension of the matrix
+/// @param[in] a array containing the matrix
+/// @param[in] lda leading dimension of the array
+/// @param[in] blocks offset of all mini-blocks along the main diagonal of A
+/// @param[in] numBlocks number of mini-blocks
+/// @param[out] ca generalised column majorants for mini-block colmuns of A
+///
+void starneig_eigvec_gen_generalised_column_majorants(
+    int m, double *a, size_t lda, int *blocks, int numBlocks, double *ac);
+
+#endif // STARNEIG_EIGVEC_GEN_ROBUST_GEIG_H_

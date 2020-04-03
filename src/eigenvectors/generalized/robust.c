@@ -37,12 +37,12 @@
 /// POSSIBILITY OF SUCH DAMAGE.
 ///
 
-#include <stdlib.h>
-#include <math.h>
+#include <starneig_config.h>
+#include <starneig/configuration.h>
 #include "common.h"
 #include "robust.h"
-
-
+#include <stdlib.h>
+#include <math.h>
 #include <omp.h>
 #include <stdio.h>
 
@@ -52,91 +52,64 @@
 double Omega;
 double OmegaInv;
 
-///
-/// @brief Set the global overflow threshold Omega used by all robust codes
-/// The overflow threshold is an integer power of 2.
-///
-/// @param[in] k integer
-///
-void starneig_InitializeOmega(int k)
+void starneig_eigvec_gen_initialize_omega(int k)
 {
-  Omega = pow(2, k); OmegaInv = pow(2, -k);
+    Omega = pow(2, k); OmegaInv = pow(2, -k);
 }
 
-///
-/// @brief Computes the scaling necessary to prevent overflow in a scalar
-/// division y = b/t
-///
-/// @param[in] b real number bounded by Omega
-/// @param[in] t nonzero real number bounded by Omega
-///
-/// @return scaling alpha, such that (alpha*b)/t is bounded by Omega
-///
-double starneig_ProtectDivision(double b, double t)
+double starneig_eigvec_gen_protect_division(double b, double t)
 {
-  /* Returns a scaling alpha such that y = (alpha*b)/t can not overflow
+    /* Returns a scaling alpha such that y = (alpha*b)/t can not overflow
 
-     ASSUME: |b|, |t| bounded by Omega
-     ENSURE: 1/Omega <= alpha <= 1
-  */
+          ASSUME: |b|, |t| bounded by Omega
+          ENSURE: 1/Omega <= alpha <= 1
+    */
 
-  // Return value
-  double alpha;
+    // Return value
+    double alpha;
 
-  // Auxiliary variables
-  double aux;
+    // Auxiliary variables
+    double aux;
 
-  // Initialize the scaling factor
-  alpha = 1.0;
+    // Initialize the scaling factor
+    alpha = 1.0;
 
-  if (fabs(t)<OmegaInv) {
-    aux=fabs(t)*Omega;
-    if (fabs(b)>aux)
-      alpha=aux/fabs(b);
-  } else {
-    if (fabs(t)<1) {
-      aux=fabs(t)*Omega;
-      if (fabs(b)>aux)
-	alpha=1/fabs(b);
+    if (fabs(t)<OmegaInv) {
+        aux=fabs(t)*Omega;
+        if (fabs(b)>aux)
+            alpha=aux/fabs(b);
+    } else {
+        if (fabs(t)<1) {
+            aux=fabs(t)*Omega;
+            if (fabs(b)>aux)
+		alpha=1/fabs(b);
+        }
     }
-  }
-  return alpha;
+    return alpha;
 }
 
-
-///
-/// @brief Computes the scaling necessary to prevent overflow in a linear
-/// update Y:=Y-T*X
-///
-/// @param[in] t upper bound of the infinity norm of the matrix T, t <= Omega
-/// @param[in] x upper bound of the infinity norm of the matrix X, x <= Omega
-/// @param[in] y upper bound of the infinity norm of the matrix Y, y <= Omega
-///
-/// @return scaling factor alpha, such that the calculation of
-/// Y:=(alpha*Y) - T*(alpha*X) cannot exceed Omega
-///
-double starneig_ProtectUpdate(double t, double x, double y)
+double starneig_eigvec_gen_protect_update(double t, double x, double y)
 {
-  /* Returns a scaling alpha such that y := (alpha*y) - t*(alpha*x)
-     can does not exceed Omega
+    /* Returns a scaling alpha such that y := (alpha*y) - t*(alpha*x)
+          can does not exceed Omega
 
-     ASSUME: 0 <= t, x, y <= Omega
-     ENSURE: 0.5*(1/Omega) <= alpha <= 1
+          ASSUME: 0 <= t, x, y <= Omega
+          ENSURE: 0.5*(1/Omega) <= alpha <= 1
 
-  */
+    */
 
-  // Return value
-  double alpha;
+    // Return value
+    double alpha;
 
-  // Initialize the scaling factor
-  alpha = 1.0;
+    // Initialize the scaling factor
+    alpha = 1.0;
 
-  if (x <= 1) {
-    if (t*x > Omega - y)
-      alpha = 0.5;
-  } else {
-    if (t > (Omega - y)/x)
-      alpha=0.5*(1/x);
-  }
-  return alpha;
+    if (x <= 1) {
+        if (t*x > Omega - y)
+            alpha = 0.5;
+    } else {
+        if (t > (Omega - y)/x)
+            alpha=0.5*(1/x);
+    }
+    return alpha;
 }

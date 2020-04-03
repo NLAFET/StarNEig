@@ -37,14 +37,22 @@
 /// POSSIBILITY OF SUCH DAMAGE.
 ///
 
-#ifndef ROBUST_H_
-#define ROBUST_H_
+#ifndef STARNEIG_EIGVEC_GEN_ROBUST_H_
+#define STARNEIG_EIGVEC_GEN_ROBUST_H_
+
+#include <starneig_config.h>
+#include <starneig/configuration.h>
 
 // Overflow threshold Omega and 1/Omega
 #define log2_Omega 1000
 
-// Initialize overflow threshold
-void starneig_InitializeOmega(int k);
+///
+/// @brief Set the global overflow threshold Omega used by all robust codes
+/// The overflow threshold is an integer power of 2.
+///
+/// @param[in] k integer
+///
+void starneig_eigvec_gen_initialize_omega(int k);
 
 // --------------------------------------------------------------------------
 // WARNING: Remember to assign values to Omega and OmegaInv.
@@ -52,10 +60,28 @@ void starneig_InitializeOmega(int k);
 extern double Omega;
 extern double OmegaInv;
 
-// Protect a scalar division against overflow
-double starneig_ProtectDivision(double b, double t);
+///
+/// @brief Computes the scaling necessary to prevent overflow in a scalar
+/// division y = b/t
+///
+/// @param[in] b real number bounded by Omega
+/// @param[in] t nonzero real number bounded by Omega
+///
+/// @return scaling alpha, such that (alpha*b)/t is bounded by Omega
+///
+double starneig_eigvec_gen_protect_division(double b, double t);
 
-// Protect a linear update againt overflow
-double starneig_ProtectUpdate(double t, double x, double b);
+///
+/// @brief Computes the scaling necessary to prevent overflow in a linear
+/// update Y:=Y-T*X
+///
+/// @param[in] t upper bound of the infinity norm of the matrix T, t <= Omega
+/// @param[in] x upper bound of the infinity norm of the matrix X, x <= Omega
+/// @param[in] y upper bound of the infinity norm of the matrix Y, y <= Omega
+///
+/// @return scaling factor alpha, such that the calculation of
+/// Y:=(alpha*Y) - T*(alpha*X) cannot exceed Omega
+///
+double starneig_eigvec_gen_protect_update(double t, double x, double b);
 
-#endif
+#endif // STARNEIG_EIGVEC_GEN_ROBUST_H_

@@ -36,71 +36,39 @@
 /// POSSIBILITY OF SUCH DAMAGE.
 ///
 
+#include <starneig_config.h>
+#include <starneig/configuration.h>
+#include "common.h"
+#include "robust-geig.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <stddef.h>
 #include <math.h>
-#include "common.h"
-#include "robust-geig.h"
 
 // This macro ensures that addresses are computed as size_t
 #define _a(i,j) a[(size_t)(j)*lda+(i)]
 
-///
-/// @brief Generalised column majorants for quasi-upper triangular matrix A
-///
-/// Computes the infinity norm of the strictly super-diagonal portion of each
-/// mini-block column. A mini-block column is either a single column or a pair
-/// of adjacent columns.
-///
-///        x|xx|x|x|xx|x|x|x|
-///        ------------------
-///         |xx|x|x|xx|x|x|x|
-///         |xx|x|x|xx|x|x|x|
-///        ------------------
-///         |  |x|x|xx|x|x|x|
-///        ------------------
-///         |  | |x|xx|x|x|x|
-///        ------------------
-///         |  | | |xx|x|x|x|
-///         |  | | |xx|x|x|x|
-///        ------------------
-///         |  | | |  |x|x|x|
-///        ------------------
-///         |  | | |  | |x|x|
-///        ------------------
-///         |  | | |  | | |x|
-///        ------------------
-///
-///
-/// @param[in] m dimension of the matrix
-/// @param[in] a array containing the matrix
-/// @param[in] lda leading dimension of the array
-/// @param[in] blocks offset of all mini-blocks along the main diagonal of A
-/// @param[in] numBlocks number of mini-blocks
-/// @param[out] ca generalised column majorants for mini-block colmuns of A
-///
-void starneig_GeneralisedColumnMajorants(int m, double *a, size_t lda,
-				int *blocks, int numBlocks, double *ac)
+void starneig_eigvec_gen_generalised_column_majorants(
+    int m, double *a, size_t lda, int *blocks, int numBlocks, double *ac)
 {
 
-  // Work space array needed by LAPACK
-  double *work=malloc(m*sizeof(double));
+    // Work space array needed by LAPACK
+    double *work=malloc(m*sizeof(double));
 
-  // The first value is always zero - as nothing is above the first mini-block
-  ac[0]=0;
+    // The first value is always zero - as nothing is above the first mini-block
+    ac[0]=0;
 
-  // Loop over the remaining mini-block columns of matrix A
-  for (int k=1; k<numBlocks; k++) {
-    // Determine the width of the current mini-block
-    int ln=blocks[k+1]-blocks[k];
-    // Determine the number of rows above the current mini-blocks
-    int lm=blocks[k];
-    // Compute infinity norm
-    ac[k]=starneig_dlange("I", lm, ln, &_a(0,lm), lda, work);
-  }
-  // Free workspace
-  free(work);
+    // Loop over the remaining mini-block columns of matrix A
+    for (int k=1; k<numBlocks; k++) {
+        // Determine the width of the current mini-block
+        int ln=blocks[k+1]-blocks[k];
+        // Determine the number of rows above the current mini-blocks
+        int lm=blocks[k];
+        // Compute infinity norm
+        ac[k]=starneig_eigvec_gen_dlange("I", lm, ln, &_a(0,lm), lda, work);
+    }
+    // Free workspace
+    free(work);
 }
 
 #undef _a

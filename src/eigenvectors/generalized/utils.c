@@ -36,81 +36,54 @@
 /// POSSIBILITY OF SUCH DAMAGE.
 ///
 
+#include <starneig_config.h>
+#include <starneig/configuration.h>
+#include "utils.h"
+#include "common.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
-#include "utils.h"
-#include "common.h"
 
 // This macro ensures that addresses are computed as size_t
-#define _a(i,j) a[(size_t)(j)*lda+(i)]
+#define _A(i, j) a[(size_t)(j)*lda+(i)]
 
-///
-/// @brief Prints double arrays nicely on the screen
-///
-/// @param[in] m number of rows of matrix A
-/// @param[in] n number of columns of matrix A
-/// @param[in] a array containing matrix A
-/// @param[in] lda leading dimension of matrix A
-/// @param[in] format valid C format specification
-///
-void starneig_ddm(int m, int n, double *a, size_t lda, char *format) {
-
-  for (int i=0; i<min(m,maxrow); i++) {
-    for (int j=0; j<min(n,maxcol); j++) {
-      printf(format,_a(i,j));
+void starneig_eigvec_gen_ddm(
+    int m, int n, double *a, size_t lda, char *format)
+{
+    for (int i = 0; i < MIN(m, maxrow); i++) {
+        for (int j = 0; j < MIN(n, maxcol); j++) {
+            printf(format, _A(i,j));
+        }
+        printf("\n");
     }
     printf("\n");
-  }
-  printf("\n");
 }
 
-///
-/// @brief Prints integer arrays nicely on the screen
-///
-/// @param[in] m  number of rows of matrix A
-/// @param[in] n  number of columns of matrix A
-/// @param[in] a  array containing matrix A
-/// @param[in] lda  leading dimension of matrix A
-/// @param[in] format  valid C format specification
-void starneig_ddmi(int m, int n, int *a, size_t lda, char *format) {
-
-  for (int i=0; i<min(m,maxrow); i++) {
-    for (int j=0; j<min(n,maxcol); j++) {
-      printf(format,_a(i,j));
+void starneig_eigvec_gen_ddmi(
+    int m, int n, int *a, size_t lda, char *format)
+{
+    for (int i = 0; i < MIN(m, maxrow); i++) {
+        for (int j = 0; j < MIN(n, maxcol); j++) {
+            printf(format, _A(i,j));
+        }
+        printf("\n");
     }
     printf("\n");
-  }
-  printf("\n");
 }
 
-///
-/// @brief  Fill a matrix with zeros
-///
-/// @param[in] m  number of rows of matrix
-/// @param[in] n  number of columns of matrix
-/// @param[in] a  array containing matrix
-/// @param[in] lda  leading dimension of array a
-void starneig_zeros(int m, int n, double *a, size_t lda) {
-
-  for (int j=0; j<n; j++)
-    for (int i=0; i<m; i++)
-      _a(i,j)=0;
+void starneig_eigvec_gen_zeros(int m, int n, double *a, size_t lda)
+{
+    for (int j = 0; j < n; j++)
+        for (int i = 0; i < m; i++)
+            _A(i, j) = 0.0;
 }
 
-///
-/// @brief  Fill a matrix with ones
-///
-/// @param[in] m  number of rows of matrix
-/// @param[in] n  number of columns of matrix
-/// @param[in] a  array containing matrix
-/// @param[in] lda  leading dimension of array a
-void starneig_ones(int m, int n, double *a, size_t lda) {
-
-  for (int j=0; j<n; j++)
-    for (int i=0; i<m; i++)
-      _a(i,j)=1;
+void starneig_eigvec_gen_ones(int m, int n, double *a, size_t lda)
+{
+    for (int j = 0; j < n; j++)
+        for (int i = 0; i < m; i++)
+            _A(i, j) = 1.0;
 }
 
-#undef _a
+#undef _A

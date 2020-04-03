@@ -34,8 +34,8 @@
 /// POSSIBILITY OF SUCH DAMAGE.
 ///
 
-#ifndef STARNEIG_EIGENVECTORS_STANDARD_ROBUST_H
-#define STARNEIG_EIGENVECTORS_STANDARD_ROBUST_H
+#ifndef STARNEIG_EIGENVECTORS_STD_ROBUST_H
+#define STARNEIG_EIGENVECTORS_STD_ROBUST_H
 
 #include <starneig_config.h>
 #include <starneig/configuration.h>
@@ -51,7 +51,7 @@
 /// @param[out] alpha
 ///         Vector of length n. On exit, all entries equal the neutral element.
 ///
-void starneig_init_scaling_factor(int n, scaling_t *alpha);
+void starneig_eigvec_std_init_scaling_factor(int n, scaling_t *alpha);
 
 
 ///
@@ -70,7 +70,7 @@ void starneig_init_scaling_factor(int n, scaling_t *alpha);
 ///         An array of length num_cols. On exit, the i-th entry holds the
 ///         smallest scaling factor for the i-th eigenvector.
 ///
-void starneig_find_smallest_scaling(int num_tiles, int num_selected,
+void starneig_eigvec_std_find_smallest_scaling(int num_tiles, int num_selected,
     const scaling_t *restrict scales, scaling_t *restrict smin);
 
 
@@ -86,7 +86,7 @@ void starneig_find_smallest_scaling(int num_tiles, int num_selected,
 /// @param[in] beta
 ///         Pointer to a scalar.
 ///
-void starneig_scale(int n, double *restrict const x, const scaling_t *beta);
+void starneig_eigvec_std_scale(int n, double *restrict const x, const scaling_t *beta);
 
 
 ///
@@ -98,7 +98,7 @@ void starneig_scale(int n, double *restrict const x, const scaling_t *beta);
 /// @param[in] phi
 ///         A scalar scaling factor.
 ///
-void starneig_update_global_scaling(scaling_t *global, scaling_t phi);
+void starneig_eigvec_std_update_global_scaling(scaling_t *global, scaling_t phi);
 
 
 ///
@@ -110,7 +110,7 @@ void starneig_update_global_scaling(scaling_t *global, scaling_t phi);
 /// @param[in] phi
 ///         A scalar scaling factor.
 ///
-void starneig_update_norm(double *norm, scaling_t phi);
+void starneig_eigvec_std_update_norm(double *norm, scaling_t phi);
 
 
 ///
@@ -124,7 +124,7 @@ void starneig_update_norm(double *norm, scaling_t phi);
 ///
 /// @return alpha_min / alpha
 ///
-double starneig_compute_upscaling(scaling_t alpha_min, scaling_t alpha);
+double starneig_eigvec_std_compute_upscaling(scaling_t alpha_min, scaling_t alpha);
 
 
 ///
@@ -135,7 +135,7 @@ double starneig_compute_upscaling(scaling_t alpha_min, scaling_t alpha);
 ///
 /// @return The scalar alpha converted to double-precision.
 ///
-double starneig_convert_scaling(scaling_t alpha);
+double starneig_eigvec_std_convert_scaling(scaling_t alpha);
 
 
 ///
@@ -152,7 +152,7 @@ double starneig_convert_scaling(scaling_t alpha);
 ///
 /// @return (alpha_min / alpha) * beta
 ///
-double starneig_compute_combined_upscaling(
+double starneig_eigvec_std_compute_combined_upscaling(
     scaling_t alpha_min, scaling_t alpha, scaling_t beta);
 
 
@@ -182,7 +182,7 @@ double starneig_compute_combined_upscaling(
 ///
 /// @return The scaling factor alpha.
 ///
-scaling_t starneig_protect_update(double t, double x, double y);
+scaling_t starneig_eigvec_std_protect_update(double t, double x, double y);
 
 
 ///
@@ -223,7 +223,7 @@ scaling_t starneig_protect_update(double t, double x, double y);
 /// @return Flag that indicates if rescaling is necessary (status == RESCALE)
 ///         or not (status == NO_RESCALE).
 ///
-int starneig_protect_multi_rhs_update(
+int starneig_eigvec_std_protect_multi_rhs_update(
     const double *restrict const Xnorms, int num_rhs,
     const double tnorm,
     const double *restrict const Ynorms,
@@ -257,7 +257,7 @@ int starneig_protect_multi_rhs_update(
 /// @return Error flag. Set to 0 if no error occurred. Set to 1 if (t - lambda)
 ///         was perturbed to make it greater than smin.
 ///
-int starneig_solve_1x1_real_system(
+int starneig_eigvec_std_solve_1x1_real_system(
     double smin, double t, double lambda, double *x, scaling_t *scale);
 
 
@@ -296,7 +296,7 @@ int starneig_solve_1x1_real_system(
 /// @return Error flag. Set to 0 if no error occurred. Set to 1 if (t - lambda)
 ///         was perturbed to make it greater than smin.
 ///
-int starneig_solve_1x1_cmplx_system(double smin, double t, double lambda_re, double lambda_im,
+int starneig_eigvec_std_solve_1x1_cmplx_system(double smin, double t, double lambda_re, double lambda_im,
     double* x_re, double *x_im, scaling_t *scale);
 
 
@@ -332,7 +332,7 @@ int starneig_solve_1x1_cmplx_system(double smin, double t, double lambda_re, dou
 /// @return Error flag. Set to 0 if no error occurred. Set to 1 if the singular
 ///         values of (T - lambda * I) were smaller than smin and perturbed.
 ///
-int starneig_solve_2x2_real_system(
+int starneig_eigvec_std_solve_2x2_real_system(
     double smin,
     const double *restrict const T, int ldT,
     double lambda,
@@ -378,7 +378,7 @@ int starneig_solve_2x2_real_system(
 /// @return Error flag. Set to 0 if no error occurred. Set to 1 if the singular
 ///         values of (T - lambda * I) were smaller than smin and perturbed.
 ///
-int starneig_solve_2x2_cmplx_system(
+int starneig_eigvec_std_solve_2x2_cmplx_system(
     double smin,
     const double *restrict const T, int ldT,
     double lambda_re, double lambda_im,

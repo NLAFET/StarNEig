@@ -34,19 +34,19 @@
 /// POSSIBILITY OF SUCH DAMAGE.
 ///
 
-#ifndef STARNEIG_EIGENVECTORS_STANDARD_PARTITION_H
-#define STARNEIG_EIGENVECTORS_STANDARD_PARTITION_H
+#ifndef STARNEIG_EIGENVECTORS_STD_PARTITION_H
+#define STARNEIG_EIGENVECTORS_STD_PARTITION_H
 
 #include <starneig_config.h>
 #include <starneig/configuration.h>
 #include <starneig/error.h>
 
-void starneig_partition(
+void starneig_eigvec_std_partition(
     int n, const int *lambda_type, int tile_size, int *p);
 
-int starneig_count_selected(int n, const int *selected);
+int starneig_eigvec_std_count_selected(int n, const int *selected);
 
-void starneig_partition_selected(
+void starneig_eigvec_std_partition_selected(
     int n, const int *pr, int *selected, int num_tiles, int *pc);
 
 #endif

@@ -39,6 +39,7 @@
 
 #include "typedefs.h"
 #include "cpu.h"
+#include "tasks.h"
 #include "robust.h"
 
 #include "../../common/common.h"
@@ -151,7 +152,7 @@ static void find_max(
 
 
 
-void starneig_unify_scaling(int num_tiles, int *first_row, int *first_col,
+void starneig_eigvec_std_unify_scaling(int num_tiles, int *first_row, int *first_col,
     scaling_t *restrict scales,
     double *restrict X, int ldX,
     const int *restrict lambda_type, const int *restrict selected)
@@ -164,9 +165,9 @@ void starneig_unify_scaling(int num_tiles, int *first_row, int *first_col,
     // Compute the most constraining scaling factor.
     //
     scaling_t *smin = (scaling_t *) malloc(num_selected*sizeof(scaling_t));
-    starneig_init_scaling_factor(num_selected, smin);
+    starneig_eigvec_std_init_scaling_factor(num_selected, smin);
 
-    starneig_find_smallest_scaling(num_tiles, num_selected, scales, smin);
+    starneig_eigvec_std_find_smallest_scaling(num_tiles, num_selected, scales, smin);
 
 #ifndef STARNEIG_ENABLE_INTEGER_SCALING
 
@@ -225,7 +226,7 @@ void starneig_unify_scaling(int num_tiles, int *first_row, int *first_col,
             // Reduce to maximum normalization factor.
             for (int j = first_col[blkj]; j < first_col[blkj+1]; j++) {
                 // Compute normalization factor simulating consistent scaling.
-               double s = starneig_compute_upscaling(smin[j], scales(j, blki));
+               double s = starneig_eigvec_std_compute_upscaling(smin[j], scales(j, blki));
                emax[j] = MAX(s * tmp[j], emax[j]);
             }
         }
@@ -243,7 +244,7 @@ void starneig_unify_scaling(int num_tiles, int *first_row, int *first_col,
                 // The current column.
                 double *x = X+col*ldX+first_row[blki];
                 double s =
-                    starneig_compute_upscaling(smin[col], scales(col, blki));
+                    starneig_eigvec_std_compute_upscaling(smin[col], scales(col, blki));
 
                 // Avoid oo.
                 if (isinf(s))
@@ -260,7 +261,36 @@ void starneig_unify_scaling(int num_tiles, int *first_row, int *first_col,
 #undef scales
 }
 
-void starneig_cpu_bound(void *buffers[], void *cl_args)
+
+void starneig_eigvec_std_cpu_bound_DM(void *buffers[], void *cl_args)
+{
+    struct packing_info packing_info;
+    starpu_codelet_unpack_args(cl_args, &packing_info);
+
+    // extract tile dimensions from the packing information struct
+    int m = packing_info.rend - packing_info.rbegin;
+    int n = packing_info.cend - packing_info.cbegin;
+
+    int k = 0;
+
+    double *norm = (double *) STARPU_VARIABLE_GET_PTR(buffers[k]);
+    k++;
+
+    double *T = (double *) STARPU_MATRIX_GET_PTR(buffers[k]);
+    int ldT = STARPU_MATRIX_GET_LD(buffers[k]);
+    k++;
+
+    struct starpu_matrix_interface **A_i =
+        (struct starpu_matrix_interface **)buffers + k;
+    k += packing_info.handles;
+
+    starneig_join_diag_window(&packing_info, ldT, A_i, T, 0);
+
+    *norm = mat_infnorm(m, n, T, ldT);
+}
+
+
+void starneig_eigvec_std_cpu_bound(void *buffers[], void *cl_args)
 {
     double *T = (double *) STARPU_MATRIX_GET_PTR(buffers[0]);
     int ldT = STARPU_MATRIX_GET_LD(buffers[0]);
@@ -332,23 +362,23 @@ static void backsolve(
                     // if next block is 1-by-1 diagonal block:
                     if (lambda_type[j] == 0) { // REAL
                         scaling_t phi;
-                        starneig_init_scaling_factor(1, &phi);
-                        info |= starneig_solve_1x1_real_system(
+                        starneig_eigvec_std_init_scaling_factor(1, &phi);
+                        info |= starneig_eigvec_std_solve_1x1_real_system(
                             smin, T(j,j), lambda, X_re+j, &phi);
-                        starneig_update_global_scaling(beta, phi);
+                        starneig_eigvec_std_update_global_scaling(beta, phi);
 
                         // Scale remaining parts of the vector.
-                        starneig_scale(j, X_re, &phi);
-                        starneig_scale(ki-(j+1), X_re+(j+1), &phi);
-                        starneig_update_norm(&norm, phi);
+                        starneig_eigvec_std_scale(j, X_re, &phi);
+                        starneig_eigvec_std_scale(ki-(j+1), X_re+(j+1), &phi);
+                        starneig_eigvec_std_update_norm(&norm, phi);
 
                         // Protect against overflow in the linear update.
                         phi =
-                            starneig_protect_update(tnorm, fabs(X_re[j]), norm);
-                        starneig_update_global_scaling(beta, phi);
+                            starneig_eigvec_std_protect_update(tnorm, fabs(X_re[j]), norm);
+                        starneig_eigvec_std_update_global_scaling(beta, phi);
 
                         // Apply the scaling to the whole eigenvector.
-                        starneig_scale(ki+1, X_re, &phi);
+                        starneig_eigvec_std_scale(ki+1, X_re, &phi);
 
                         // Now it is safe to execute the linear update.
                         for (int i = 0; i < j; i++)
@@ -360,23 +390,23 @@ static void backsolve(
                     // if next block is 2-by-2 diagonal block:
                     else {
                         scaling_t phi;
-                        starneig_init_scaling_factor(1, &phi);
-                        info |= starneig_solve_2x2_real_system(smin,
+                        starneig_eigvec_std_init_scaling_factor(1, &phi);
+                        info |= starneig_eigvec_std_solve_2x2_real_system(smin,
                             &T(j-1,j-1), ldT, lambda, &X_re[j-1], &phi);
-                        starneig_update_global_scaling(beta, phi);
+                        starneig_eigvec_std_update_global_scaling(beta, phi);
 
                         // Scale remaining parts of vector.
-                        starneig_scale(j-1, X_re, &phi);
-                        starneig_scale(ki-(j+1), X_re+(j+1), &phi);
-                        starneig_update_norm(&norm, phi);
+                        starneig_eigvec_std_scale(j-1, X_re, &phi);
+                        starneig_eigvec_std_scale(ki-(j+1), X_re+(j+1), &phi);
+                        starneig_eigvec_std_update_norm(&norm, phi);
 
                         // Protect against overflow in the first linear update.
-                        phi = starneig_protect_update(
+                        phi = starneig_eigvec_std_protect_update(
                             tnorm, fabs(X_re[j-1]), norm);
-                        starneig_update_global_scaling(beta, phi);
+                        starneig_eigvec_std_update_global_scaling(beta, phi);
 
                         // Apply the scaling to the whole eigenvector.
-                        starneig_scale(ki+1, X_re, &phi);
+                        starneig_eigvec_std_scale(ki+1, X_re, &phi);
 
                         // Now it is safe to execute the first linear update.
                         for (int i = 0; i < j-1; i++)
@@ -387,11 +417,11 @@ static void backsolve(
 
                         // Protect against overflow in the second linear update.
                         phi =
-                            starneig_protect_update(tnorm, fabs(X_re[j]), norm);
-                        starneig_update_global_scaling(beta, phi);
+                            starneig_eigvec_std_protect_update(tnorm, fabs(X_re[j]), norm);
+                        starneig_eigvec_std_update_global_scaling(beta, phi);
 
                         // Apply the scaling to the whole eigenvector.
-                        starneig_scale(ki+1, X_re, &phi);
+                        starneig_eigvec_std_scale(ki+1, X_re, &phi);
 
                         // Now it is safe to execute the second linear update.
                         for (int i = 0; i < j-1; i++)
@@ -466,27 +496,27 @@ static void backsolve(
                     // If next block is 1-by-1 diagonal bock:
                     if (lambda_type[j] == 0) { // REAL
                         scaling_t phi;
-                        starneig_init_scaling_factor(1, &phi);
-                        info |= starneig_solve_1x1_cmplx_system(
+                        starneig_eigvec_std_init_scaling_factor(1, &phi);
+                        info |= starneig_eigvec_std_solve_1x1_cmplx_system(
                             smin, T(j,j), lambda_re, lambda_im,
                             X_re+j, X_im+j, &phi);
-                        starneig_update_global_scaling(beta, phi);
+                        starneig_eigvec_std_update_global_scaling(beta, phi);
 
                         // Scale the remaining parts of the vector.
-                        starneig_scale(j, X_re, &phi);
-                        starneig_scale(ki-(j+1), X_re+(j+1), &phi);
-                        starneig_scale(j, X_im, &phi);
-                        starneig_scale(ki-(j+1), X_im+(j+1), &phi);
-                        starneig_update_norm(&norm, phi);
+                        starneig_eigvec_std_scale(j, X_re, &phi);
+                        starneig_eigvec_std_scale(ki-(j+1), X_re+(j+1), &phi);
+                        starneig_eigvec_std_scale(j, X_im, &phi);
+                        starneig_eigvec_std_scale(ki-(j+1), X_im+(j+1), &phi);
+                        starneig_eigvec_std_update_norm(&norm, phi);
 
                         // Protect against overflow in the linear update.
                         double absmax = MAX(fabs(X_re[j]), fabs(X_im[j]));
-                        phi = starneig_protect_update(tnorm, absmax, norm);
-                        starneig_update_global_scaling(beta, phi);
+                        phi = starneig_eigvec_std_protect_update(tnorm, absmax, norm);
+                        starneig_eigvec_std_update_global_scaling(beta, phi);
 
                         // Apply scaling to the whole eigenvector.
-                        starneig_scale(ki+1, X_re, &phi);
-                        starneig_scale(ki+1, X_im, &phi);
+                        starneig_eigvec_std_scale(ki+1, X_re, &phi);
+                        starneig_eigvec_std_scale(ki+1, X_im, &phi);
 
                         // Now it is safe to execute the linear update.
                         for (int i = 0; i < j; i++) {
@@ -500,27 +530,27 @@ static void backsolve(
                     // If next block is 2-by-2 diagonal block:
                     else {
                         scaling_t phi;
-                        starneig_init_scaling_factor(1, &phi);
-                        info |= starneig_solve_2x2_cmplx_system(
+                        starneig_eigvec_std_init_scaling_factor(1, &phi);
+                        info |= starneig_eigvec_std_solve_2x2_cmplx_system(
                             smin, &T(j-1,j-1), ldT, lambda_re, lambda_im,
                             X_re+j-1, X_im+j-1, &phi);
-                        starneig_update_global_scaling(beta, phi);
+                        starneig_eigvec_std_update_global_scaling(beta, phi);
 
                         // Scale the remaining parts of the vector.
-                        starneig_scale(j-1, X_re, &phi);
-                        starneig_scale(ki-j, X_re+(j+1), &phi);
-                        starneig_scale(j-1, X_im, &phi);
-                        starneig_scale(ki-j, X_im+(j+1), &phi);
-                        starneig_update_norm(&norm, phi);
+                        starneig_eigvec_std_scale(j-1, X_re, &phi);
+                        starneig_eigvec_std_scale(ki-j, X_re+(j+1), &phi);
+                        starneig_eigvec_std_scale(j-1, X_im, &phi);
+                        starneig_eigvec_std_scale(ki-j, X_im+(j+1), &phi);
+                        starneig_eigvec_std_update_norm(&norm, phi);
 
                         // Protect against overflow in the first linear update.
                         double absmax = MAX(fabs(X_re[j-1]), fabs(X_im[j-1]));
-                        phi = starneig_protect_update(tnorm, absmax, norm);
-                        starneig_update_global_scaling(beta, phi);
+                        phi = starneig_eigvec_std_protect_update(tnorm, absmax, norm);
+                        starneig_eigvec_std_update_global_scaling(beta, phi);
 
                         // Apply scaling to the whole eigenvector.
-                        starneig_scale(ki+1, X_re, &phi);
-                        starneig_scale(ki+1, X_im, &phi);
+                        starneig_eigvec_std_scale(ki+1, X_re, &phi);
+                        starneig_eigvec_std_scale(ki+1, X_im, &phi);
 
                         // Now it is safe to execute the first linear update.
                         for (int i = 0; i < j-1; i++) {
@@ -533,12 +563,12 @@ static void backsolve(
 
                         // Protect against overflow in the second linear update.
                         absmax = MAX(fabs(X_re[j]), fabs(X_im[j]));
-                        phi = starneig_protect_update(tnorm, absmax, norm);
-                        starneig_update_global_scaling(beta, phi);
+                        phi = starneig_eigvec_std_protect_update(tnorm, absmax, norm);
+                        starneig_eigvec_std_update_global_scaling(beta, phi);
 
                         // Apply scaling to the whole eigenvector.
-                        starneig_scale(ki+1, X_re, &phi);
-                        starneig_scale(ki+1, X_im, &phi);
+                        starneig_eigvec_std_scale(ki+1, X_re, &phi);
+                        starneig_eigvec_std_scale(ki+1, X_im, &phi);
 
                         // Now it is safe to execute the second linear update.
                         for (int i = 0; i < j-1; i++) {
@@ -595,7 +625,7 @@ static void backsolve(
 
 
 
-void starneig_cpu_backsolve(void *buffers[], void *cl_args)
+void starneig_eigvec_std_cpu_backsolve(void *buffers[], void *cl_args)
 {
     double *T = (double *) STARPU_MATRIX_GET_PTR(buffers[0]);
     int n = STARPU_MATRIX_GET_NX(buffers[0]);
@@ -626,7 +656,7 @@ void starneig_cpu_backsolve(void *buffers[], void *cl_args)
 }
 
 
-void starneig_cpu_solve(void *buffers[], void *cl_args)
+void starneig_eigvec_std_cpu_solve(void *buffers[], void *cl_args)
 {
     double *T = (double *) STARPU_MATRIX_GET_PTR(buffers[0]);
     int n = STARPU_MATRIX_GET_NX(buffers[0]);
@@ -694,23 +724,23 @@ void starneig_cpu_solve(void *buffers[], void *cl_args)
                     // if next block is 1-by-1 diagonal block:
                     if (diag_type[j] == 0) { // REAL
                         scaling_t phi;
-                        starneig_init_scaling_factor(1, &phi);
-                        info |= starneig_solve_1x1_real_system(
+                        starneig_eigvec_std_init_scaling_factor(1, &phi);
+                        info |= starneig_eigvec_std_solve_1x1_real_system(
                             smin, T(j,j), lambda[k], X_re+j, &phi);
-                        starneig_update_global_scaling(beta, phi);
+                        starneig_eigvec_std_update_global_scaling(beta, phi);
 
                         // Scale remaining parts of vector.
-                        starneig_scale(j, X_re, &phi);
-                        starneig_scale(n-(j+1), X_re+(j+1), &phi);
-                        starneig_update_norm(&norm, phi);
+                        starneig_eigvec_std_scale(j, X_re, &phi);
+                        starneig_eigvec_std_scale(n-(j+1), X_re+(j+1), &phi);
+                        starneig_eigvec_std_update_norm(&norm, phi);
 
                         // Protect against overflow in the linear update.
                         phi =
-                            starneig_protect_update(tnorm, fabs(X_re[j]), norm);
-                        starneig_update_global_scaling(beta, phi);
+                            starneig_eigvec_std_protect_update(tnorm, fabs(X_re[j]), norm);
+                        starneig_eigvec_std_update_global_scaling(beta, phi);
 
                         // Apply the scaling to the whole eigenvector.
-                        starneig_scale(n, X_re, &phi);
+                        starneig_eigvec_std_scale(n, X_re, &phi);
 
                         // Now it is safe to execute the linear update.
                         for (int i = 0; i < j; i++)
@@ -722,23 +752,23 @@ void starneig_cpu_solve(void *buffers[], void *cl_args)
                     // if next block is 2-by-2 block:
                     else {
                         scaling_t phi;
-                        starneig_init_scaling_factor(1, &phi);
-                        info |= starneig_solve_2x2_real_system(smin,
+                        starneig_eigvec_std_init_scaling_factor(1, &phi);
+                        info |= starneig_eigvec_std_solve_2x2_real_system(smin,
                             &T(j-1,j-1), ldT, lambda[k], &X_re[j-1], &phi);
-                        starneig_update_global_scaling(beta, phi);
+                        starneig_eigvec_std_update_global_scaling(beta, phi);
 
                         // Scale remaining parts of vector.
-                        starneig_scale(j-1, X_re, &phi);
-                        starneig_scale(n-(j+1), X_re+(j+1), &phi);
-                        starneig_update_norm(&norm, phi);
+                        starneig_eigvec_std_scale(j-1, X_re, &phi);
+                        starneig_eigvec_std_scale(n-(j+1), X_re+(j+1), &phi);
+                        starneig_eigvec_std_update_norm(&norm, phi);
 
                         // Protect first linear update against overflow.
-                        phi = starneig_protect_update(
+                        phi = starneig_eigvec_std_protect_update(
                             tnorm, fabs(X_re[j-1]), norm);
-                        starneig_update_global_scaling(beta, phi);
+                        starneig_eigvec_std_update_global_scaling(beta, phi);
 
                         // Apply the scaling to the whole eigenvector.
-                        starneig_scale(n, X_re, &phi);
+                        starneig_eigvec_std_scale(n, X_re, &phi);
 
                         // Now it is safe to execute the linear udpate.
                         for (int i = 0; i < j-1; i++)
@@ -749,11 +779,11 @@ void starneig_cpu_solve(void *buffers[], void *cl_args)
 
                         // Protect second linear update against overflow.
                         phi =
-                            starneig_protect_update(tnorm, fabs(X_re[j]), norm);
-                        starneig_update_global_scaling(beta, phi);
+                            starneig_eigvec_std_protect_update(tnorm, fabs(X_re[j]), norm);
+                        starneig_eigvec_std_update_global_scaling(beta, phi);
 
                         // Apply the scaling to the whole eigenvector.
-                        starneig_scale(n, X_re, &phi);
+                        starneig_eigvec_std_scale(n, X_re, &phi);
 
                         // Now it is safe to execute the linear update.
                         for (int i = 0; i < j - 1; i++)
@@ -802,26 +832,26 @@ void starneig_cpu_solve(void *buffers[], void *cl_args)
                     // if the next block is 1-by-1 diagonal block:
                     if (diag_type[j] == 0) { // REAL
                         scaling_t phi;
-                        starneig_init_scaling_factor(1, &phi);
-                        info |= starneig_solve_1x1_cmplx_system(smin, T(j,j),
+                        starneig_eigvec_std_init_scaling_factor(1, &phi);
+                        info |= starneig_eigvec_std_solve_1x1_cmplx_system(smin, T(j,j),
                             lambda_re, lambda_im, X_re+j, X_im+j, &phi);
-                        starneig_update_global_scaling(beta, phi);
+                        starneig_eigvec_std_update_global_scaling(beta, phi);
 
                         // Scale the remaining parts of the 2 columns.
-                        starneig_scale(j, X_re, &phi);
-                        starneig_scale(n-(j+1), X_re+(j+1), &phi);
-                        starneig_scale(j, X_im, &phi);
-                        starneig_scale(n-(j+1), X_im+(j+1), &phi);
-                        starneig_update_norm(&norm, phi);
+                        starneig_eigvec_std_scale(j, X_re, &phi);
+                        starneig_eigvec_std_scale(n-(j+1), X_re+(j+1), &phi);
+                        starneig_eigvec_std_scale(j, X_im, &phi);
+                        starneig_eigvec_std_scale(n-(j+1), X_im+(j+1), &phi);
+                        starneig_eigvec_std_update_norm(&norm, phi);
 
                         // Protect against overflow in the linear update.
                         double absmax = MAX(fabs(X_re[j]), fabs(X_im[j]));
-                        phi = starneig_protect_update(tnorm, absmax, norm);
-                        starneig_update_global_scaling(beta, phi);
+                        phi = starneig_eigvec_std_protect_update(tnorm, absmax, norm);
+                        starneig_eigvec_std_update_global_scaling(beta, phi);
 
                         // Apply scaling to the whole eigenvector.
-                        starneig_scale(n, X_re, &phi);
-                        starneig_scale(n, X_im, &phi);
+                        starneig_eigvec_std_scale(n, X_re, &phi);
+                        starneig_eigvec_std_scale(n, X_im, &phi);
 
                         // Now it is safe to execute the linear update.
                         for (int i = 0; i < j; i++) {
@@ -835,27 +865,27 @@ void starneig_cpu_solve(void *buffers[], void *cl_args)
                     // if next block is 2-by-2 diagonal block:
                     else {
                         scaling_t phi;
-                        starneig_init_scaling_factor(1, &phi);
-                        info |= starneig_solve_2x2_cmplx_system(smin,
+                        starneig_eigvec_std_init_scaling_factor(1, &phi);
+                        info |= starneig_eigvec_std_solve_2x2_cmplx_system(smin,
                             &T(j-1,j-1), ldT, lambda_re, lambda_im,
                             X_re+j-1, X_im+j-1, &phi);
-                        starneig_update_global_scaling(beta, phi);
+                        starneig_eigvec_std_update_global_scaling(beta, phi);
 
                         // Scale remaining parts of vector.
-                        starneig_scale(j-1, X_re, &phi);
-                        starneig_scale(n-(j+1), X_re+(j+1), &phi);
-                        starneig_scale(j-1, X_im, &phi);
-                        starneig_scale(n-(j+1), X_im+(j+1), &phi);
-                        starneig_update_norm(&norm, phi);
+                        starneig_eigvec_std_scale(j-1, X_re, &phi);
+                        starneig_eigvec_std_scale(n-(j+1), X_re+(j+1), &phi);
+                        starneig_eigvec_std_scale(j-1, X_im, &phi);
+                        starneig_eigvec_std_scale(n-(j+1), X_im+(j+1), &phi);
+                        starneig_eigvec_std_update_norm(&norm, phi);
 
                         // Protect against overflow in the first linear update.
                         double absmax = MAX(fabs(X_re[j-1]), fabs(X_im[j-1]));
-                        phi = starneig_protect_update(tnorm, absmax, norm);
-                        starneig_update_global_scaling(beta, phi);
+                        phi = starneig_eigvec_std_protect_update(tnorm, absmax, norm);
+                        starneig_eigvec_std_update_global_scaling(beta, phi);
 
                         // Apply scaling to the whole eigenvector.
-                        starneig_scale(n, X_re, &phi);
-                        starneig_scale(n, X_im, &phi);
+                        starneig_eigvec_std_scale(n, X_re, &phi);
+                        starneig_eigvec_std_scale(n, X_im, &phi);
 
                         // Now it is safe to execute the first linear update.
                         for (int i = 0; i < j-1; i++) {
@@ -868,12 +898,12 @@ void starneig_cpu_solve(void *buffers[], void *cl_args)
 
                         // Protect against overflow in the second linear update.
                         absmax = MAX(fabs(X_re[j]), fabs(X_im[j]));
-                        phi = starneig_protect_update(tnorm, absmax, norm);
-                        starneig_update_global_scaling(beta, phi);
+                        phi = starneig_eigvec_std_protect_update(tnorm, absmax, norm);
+                        starneig_eigvec_std_update_global_scaling(beta, phi);
 
                         // Apply scaling to the whole eigenvector.
-                        starneig_scale(n, X_re, &phi);
-                        starneig_scale(n, X_im, &phi);
+                        starneig_eigvec_std_scale(n, X_re, &phi);
+                        starneig_eigvec_std_scale(n, X_im, &phi);
 
                         // Now it is safe to execute the second linear update.
                         for (int i = 0; i < j-1; i++) {
@@ -926,7 +956,7 @@ void starneig_cpu_solve(void *buffers[], void *cl_args)
 
 
 
-void starneig_cpu_update(void *buffers[], void *cl_args)
+void starneig_eigvec_std_cpu_update(void *buffers[], void *cl_args)
 {
     // T is n-by-m.
     double *T = (double *) STARPU_MATRIX_GET_PTR(buffers[0]);
@@ -995,7 +1025,7 @@ void starneig_cpu_update(void *buffers[], void *cl_args)
             if (Yscales[k] < Xscales[k]) {
                 // The common scaling factor is Yscales[k].
                 const double s =
-                    starneig_compute_upscaling(Yscales[k], Xscales[k]);
+                    starneig_eigvec_std_compute_upscaling(Yscales[k], Xscales[k]);
 
                 // Mark X for scaling. Physical rescaling is deferred.
                 rescale_X = 1;
@@ -1006,7 +1036,7 @@ void starneig_cpu_update(void *buffers[], void *cl_args)
             else if (Xscales[k] < Yscales[k]) {
                 // The common scaling factor is Xscales[k].
                 const double s =
-                    starneig_compute_upscaling(Xscales[k], Yscales[k]);
+                    starneig_eigvec_std_compute_upscaling(Xscales[k], Yscales[k]);
 
                 // Mark Y for scaling. Physical rescaling is deferred.
                 rescale_Y = 1;
@@ -1025,7 +1055,7 @@ void starneig_cpu_update(void *buffers[], void *cl_args)
             if (Xscales[k] < Yscales[k]) {
                 // The common scaling factor is Xscales[k].
                 const double s =
-                    starneig_compute_upscaling(Xscales[k], Yscales[k]);
+                    starneig_eigvec_std_compute_upscaling(Xscales[k], Yscales[k]);
 
                 // Mark Y for scaling. Phyiscal rescaling is deferred.
                 rescale_Y = 1;
@@ -1046,7 +1076,7 @@ void starneig_cpu_update(void *buffers[], void *cl_args)
     int rescale;
 
     // Compute scaling factors needed to survive the linear update.
-    rescale = starneig_protect_multi_rhs_update(
+    rescale = starneig_eigvec_std_protect_multi_rhs_update(
         Xnorms, num_rhs, tnorm, Ynorms, lambda_type, tmp_scales);
 
     if (rescale) {
@@ -1061,14 +1091,14 @@ void starneig_cpu_update(void *buffers[], void *cl_args)
         for (int k = 0; k < num_rhs; k++) {
             if (Yscales[k] < Xscales[k]) {
                 // Copy X and simultaneously rescale.
-                const double s = starneig_compute_combined_upscaling(
+                const double s = starneig_eigvec_std_compute_combined_upscaling(
                     Yscales[k], Xscales[k], tmp_scales[k]);
                 for (int i = 0; i < m; i++)
                     X[(size_t)ldX*k+i] = s*Xin[(size_t)ldX*k+i];
             }
             else if (Xscales[k] < Yscales[k]) {
                 // Copy X and simultaneously rescale with robust update factor.
-                const double s = starneig_convert_scaling(tmp_scales[k]);
+                const double s = starneig_eigvec_std_convert_scaling(tmp_scales[k]);
                 for (int i = 0; i < m; i++)
                     X[(size_t)ldX*k+i] = s*Xin[(size_t)ldX*k+i];
             }
@@ -1076,7 +1106,7 @@ void starneig_cpu_update(void *buffers[], void *cl_args)
                 // Xscales[k] == Yscales[k].
 
                 // Copy X and simultaneously rescale with robust update factor.
-                const double s = starneig_convert_scaling(tmp_scales[k]);
+                const double s = starneig_eigvec_std_convert_scaling(tmp_scales[k]);
                 for (int i = 0; i < m; i++)
                     X[(size_t)ldX*k+i] = s*Xin[(size_t)ldX*k+i];
             }
@@ -1094,12 +1124,12 @@ void starneig_cpu_update(void *buffers[], void *cl_args)
             if (Yscales[k] < Xscales[k]) {
                 // The common scaling factor is Yscales[k]. Rescale Y with
                 // robust update factor, if necessary.
-                starneig_scale(n, Y+(size_t)ldY*k, tmp_scales+k);
+                starneig_eigvec_std_scale(n, Y+(size_t)ldY*k, tmp_scales+k);
             }
             else if (Xscales[k] < Yscales[k]) {
                 // The common scaling factor is Xscales[k]. Combine with
                 // robust update scaling factor.
-                const double s = starneig_compute_combined_upscaling(
+                const double s = starneig_eigvec_std_compute_combined_upscaling(
                     Xscales[k], Yscales[k], tmp_scales[k]);
                 for (int i = 0; i < n; i++)
                     Y[(size_t)ldY*k+i] = s*Y[(size_t)ldY*k+i];
@@ -1108,7 +1138,7 @@ void starneig_cpu_update(void *buffers[], void *cl_args)
                 // Xscales[k] == Yscales[k].
 
                 // Rescale Y with robust update factor, if necessary.
-                starneig_scale(n, Y+(size_t)ldY*k, tmp_scales+k);
+                starneig_eigvec_std_scale(n, Y+(size_t)ldY*k, tmp_scales+k);
             }
         }
     }
@@ -1172,7 +1202,7 @@ void starneig_cpu_update(void *buffers[], void *cl_args)
 
 
 
-void starneig_cpu_backtransform(void *buffers[], void *cl_args)
+void starneig_eigvec_std_cpu_backtransform(void *buffers[], void *cl_args)
 {
     double *Q = (double *) STARPU_MATRIX_GET_PTR(buffers[0]);
     int ldQ = STARPU_MATRIX_GET_LD(buffers[0]);

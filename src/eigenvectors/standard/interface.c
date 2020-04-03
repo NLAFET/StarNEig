@@ -119,7 +119,7 @@ static starneig_error_t eigenvectors(
         return STARNEIG_INVALID_ARGUMENTS;
     }
 
-    int num_selected = starneig_count_selected(n, selected);
+    int num_selected = starneig_eigvec_std_count_selected(n, selected);
     if (num_selected == 0) {
         starneig_error("Eigenvalue selection bitmap does not have any "
                        "selected eigenvalues. Exiting...");
@@ -215,8 +215,8 @@ static starneig_error_t eigenvectors(
     int num_tiles = (n+conf->tile_size-1)/conf->tile_size;
     int *first_row = (int *) malloc((num_tiles+1)*sizeof(int));
     int *first_col = (int *) malloc((num_tiles+1)*sizeof(int));
-    starneig_partition(n, lambda_type, conf->tile_size, first_row);
-    starneig_partition_selected(n, first_row, selected, num_tiles, first_col);
+    starneig_eigvec_std_partition(n, lambda_type, conf->tile_size, first_row);
+    starneig_eigvec_std_partition_selected(n, first_row, selected, num_tiles, first_col);
 
 
     //
@@ -233,7 +233,7 @@ static starneig_error_t eigenvectors(
 
     scaling_t *scales = (scaling_t*) malloc(num_segments*sizeof(scaling_t));
 #define scales(col, tilerow) scales[(col) + (tilerow) * (size_t)num_selected]
-    starneig_init_scaling_factor(num_tiles*num_selected, scales);
+    starneig_eigvec_std_init_scaling_factor(num_tiles*num_selected, scales);
 
     double *Snorms =
         (double *) malloc((size_t)num_tiles*num_tiles*sizeof(double));
@@ -390,7 +390,7 @@ static starneig_error_t eigenvectors(
     // insert tasks
     //
 
-    starneig_std_eigvecs_insert_backsolve_tasks(num_tiles,
+    starneig_eigvec_std_insert_backsolve_tasks(num_tiles,
         S_tiles, S_tiles_norms, lambda_tiles, lambda_type_tiles,
         X_tiles, scales_tiles, Xnorms_tiles, selected_tiles,
         selected_lambda_type_tiles, info_tiles, smlnum,
@@ -398,10 +398,10 @@ static starneig_error_t eigenvectors(
 
     starpu_task_wait_for_all();
 
-    starneig_unify_scaling(num_tiles, first_row, first_col, scales, X, ldX,
+    starneig_eigvec_std_unify_scaling(num_tiles, first_row, first_col, scales, X, ldX,
         lambda_type, selected);
 
-    starneig_std_eigvecs_insert_backtransform_tasks(first_row, num_tiles,
+    starneig_eigvec_std_insert_backtransform_tasks(first_row, num_tiles,
         Q_tiles, X_tiles, Y_tiles);
 
 

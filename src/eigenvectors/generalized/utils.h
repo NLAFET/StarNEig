@@ -36,25 +36,58 @@
 /// POSSIBILITY OF SUCH DAMAGE.
 ///
 
-#ifndef UTILS_GUARD_H_
-#define UTILS_GUARD_H_
+#ifndef STARNEIG_EIGVEG_GEN_UTILS_H_
+#define STARNEIG_EIGVEG_GEN_UTILS_H_
 
+#include <starneig_config.h>
+#include <starneig/configuration.h>
 #include <stddef.h>
 
 // Controls how many rows and columns are printed
 #define maxrow 20
 #define maxcol 12
 
-// Prints a dense array nicely on the screen.
-void starneig_ddm(int m, int n, double *a, size_t lda, char *format);
+///
+/// @brief Prints double arrays nicely on the screen
+///
+/// @param[in] m number of rows of matrix A
+/// @param[in] n number of columns of matrix A
+/// @param[in] a array containing matrix A
+/// @param[in] lda leading dimension of matrix A
+/// @param[in] format valid C format specification
+///
+void starneig_eigvec_gen_ddm(
+    int m, int n, double *a, size_t lda, char *format);
 
-// Prints a dense array of integers nicely on the screen
-void starneig_ddmi(int m, int n, int *a, size_t lda, char *format);
+///
+/// @brief Prints integer arrays nicely on the screen
+///
+/// @param[in] m  number of rows of matrix A
+/// @param[in] n  number of columns of matrix A
+/// @param[in] a  array containing matrix A
+/// @param[in] lda  leading dimension of matrix A
+/// @param[in] format  valid C format specification
+///
+void starneig_eigvec_gen_ddmi(int m, int n, int *a, size_t lda, char *format);
 
-// Fill dense matrix with zeros
-void starneig_zeros(int m, int n, double *a, size_t lda);
+///
+/// @brief  Fill a matrix with zeros
+///
+/// @param[in] m  number of rows of matrix
+/// @param[in] n  number of columns of matrix
+/// @param[in] a  array containing matrix
+/// @param[in] lda  leading dimension of array a
+///
+void starneig_eigvec_gen_zeros(int m, int n, double *a, size_t lda);
 
-// Fill dense matrix with ones
-void starneig_ones(int m, int n, double *a, size_t lda);
+///
+/// @brief  Fill a matrix with ones
+///
+/// @param[in] m  number of rows of matrix
+/// @param[in] n  number of columns of matrix
+/// @param[in] a  array containing matrix
+/// @param[in] lda  leading dimension of array a
+///
+void starneig_eigvec_gen_ones(int m, int n, double *a, size_t lda);
 
-#endif
+#endif // STARNEIG_EIGVEG_GEN_UTILS_H_
