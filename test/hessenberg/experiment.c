@@ -44,7 +44,9 @@
 #include "../common/starneig_pencil.h"
 #endif
 #include "../common/crawler.h"
+#include "../common/complex_distr.h"
 #include "../common/init.h"
+#include "../common/checks.h"
 #include "../common/hooks.h"
 #include "../common/io.h"
 #include <starneig/starneig.h>
@@ -129,6 +131,149 @@ static const struct hook_initializer_t default_initializer = {
 };
 
 ////////////////////////////////////////////////////////////////////////////////
+
+static void known_initializer_print_usage(int argc, char * const *argv)
+{
+    printf(
+        "  --n (num) -- Problem dimension\n"
+        "  --generalized -- Generalized problem\n"
+        "  --complex-distr (complex distribution) -- 2-by-2 block "
+        "distribution module\n"
+    );
+
+    init_helper_print_usage("", INIT_HELPER_ALL, argc, argv);
+}
+
+static void known_initializer_print_args(int argc, char * const *argv)
+{
+    printf(" --n %d", read_int("--n", argc, argv, NULL, -1));
+
+    int generalized = read_opt("--generalized", argc, argv, NULL);
+
+    if (generalized)
+        printf(" --generalized");
+
+    struct complex_distr const *complex_distr =
+        read_complex_distr("--complex-distr", argc, argv, NULL);
+
+    printf(" --complex-distr %s", complex_distr->name);
+
+    if (complex_distr->print_args != NULL)
+        complex_distr->print_args(argc, argv);
+
+    init_helper_print_args("", INIT_HELPER_ALL, argc, argv);
+}
+
+static int known_initializer_check_args(
+    int argc, char * const *argv, int *argr)
+{
+    if (read_int("--n", argc, argv, argr, -1) < 1)
+        return 1;
+
+    read_opt("--generalized", argc, argv, argr);
+
+    struct complex_distr const *complex_distr =
+        read_complex_distr("--complex-distr", argc, argv, argr);
+    if (complex_distr == NULL) {
+        fprintf(stderr, "Invalid 2-by-2 block distribution module.\n");
+        return -1;
+    }
+
+    if (complex_distr->check_args != NULL) {
+        int ret = complex_distr->check_args(argc, argv, argr);
+        if (ret)
+            return ret;
+    }
+
+    return init_helper_check_args("", INIT_HELPER_ALL, argc, argv, argr);
+}
+
+static struct hook_data_env* known_initializer_init(
+    hook_data_format_t format, int argc, char * const *argv)
+{
+    printf("INIT...\n");
+
+    int n = read_int("--n", argc, argv, NULL, -1);
+
+    int generalized = read_opt("--generalized", argc, argv, NULL);
+
+    struct complex_distr const *complex_distr =
+        read_complex_distr("--complex-distr", argc, argv, NULL);
+
+    init_helper_t helper = init_helper_init_hook(
+        "", format, n, n, PREC_DOUBLE | NUM_REAL, argc, argv);
+
+    struct hook_data_env *env = malloc(sizeof(struct hook_data_env));
+    env->format = format;
+    env->copy_data = (hook_data_env_copy_t) copy_pencil;
+    env->free_data = (hook_data_env_free_t) free_pencil;
+    pencil_t pencil = env->data = init_pencil();
+
+    double *real, *imag, *beta;
+    init_supplementary_known_eigenvalues(n, &real, &imag, &beta, &pencil->supp);
+
+    // generate (generalized) Schur form and multiply with Householder
+    // reflectors from both sides
+
+    if (generalized) {
+        matrix_t mat_s = generate_random_uptriag(n, n, helper);
+        matrix_t mat_t = generate_identity(n, n, helper);
+
+        complex_distr->init(argc, argv, mat_s, mat_t);
+        extract_eigenvalues(mat_s, mat_t, real, imag, beta);
+
+        matrix_t mat_q = generate_random_householder(n, helper);
+        matrix_t mat_z = generate_random_householder(n, helper);
+
+        mul_QAZT(mat_q, mat_s, mat_z, &pencil->mat_a);
+        mul_QAZT(mat_q, mat_t, mat_z, &pencil->mat_b);
+
+        free_matrix_descr(mat_s);
+        free_matrix_descr(mat_t);
+        free_matrix_descr(mat_q);
+        free_matrix_descr(mat_z);
+    }
+    else {
+        matrix_t mat_s = generate_random_uptriag(n, n, helper);
+
+        complex_distr->init(argc, argv, mat_s, NULL);
+        extract_eigenvalues(mat_s, NULL, real, imag, beta);
+
+        matrix_t mat_q = generate_random_householder(n, helper);
+
+        mul_QAZT(mat_q, mat_s, mat_q, &pencil->mat_a);
+
+        free_matrix_descr(mat_s);
+        free_matrix_descr(mat_q);
+    }
+
+    pencil->mat_q = generate_identity(n, n, helper);
+    if (generalized)
+
+    init_helper_free(helper);
+
+    return env;
+}
+
+static const struct hook_initializer_t known_initializer = {
+    .name = "known",
+    .desc = "Generates an upper Hessenberg matrix with known eigenvalues",
+    .formats = (hook_data_format_t[]) {
+        HOOK_DATA_FORMAT_PENCIL_LOCAL,
+#ifdef STARNEIG_ENABLE_MPI
+        HOOK_DATA_FORMAT_PENCIL_STARNEIG,
+#endif
+#ifdef STARNEIG_ENABLE_BLACS
+        HOOK_DATA_FORMAT_PENCIL_BLACS,
+#endif
+        0 },
+    .print_usage = &known_initializer_print_usage,
+    .print_args = &known_initializer_print_args,
+    .check_args = &known_initializer_check_args,
+    .init = &known_initializer_init
+};
+
+////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -136,6 +281,7 @@ const struct hook_experiment_descr hessenberg_experiment = {
     .initializers = (struct hook_initializer_t const *[])
     {
         &default_initializer,
+        &known_initializer,
         &mtx_initializer,
         &raw_initializer,
         0
