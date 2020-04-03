@@ -161,7 +161,15 @@ set (CMAKE_REQUIRED_LIBRARIES ${STARNEIG_LIBRARIES} ${CMAKE_REQUIRED_LIBRARIES})
 
 # the StarNEig library must be compiled before it can be added to
 # ${CMAKE_REQUIRED_LIBRARIES}
+
+list (FIND CMAKE_REQUIRED_LIBRARIES starneig-pdgghrd BUILTIN_PDGGHRD)
+if (BUILTIN_PDGGHRD GREATER -1)
+    list (REMOVE_ITEM CMAKE_REQUIRED_LIBRARIES starneig-pdgghrd)
+    set (ADD_BACK_LIBS starneig-pdgghrd ${starneig})
+endif ()
+
 list (REMOVE_ITEM CMAKE_REQUIRED_LIBRARIES starneig)
+set (ADD_BACK_LIBS starneig ${starneig})
 
 include_directories (${STARNEIG_INCLUDE_DIRS})
 link_directories (${STARNEIG_LIBRARY_DIRS})
@@ -290,7 +298,8 @@ include_directories (${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_REQUIRED_INCLUDES})
 
 add_executable (starneig-test ${SOURCES})
 set_target_properties (starneig-test PROPERTIES LINKER_LANGUAGE C)
-target_link_libraries (starneig-test starneig ${CMAKE_REQUIRED_LIBRARIES})
+target_link_libraries (starneig-test
+    ${ADD_BACK_LIBS} ${CMAKE_REQUIRED_LIBRARIES})
 
 #
 # simplified tests for the standard case

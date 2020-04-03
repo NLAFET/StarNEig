@@ -77,7 +77,6 @@ include (CheckLibraryExists)
 include (CheckFunctionExists)
 include (CheckSymbolExists)
 include (CheckCCompilerFlag)
-include (CheckFortranCompilerFlag)
 
 #
 # compiler flag checks
@@ -90,19 +89,6 @@ function (enable_c_compiler_flag_if_supported flag)
         check_c_compiler_flag ("${flag}" C_FLAG_DETECTED${flag_name})
         if (C_FLAG_DETECTED${flag_name})
             set (CMAKE_C_FLAGS "${flag} ${CMAKE_C_FLAGS}" PARENT_SCOPE)
-        endif ()
-    endif ()
-endfunction ()
-
-function (enable_fortran_compiler_flag_if_supported flag)
-    string(REPLACE "=" "_" flag_name ${flag})
-    string (FIND "${CMAKE_Fortran_FLAGS}" "${flag}" flag_already_set)
-    if (flag_already_set EQUAL -1)
-        check_fortran_compiler_flag (
-            "${flag}" Fortran_FLAG_DETECTED${flag_name})
-        if (Fortran_FLAG_DETECTED${flag_name})
-            set (CMAKE_Fortran_FLAGS
-                "${flag} ${CMAKE_Fortran_FLAGS}" PARENT_SCOPE)
         endif ()
     endif ()
 endfunction ()
@@ -187,9 +173,6 @@ if (STARNEIG_ENABLE_OPTIMIZATION AND CMAKE_C_COMPILER_ID STREQUAL "GNU")
         enable_c_compiler_flag_if_supported ("-march=native")
         enable_c_compiler_flag_if_supported ("-O2")
         enable_c_compiler_flag_if_supported ("--tree-vectorize")
-        enable_fortran_compiler_flag_if_supported ("-march=native")
-        enable_fortran_compiler_flag_if_supported ("-O2")
-        enable_fortran_compiler_flag_if_supported ("--tree-vectorize")
     endif ()
 endif ()
 
@@ -460,6 +443,19 @@ set (CMAKE_REQUIRED_INCLUDES ${MISC_LIBRARIES} ${CMAKE_REQUIRED_INCLUDES})
 set (CMAKE_REQUIRED_LIBRARIES ${MISC_INCLUDE_PATH} ${CMAKE_REQUIRED_LIBRARIES})
 
 #
+# Built-in pdgghrd
+#
+
+if (SCALAPACK_FOUND)
+    CHECK_FUNCTION_EXISTS ("pdgghrd_" PDGGHRD_FOUND)
+    if (NOT PDGGHRD_FOUND)
+        add_subdirectory (
+            ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/pdgghrd/)
+        set (PUBLIC_LIBS starneig-pdgghrd ${PUBLIC_LIBS})
+    endif ()
+endif ()
+
+#
 # header files
 #
 
@@ -563,17 +559,6 @@ if (STARNEIG_ENABLE_MPI)
     set (SOURCES ${SOURCES} ${MPI_SOURCES})
 endif ()
 
-# built-in pdgghrd
-if (STARNEIG_GEP_DM_HESSENBERGTRIANGULAR)
-    CHECK_FUNCTION_EXISTS ("pdgghrd_" PDGGHRD_FOUND)
-    if (NOT PDGGHRD_FOUND)
-        file (GLOB_RECURSE PDGGHRD_SOURCES
-            "${CMAKE_CURRENT_SOURCE_DIR}/wrappers/pdgghrd/*.f"
-            "${CMAKE_CURRENT_SOURCE_DIR}/wrappers/pdgghrd/*.f90")
-        set (SOURCES ${SOURCES} ${PDGGHRD_SOURCES})
-    endif ()
-endif ()
-
 #
 # CUDA source files
 #
@@ -601,10 +586,14 @@ target_include_directories (starneig
     PRIVATE ${CMAKE_CURRENT_BINARY_DIR}
     PRIVATE ${CMAKE_REQUIRED_INCLUDES})
 
-target_link_libraries (starneig PRIVATE ${CMAKE_REQUIRED_LIBRARIES})
+target_link_libraries (starneig
+    PUBLIC ${PUBLIC_LIBS}
+    PRIVATE ${CMAKE_REQUIRED_LIBRARIES})
 
 set_target_properties (starneig PROPERTIES
-LINKER_LANGUAGE ${LINKER_LANGUAGE} VERSION ${STARNEIG_VERSION})
+    LINKER_LANGUAGE ${LINKER_LANGUAGE} VERSION ${STARNEIG_VERSION})
+
+set (PUBLIC_LIBS starneig ${PUBLIC_LIBS})
 
 #
 # pkg-config
@@ -612,7 +601,14 @@ LINKER_LANGUAGE ${LINKER_LANGUAGE} VERSION ${STARNEIG_VERSION})
 
 set (PKGCONFIG_DEST_DIR "${CMAKE_INSTALL_PREFIX}")
 
-set (PKGCONFIG_LIBS "-lstarneig")
+foreach (LIB ${PUBLIC_LIBS})
+    string (REGEX MATCH "^-.*" NOT_LIB ${LIB})
+    if (NOT_LIB)
+        set (PKGCONFIG_LIBS "${PKGCONFIG_LIBS} ${LIB}")
+    else ()
+        set (PKGCONFIG_LIBS "${PKGCONFIG_LIBS} -l${LIB}")
+    endif ()
+endforeach ()
 
 foreach (LIB ${CMAKE_REQUIRED_LIBRARIES})
     string (REGEX MATCH "^-.*" NOT_LIB ${LIB})
