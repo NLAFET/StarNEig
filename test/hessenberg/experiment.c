@@ -277,7 +277,14 @@ static const struct hook_initializer_t known_initializer = {
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
+static void print_usage(int argc, char * const *argv)
+{
+    print_avail_complex_distr();
+    print_opt_complex_distr();
+}
+
 const struct hook_experiment_descr hessenberg_experiment = {
+    .print_usage = &print_usage,
     .initializers = (struct hook_initializer_t const *[])
     {
         &default_initializer,
