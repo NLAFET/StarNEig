@@ -61,7 +61,7 @@
 #include <math.h>
 #include <time.h>
 #ifdef STARNEIG_ENABLE_MPI
-#include <starneig/node.h>
+#include <starneig/distr_helpers.h>
 #include <starpu_mpi.h>
 #endif
 

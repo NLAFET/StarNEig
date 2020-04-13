@@ -8,7 +8,7 @@
 ///
 /// @section LICENSE
 ///
-/// Copyright (c) 2019, Umeå Universitet
+/// Copyright (c) 2019-2020, Umeå Universitet
 ///
 /// Redistribution and use in source and binary forms, with or without
 /// modification, are permitted provided that the following conditions are met:
@@ -459,31 +459,11 @@ int starneig_distr_matrix_get_col_blksz(starneig_distr_matrix_t matrix);
 ///
 
 ///
-/// @name Helpers
-/// @{
+/// @}
 ///
 
-///
-/// @brief Broadcast a buffer.
-///
-/// @param[in] root
-///         The rank that is going to broadcast the buffer.
-///
-/// @param[in] size
-///         The size of the buffer.
-///
-/// @param[in,out] buffer
-///         A pointer to the buffer.
-///
+// deprecated
 void starneig_broadcast(int root, size_t size, void *buffer);
-
-///
-/// @}
-///
-
-///
-/// @}
-///
 
 #ifdef __cplusplus
 }

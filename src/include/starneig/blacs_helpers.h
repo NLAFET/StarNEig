@@ -7,7 +7,7 @@
 ///
 /// @section LICENSE
 ///
-/// Copyright (c) 2019, Umeå Universitet
+/// Copyright (c) 2019-2020, Umeå Universitet
 ///
 /// Redistribution and use in source and binary forms, with or without
 /// modification, are permitted provided that the following conditions are met:
@@ -208,8 +208,18 @@ void starneig_blacs_exit(int cont);
 ///
 /// @return The number of rows/columns owned by the process.
 ///
-int starneig_numroc(
+int starneig_blacs_numroc(
     int n, int nb, int iproc, int isrcproc, int nprocs);
+
+///
+/// @brief Computes the number of matrix rows/columns owned by a given process.
+/// Deprecated.
+///
+/// @deprecated The starneig_numroc() function has been replaced with the
+/// starneig_blacs_numroc() function. This function will be removed in a
+/// future release of the library.
+///
+int starneig_numroc(int n, int nb, int iproc, int isrcproc, int nprocs);
 
 ///
 /// @brief Initializes a BLACS descriptor.
@@ -242,6 +252,17 @@ int starneig_numroc(
 ///        The local array leading dimension.
 ///
 /// @return Zero if the initialization was successful, non-zero otherwise.
+///
+int starneig_blacs_descinit(
+    struct starneig_blacs_descr *descr, int m, int n, int sm, int sn,
+    int irsrc, int icsrc, starneig_blacs_context_t context, int ld);
+
+///
+/// @brief Initializes a BLACS descriptor. Deprecated.
+///
+/// @deprecated The starneig_descinit() function has been replaced with the
+/// starneig_blacs_descinit() function. This function will be removed in a
+/// future release of the library.
 ///
 int starneig_descinit(
     struct starneig_blacs_descr *descr, int m, int n, int sm, int sn,

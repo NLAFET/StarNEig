@@ -38,6 +38,7 @@
 #include <starneig_config.h>
 #include <starneig/configuration.h>
 #include <starneig/distr_matrix.h>
+#include <starneig/distr_helpers.h>
 #include "distr_matrix_internal.h"
 #include "node_internal.h"
 #include "utils.h"
@@ -563,35 +564,4 @@ __attribute__ ((visibility ("default")))
 int starneig_distr_matrix_get_col_blksz(starneig_distr_matrix_t matrix)
 {
     return matrix->col_blksz;
-}
-
-__attribute__ ((visibility ("default")))
-void starneig_broadcast(int root, size_t size, void *buffer)
-{
-    CHECK_INIT();
-
-    starneig_node_set_mode(STARNEIG_MODE_DM);
-    starneig_mpi_start_starpumpi();
-    starneig_node_resume_starpu();
-
-    mpi_info_t mpi = starneig_mpi_get_info();
-
-    starpu_data_handle_t buffer_h;
-
-    starpu_variable_data_register(
-        &buffer_h, STARPU_MAIN_RAM, (uintptr_t) buffer, size);
-    starpu_mpi_data_register_comm(
-        buffer_h, mpi->tag_offset++, root, starneig_mpi_get_comm());
-
-    starpu_mpi_get_data_on_all_nodes_detached(
-        starneig_mpi_get_comm(), buffer_h);
-
-    starpu_data_unregister(buffer_h);
-
-    starpu_task_wait_for_all();
-    starpu_mpi_cache_flush_all_data(starneig_mpi_get_comm());
-    starpu_mpi_barrier(starneig_mpi_get_comm());
-
-    starneig_node_pause_starpu();
-    starneig_mpi_stop_starpumpi();
 }

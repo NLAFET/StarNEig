@@ -48,7 +48,11 @@
 #include "misc/full_chain.h"
 #include "misc/partial_hessenberg.h"
 #include "misc/validator.h"
+
 #include <starneig/starneig.h>
+#ifdef STARNEIG_ENABLE_MPI
+#include <starneig/distr_helpers.h>
+#endif
 #include <stdlib.h>
 #include <stdio.h>
 #include <time.h>

@@ -81,7 +81,7 @@ starneig_distr_t starneig_blacs_context_to_distr(
 }
 
 __attribute__ ((visibility ("default")))
-void starneig_create_blacs_matrix(
+void starneig_blacs_create_matrix(
     int rows, int cols, int row_blksz, int col_blksz, starneig_datatype_t type,
     starneig_blacs_context_t context,
     starneig_blacs_descr_t *descr, void **local)
@@ -99,19 +99,19 @@ void starneig_create_blacs_matrix(
         col_blksz = MAX(64, ((int)(cols / (2*sqrt(world_size))) / 120)*120);
 
     // calculate how many rows and columns are owner locally
-    int local_rows = starneig_numroc(rows, row_blksz, row_rank, 0, grid_rows);
-    int local_cols = starneig_numroc(cols, col_blksz, col_rank, 0, grid_cols);
+    int local_rows = starneig_blacs_numroc(rows, row_blksz, row_rank, 0, grid_rows);
+    int local_cols = starneig_blacs_numroc(cols, col_blksz, col_rank, 0, grid_cols);
 
     size_t ld;
     *local = starneig_alloc_pinned_matrix(
         local_rows, local_cols, sizeof(double), &ld);
 
-    starneig_descinit(
+    starneig_blacs_descinit(
         descr, rows, cols, row_blksz, col_blksz, 0, 0, context, ld);
 }
 
 __attribute__ ((visibility ("default")))
-void starneig_destroy_blacs_matrix(starneig_blacs_descr_t *descr, void **local)
+void starneig_blacs_destroy_matrix(starneig_blacs_descr_t *descr, void **local)
 {
     starneig_free_pinned_matrix(*local);
 }
@@ -125,7 +125,7 @@ void starneig_distr_matrix_to_blacs_descr(
         starneig_fatal_error(
             "The data distribution and the BLASC context are incompatible.");
 
-    starneig_descinit(
+    starneig_blacs_descinit(
         descr, matrix->rows, matrix->cols, matrix->row_blksz, matrix->col_blksz,
         0, 0, context, matrix->ld);
 
@@ -159,8 +159,8 @@ starneig_distr_matrix_t starneig_blacs_descr_to_distr_matrix(
     int col_blksz = matrix->col_blksz = descr->sn;
 
     // calculate how many rows and columns are owner locally
-    int local_rows = starneig_numroc(rows, row_blksz, row_rank, 0, grid_rows);
-    int local_cols = starneig_numroc(cols, col_blksz, col_rank, 0, grid_cols);
+    int local_rows = starneig_blacs_numroc(rows, row_blksz, row_rank, 0, grid_rows);
+    int local_cols = starneig_blacs_numroc(cols, col_blksz, col_rank, 0, grid_cols);
 
     int local_block_rows = divceil(local_rows, row_blksz);
     int local_block_cols = divceil(local_cols, col_blksz);
@@ -232,4 +232,25 @@ int starneig_distr_matrix_is_compatible_with(
 {
     starneig_distr_t distr = starneig_distr_matrix_get_distr(matrix);
     return starneig_distr_is_compatible_with(distr, context);
+}
+
+// deprecated
+__attribute__ ((visibility ("default")))
+void starneig_create_blacs_matrix(
+    int rows, int cols, int row_blksz, int col_blksz, starneig_datatype_t type,
+    starneig_blacs_context_t context,
+    starneig_blacs_descr_t *descr, void **local)
+{
+    starneig_warning("starneig_create_blacs_matrix has been deprecated.");
+    starneig_blacs_create_matrix(
+        rows, cols, row_blksz, col_blksz, type, context, descr, local);
+}
+
+// deprecated
+__attribute__ ((visibility ("default")))
+void starneig_destroy_blacs_matrix(
+    starneig_blacs_descr_t *descr, void **local)
+{
+    starneig_warning("starneig_destroy_blacs_matrix has been deprecated.");
+    starneig_blacs_destroy_matrix(descr, local);
 }

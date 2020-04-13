@@ -1,13 +1,13 @@
 ///
 /// @file
 ///
-/// @brief This file includes most StarNEig header files.
+/// @brief This file contains generic distributed memory interface functions.
 ///
 /// @author Mirko Myllykoski (mirkom@cs.umu.se), Umeå University
 ///
 /// @section LICENSE
 ///
-/// Copyright (c) 2019, Umeå Universitet
+/// Copyright (c) 2019-2020, Umeå Universitet
 ///
 /// Redistribution and use in source and binary forms, with or without
 /// modification, are permitted provided that the following conditions are met:
@@ -36,27 +36,89 @@
 /// POSSIBILITY OF SUCH DAMAGE.
 ///
 
-#ifndef STARNEIG_STARNEIG_H
-#define STARNEIG_STARNEIG_H
+#ifndef STARNEIG_DISTR_HELPERS_H
+#define STARNEIG_DISTR_HELPERS_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 #include <starneig/configuration.h>
-#include <starneig/node.h>
-#include <starneig/gep_sm.h>
-#include <starneig/sep_sm.h>
+#include <stddef.h>
+#include <mpi.h>
 
-@COMMENT_DM@#include <starneig/distr_helpers.h>
-@COMMENT_DM@#include <starneig/gep_dm.h>
-@COMMENT_DM@#include <starneig/sep_dm.h>
+///
+/// @defgroup starneig_distr_helpers Distributed Memory / Helper functions
+///
+/// @brief Distributed memory helper functions.
+///
+/// @{
+///
 
-@COMMENT_BLACS@#include <starneig/blacs_helpers.h>
-@COMMENT_BLACS@#include <starneig/blacs_matrix.h>
+///
+/// @name MPI communicator
+/// @{
+///
+
+///
+/// @brief Sets a MPI communicator for the library.
+///
+/// Should be called before the starneig_node_init() interface function.
+///
+/// @param[in] comm
+///         The library MPI communicator.
+///
+void starneig_mpi_set_comm(MPI_Comm comm);
+
+///
+/// @brief Returns the library MPI communicator.
+///
+/// @return The library MPI communicator.
+///
+MPI_Comm starneig_mpi_get_comm();
+
+///
+/// @}
+///
+
+///
+/// @name Broadcast
+/// @{
+///
+
+///
+/// @brief Broadcast a buffer.
+///
+/// @param[in] root
+///         The rank that is going to broadcast the buffer.
+///
+/// @param[in] size
+///         The size of the buffer.
+///
+/// @param[in,out] buffer
+///         A pointer to the buffer.
+///
+void starneig_mpi_broadcast(int root, size_t size, void *buffer);
+
+///
+/// @brief Broadcast a buffer. Deprecated.
+///
+/// @deprecated The starneig_broadcast() function has been replaced with the
+/// starneig_mpi_broadcast() function. This function will be removed in a
+/// future release of the library.
+///
+void starneig_broadcast(int root, size_t size, void *buffer);
+
+///
+/// @}
+///
+
+///
+/// @}
+///
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif // STARNEIG_STARNEIG_H
+#endif // STARNEIG_DISTR_HELPERS_H

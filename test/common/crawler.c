@@ -46,6 +46,7 @@
 #include <starneig/node.h>
 #ifdef STARNEIG_ENABLE_MPI
 #include "starneig_pencil.h"
+#include <starneig/distr_helpers.h>
 #include <mpi.h>
 #endif
 
@@ -231,7 +232,7 @@ static void crawl_panel_starneig(
         if (my_rank == 0)
             progress = func(
                 offset, width, m, n, matrix_count, lds, (void **) ptrs, arg);
-        starneig_broadcast(0, sizeof(progress), &progress);
+        starneig_mpi_broadcast(0, sizeof(progress), &progress);
 
         if (progress == -1)
             goto cleanup;
@@ -257,7 +258,7 @@ cleanup:
     }
 
     unsigned seed = prand();
-    starneig_broadcast(0, sizeof(seed), &seed);
+    starneig_mpi_broadcast(0, sizeof(seed), &seed);
     init_prand(seed);
 
     if (!initialized)
@@ -324,7 +325,7 @@ static void crawl_hpanel_starneig(
         if (my_rank == 0)
             progress = func(
                 offset, height, m, n, matrix_count, lds, (void **) ptrs, arg);
-        starneig_broadcast(0, sizeof(progress), &progress);
+        starneig_mpi_broadcast(0, sizeof(progress), &progress);
 
         if (progress == -1)
             goto cleanup;
@@ -350,7 +351,7 @@ cleanup:
     }
 
     unsigned seed = prand();
-    starneig_broadcast(0, sizeof(seed), &seed);
+    starneig_mpi_broadcast(0, sizeof(seed), &seed);
     init_prand(seed);
 
     if (!initialized)
@@ -419,7 +420,7 @@ static void crawl_diag_window_starneig(
         if (my_rank == 0)
             progress = func(
                 offset, _size, m, n, matrix_count, lds, (void **) ptrs, arg);
-        starneig_broadcast(0, sizeof(progress), &progress);
+        starneig_mpi_broadcast(0, sizeof(progress), &progress);
 
         if (progress == -1)
             goto cleanup;
@@ -446,7 +447,7 @@ cleanup:
     }
 
     unsigned seed = prand();
-    starneig_broadcast(0, sizeof(seed), &seed);
+    starneig_mpi_broadcast(0, sizeof(seed), &seed);
     init_prand(seed);
 
     if (!initialized)

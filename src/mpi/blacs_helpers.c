@@ -7,7 +7,7 @@
 ///
 /// @section LICENSE
 ///
-/// Copyright (c) 2019, Umeå Universitet
+/// Copyright (c) 2019-2020, Umeå Universitet
 ///
 /// Redistribution and use in source and binary forms, with or without
 /// modification, are permitted provided that the following conditions are met:
@@ -39,6 +39,7 @@
 #include <starneig_config.h>
 #include <starneig/configuration.h>
 #include <starneig/blacs_helpers.h>
+#include "../common/common.h"
 
 __attribute__ ((visibility ("default")))
 void starneig_blacs_pinfo(int *my_rank, int *rank_count)
@@ -99,7 +100,7 @@ void starneig_blacs_exit(int cont)
 }
 
 __attribute__ ((visibility ("default")))
-int starneig_numroc(
+int starneig_blacs_numroc(
     int n, int nb, int iproc, int isrcproc, int nprocs)
 {
     extern int numroc_(
@@ -108,7 +109,7 @@ int starneig_numroc(
 }
 
 __attribute__ ((visibility ("default")))
-int starneig_descinit(
+int starneig_blacs_descinit(
     struct starneig_blacs_descr *descr, int m, int n, int sm, int sn,
     int irsrc, int icsrc, starneig_blacs_context_t context, int ld)
 {
@@ -120,4 +121,23 @@ int starneig_descinit(
     int info;
     descinit_(descr, &m, &n, &sm, &sn, &irsrc, &icsrc, &context, &ld, &info);
     return info;
+}
+
+// deprecated
+__attribute__ ((visibility ("default")))
+int starneig_numroc(
+    int n, int nb, int iproc, int isrcproc, int nprocs)
+{
+    starneig_warning("starneig_numroc has been deprecated.");
+    return starneig_blacs_numroc(n, nb, iproc, isrcproc, nprocs);
+}
+
+// deprecated
+__attribute__ ((visibility ("default")))
+int starneig_descinit(
+    struct starneig_blacs_descr *descr, int m, int n, int sm, int sn,
+    int irsrc, int icsrc, starneig_blacs_context_t context, int ld)
+{
+    starneig_warning("starneig_descinit has been deprecated.");
+    return starneig_descinit(descr, m, n, sm, sn, irsrc, icsrc, context, ld);
 }

@@ -500,6 +500,7 @@ set (PUBLIC_HEADER_FILES
 if (STARNEIG_ENABLE_MPI)
     set (PUBLIC_HEADER_FILES ${PUBLIC_HEADER_FILES}
         ${CMAKE_CURRENT_SOURCE_DIR}/include/starneig/distr_matrix.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/starneig/distr_helpers.h
         ${CMAKE_CURRENT_SOURCE_DIR}/include/starneig/gep_dm.h
         ${CMAKE_CURRENT_SOURCE_DIR}/include/starneig/sep_dm.h)
 endif ()

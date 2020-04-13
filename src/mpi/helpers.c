@@ -36,6 +36,7 @@
 
 #include <starneig_config.h>
 #include <starneig/configuration.h>
+#include <starneig/distr_helpers.h>
 #include <starneig/sep_dm.h>
 #include <starneig/gep_dm.h>
 #include "utils.h"

@@ -779,6 +779,7 @@ INPUT   = "@CMAKE_CURRENT_BINARY_DIR@/include/starneig/starneig.h" \
           "@CMAKE_CURRENT_BINARY_DIR@/include/starneig/sep_sm.h" \
           "@CMAKE_CURRENT_BINARY_DIR@/include/starneig/gep_sm.h" \
           "@CMAKE_CURRENT_BINARY_DIR@/include/starneig/distr_matrix.h" \
+          "@CMAKE_CURRENT_BINARY_DIR@/include/starneig/distr_helpers.h" \
           "@CMAKE_CURRENT_BINARY_DIR@/include/starneig/sep_dm.h" \
           "@CMAKE_CURRENT_BINARY_DIR@/include/starneig/gep_dm.h" \
           "@CMAKE_CURRENT_BINARY_DIR@/include/starneig/expert.h" \

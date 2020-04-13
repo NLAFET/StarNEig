@@ -46,6 +46,7 @@ extern "C" {
 #endif
 
 #include <starneig/configuration.h>
+#include <stddef.h>
 #ifdef STARNEIG_ENABLE_MPI
 #include <mpi.h>
 #endif
@@ -230,39 +231,15 @@ void starneig_node_disable_pinning();
 
 #endif
 
+///
+/// @}
+///
+
+// deprecated
 #ifdef STARNEIG_ENABLE_MPI
-
-///
-/// @name Distributed memory
-/// @{
-///
-
-///
-/// @brief Sets a MPI communicator for the library.
-///
-/// Should be called before the starneig_node_init() interface function.
-///
-/// @param[in] comm
-///         The library MPI communicator.
-///
 void starneig_mpi_set_comm(MPI_Comm comm);
-
-///
-/// @brief Returns the library MPI communicator.
-///
-/// @return The library MPI communicator.
-///
 MPI_Comm starneig_mpi_get_comm();
-
-///
-/// @}
-///
-
 #endif
-
-///
-/// @}
-///
 
 #ifdef __cplusplus
 }
