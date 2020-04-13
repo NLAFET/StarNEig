@@ -1,6 +1,7 @@
 v0.1-beta.6:
  - Fix starneig_node_enable_pinning() and starneig_node_disable_pinning()
    functions.
+ - Built pdgghrd as a separate library.
 
 v0.1-beta.5:
  - Improve the performance of the Hessenberg reduction phase by limiting
