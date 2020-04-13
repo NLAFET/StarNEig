@@ -18,7 +18,7 @@ The four main components of the library are:
  - **Eigenvectors**: Computes (generalized) eigenvectors for a user-selected
    set of (generalized) eigenvalues.
 
-**A brief summary of the StarNEig library** can be found from a recent poster: 
+**A brief summary of the StarNEig library** can be found from a recent poster:
 *Task-based, GPU-accelerated and Robust Algorithms for Solving Dense
 Nonsymmetric Eigenvalue Problems*, Swedish eScience Academy, Lund, Sweden,
 October 15-16, 2019
@@ -28,11 +28,11 @@ The library has been developed as a part of the NLAFET project. The project has
 received funding from the European Union’s Horizon 2020 research and innovation
 programme under grant agreement No. 671633. Support has also been received
 from eSSENCE, a collaborative e-Science programme funded by the Swedish
-Government via the Swedish Research Council (VR).
+Government via the Swedish Research Council (VR), and VR Grant E0485301.
 
 The library is open source and published under BSD 3-Clause licence.
 
-Please cite the following article when refering to StarNEig: 
+Please cite the following article when refering to StarNEig:
 > Mirko Myllykoski, Carl Christian Kjelgaard Mikkelsen: *Introduction to StarNEig — A Task-based Library for Solving Nonsymmetric Eigenvalue Problems*, In Parallel Processing and Applied Mathematics, 13th International Conference, PPAM 2019, Bialystok, Poland, September 8–11, 2019, Revised Selected Papers, Part I, Lecture Notes in Computer Science, Vol. 12043, Wyrzykowski R., Deelman E., Dongarra J., Karczewski K. (eds), Springer International Publishing, pp. 70-81, 2020, doi: [10.1007/978-3-030-43229-4_7](https://doi.org/10.1007/978-3-030-43229-4_7)
 
 ## Current status
@@ -64,7 +64,7 @@ Please see the *Known problems* section in the StarNEig manual.
 - Mirko Myllykoski, Carl Christian Kjelgaard Mikkelsen: *Introduction to StarNEig — A Task-based Library for Solving Nonsymmetric Eigenvalue Problems*, In Parallel Processing and Applied Mathematics, 13th International Conference, PPAM 2019, Bialystok, Poland, September 8–11, 2019, Revised Selected Papers, Part I, Lecture Notes in Computer Science, Vol. 12043, Wyrzykowski R., Deelman E., Dongarra J., Karczewski K. (eds), Springer International Publishing, pp. 70-81, 2020, doi: [10.1007/978-3-030-43229-4_7](https://doi.org/10.1007/978-3-030-43229-4_7)
 - Carl Christian Kjelgaard Mikkelsen, Mirko Myllykoski: *Parallel Robust Computation of Generalized Eigenvectors of Matrix Pencils*, presented at PPAM 2019, In Parallel Processing and Applied Mathematics, 13th International Conference, PPAM 2019, Bialystok, Poland, September 8–11, 2019, Revised Selected Papers, Part I, Lecture Notes in Computer Science, Vol. 12043, Wyrzykowski R., Deelman E., Dongarra J., Karczewski K. (eds), Springer International Publishing, pp. 58-69, 2020, doi: [10.1007/978-3-030-43229-4_6](https://doi.org/10.1007/978-3-030-43229-4_6)
  - Carl Christian Kjelgaard Mikkelsen, Angelika Schwarz, and Lars Karlsson: *Parallel Robust Solution of Triangular Linear Systems*, Concurrency and Computation: Practice and Experience, 31 (19), 2019, doi: [10.1016/j.parco.2019.04.001](https://doi.org/10.1016/j.parco.2019.04.001)
- - Mirko Myllykoski: *A Task-Based Algorithm for Reordering the Eigenvalues of a Matrix in Real Schur Form*, In Parallel Processing and Applied Mathematics, 12th International Conference, PPAM 2017, Lublin, Poland, September 10-13, 2017, Revised Selected Papers, Part I, Lecture Notes in Computer Science, Vol. 10777, Wyrzykowski R., Dongarra J., Deelman E., Karczewski K. (eds), Springer International Publishing, pp. 207-216, 2018, doi: [10.1007/978-3-319-78024-5_19](https://doi.org/10.1007/978-3-319-78024-5_19) 
+ - Mirko Myllykoski: *A Task-Based Algorithm for Reordering the Eigenvalues of a Matrix in Real Schur Form*, In Parallel Processing and Applied Mathematics, 12th International Conference, PPAM 2017, Lublin, Poland, September 10-13, 2017, Revised Selected Papers, Part I, Lecture Notes in Computer Science, Vol. 10777, Wyrzykowski R., Dongarra J., Deelman E., Karczewski K. (eds), Springer International Publishing, pp. 207-216, 2018, doi: [10.1007/978-3-319-78024-5_19](https://doi.org/10.1007/978-3-319-78024-5_19)
  - Carl Christian Kjelgaard Mikkelsen, Lars Karlsson. *Blocked Algorithms for Robust Solution of Triangular Linear Systems*, In Parallel Processing and Applied Mathematics, 12th International Conference, PPAM 2017, Lublin, Poland, September 10-13, 2017, Revised Selected Papers, Part I, Lecture Notes in Computer Science, Vol. 10777, Wyrzykowski R., Dongarra J., Deelman E., Karczewski K. (eds), Springer International Publishing, pp. 207-216, 2018, doi: [10.1007/978-3-319-78024-5_7](https://doi.org/10.1007/978-3-319-78024-5_7)
 
 ### Reports, deliverables etc

@@ -4,9 +4,9 @@
 !/src/
 !/test/
 !/.gitignore
-!/AUTHORS
-!/CHANGELOG
+!/AUTHORS.md
+!/CHANGELOG.md
 !/CMakeLists.txt
-!/LICENSE
+!/LICENSE.md
 !/README.md
 !/version.txt

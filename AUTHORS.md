@@ -1,4 +1,4 @@
-The following people have contributed to the library:
+The following people have contributed to the StarNEig library:
 
  - Angelika Schwarz (angies@cs.umu.se)
     - Standard eigenvectors
