@@ -233,9 +233,9 @@ struct starneig_schur_conf {
     /// The implementation relies on a so-called Aggressive Early Deflation
     /// (AED) technique to accelerate the convergence of the algorithm. Each AED
     /// is performed inside a small diagonal window. If the number deflated
-    /// (converged) eigenvalues is larger than `aed_nibble` \f$\times\f$ size of
-    /// AED window, then the next bulge chasing step is skipped. If the
-    /// parameter is set to @ref STARNEIG_SCHUR_DEFAULT_AED_NIBBLE, then the
+    /// (converged) eigenvalues is larger than `(aed_nibble / 100)` \f$\times\f$
+    /// `size of AED window`, then the next bulge chasing step is skipped. If
+    /// the parameter is set to @ref STARNEIG_SCHUR_DEFAULT_AED_NIBBLE, then the
     /// implementation will determine a suitable value automatically.
     int aed_nibble;
 
