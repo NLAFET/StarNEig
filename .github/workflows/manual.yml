@@ -18,7 +18,7 @@ jobs:
 
       - name: Built manual
         run: |
-          echo ${{ github.ref }} > version.txt
+          echo ${{ env.GITHUB_SHA }} > version.txt
           cmake docs/ && make
           mkdir latest && cp -r html starneig_manual.pdf latest/
 
