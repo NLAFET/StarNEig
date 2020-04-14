@@ -12,7 +12,7 @@ jobs:
         uses: actions/checkout@v2
         with:
           persist-credentials: false
-          
+
       - name: Install dependences
         run: sudo apt-get install texlive-full doxygen
 
