@@ -18,7 +18,7 @@ jobs:
 
       - name: Built manual
         run: |
-          echo ${GITHUB_SHA} > version.txt
+          echo "commit/${GITHUB_SHA:0:10}" > version.txt
           cmake docs/ && make
           mkdir latest && cp -r html starneig_manual.pdf latest/
 
@@ -30,4 +30,4 @@ jobs:
           BRANCH: gh-pages
           FOLDER: latest
           TARGET_FOLDER: latest
-          COMMIT_MESSAGE: "Upload ${GITHUB_SHA} documentation"
+          COMMIT_MESSAGE: "Upload commit/${GITHUB_SHA:0:10} documentation"
