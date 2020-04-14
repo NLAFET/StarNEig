@@ -19,7 +19,7 @@ jobs:
       - name: Built manual
         run: |
           cmake docs/ && make
-          mkdir latest && cp -r html/ starneig_manual.pdf latest/
+          mkdir latest && cp -r html starneig_manual.pdf latest/
 
       - name: Deploy manual
         uses: JamesIves/github-pages-deploy-action@releases/v3
