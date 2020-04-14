@@ -1,6 +1,4 @@
 ### v0.1-beta.7:
- - New experimental Hessenberg reduction code with distributed memory and
-   multi-GPU support.
 
 ### v0.1-beta.6:
  - Fix `starneig_node_enable_pinning()` and `starneig_node_disable_pinning()`
