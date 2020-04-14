@@ -1,6 +1,6 @@
 # Introduction
 
-![StarNEig tests](https://github.com/NLAFET/StarNEig/workflows/StarNEig%20tests/badge.svg) ![StarNEig manual](https://github.com/NLAFET/StarNEig/workflows/StarNEig%20manual/badge.svg)
+![StarNEig tests](https://github.com/NLAFET/StarNEig/workflows/StarNEig%20tests/badge.svg) ![StarNEig manual](https://github.com/NLAFET/StarNEig/workflows/StarNEig%20manual/badge.svg) ![StarNEig version](https://github.com/NLAFET/StarNEig/workflows/StarNEig%20version/badge.svg)
 
 StarNEig library aims to provide a complete task-based software stack for
 solving **dense** **nonsymmetric** (generalized) eigenvalue problems. The
