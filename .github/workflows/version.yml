@@ -14,7 +14,7 @@ jobs:
           rust-version: stable
 
       - name: Get the version
-          run: echo ::set-env name=RELEASE_VERSION::${GITHUB_REF/refs\/tags\//}
+        run: echo ::set-env name=RELEASE_VERSION::${GITHUB_REF#refs/*/}
 
       - name: Checkout
         uses: actions/checkout@v2
