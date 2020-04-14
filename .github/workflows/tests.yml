@@ -1,4 +1,4 @@
-name: StarNEig base tests
+name: StarNEig tests
 
 on:
   push:
@@ -7,17 +7,22 @@ on:
     branches: [ master ]
 
 jobs:
-  tests:
-
+  run-base-tests:
     runs-on: ubuntu-latest
-
     steps:
-    - uses: actions/checkout@v2
-    - name: Install dependences
-      run: sudo apt-get install gfortran libopenblas-dev libopenmpi-dev libscalapack-openmpi-dev libstarpu-dev libgsl-dev
-    - name: Configure
-      run: cmake .
-    - name: Build
-      run: make
-    - name: Test
-      run: make test
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Install dependences
+        run: |
+          sudo apt-get install gfortran libopenblas-dev libopenmpi-dev \
+            libscalapack-openmpi-dev libstarpu-dev libgsl-dev
+
+      - name: Configure
+        run: cmake .
+
+      - name: Build
+        run: make
+
+      - name: Test
+        run: make test
