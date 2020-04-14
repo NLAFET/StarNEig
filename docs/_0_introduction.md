@@ -10,9 +10,9 @@ The four main components of the library are:
 
  - **Hessenberg(-triangular) reduction**: A dense matrix (or a dense matrix
    pair) is reduced to upper Hessenberg (or Hessenberg-triangular) form.
- - **Schur reduction**: A upper Hessenberg matrix (or a Hessenberg-triangular
-   matrix pair) is reduced to (generalized) Schur form. The (generalized)
-   eigenvalues can be determined from the diagonal blocks.
+ - **Schur reduction (QR/QZ algorithm)**: A upper Hessenberg matrix (or a
+   Hessenberg-triangular matrix pair) is reduced to (generalized) Schur form.
+   The (generalized) eigenvalues can be determined from the diagonal blocks.
  - **Eigenvalue reordering**: Reorders a user-selected set of (generalized)
    eigenvalues to the upper left corner of an updated (generalized) Schur form.
  - **Eigenvectors**: Computes (generalized) eigenvectors for a user-selected
