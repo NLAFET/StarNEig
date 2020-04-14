@@ -1,0 +1,34 @@
+{
+   ignore_libmpi_errors
+   Memcheck:Leak
+   ...
+   obj:*/libmpi.so.*
+}
+
+{
+   ignore_libcuda_errors
+   Memcheck:Leak
+   ...
+   obj:*/libcuda.so.*
+}
+
+{
+   ignore_libhwloc_errors
+   Memcheck:Leak
+   ...
+   obj:*/libhwloc.so.*
+}
+
+{
+   ignore_libfxt_errors
+   Memcheck:Leak
+   ...
+   obj:*/libfxt.so.*
+}
+
+{
+   ignore_libnvidia-opencl_errors
+   Memcheck:Leak
+   ...
+   obj:*/libnvidia-opencl.so.*
+}
