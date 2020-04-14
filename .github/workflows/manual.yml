@@ -30,4 +30,4 @@ jobs:
           BRANCH: gh-pages
           FOLDER: latest
           TARGET_FOLDER: latest
-          COMMIT_MESSAGE: "Upload commit/${GITHUB_SHA:0:10} documentation"
+          COMMIT_MESSAGE: "Upload commit/"${GITHUB_SHA:0:10}" documentation"
