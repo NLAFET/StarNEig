@@ -1,0 +1,48 @@
+name: StarNEig version
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build-and-deploy-manual:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: hecrj/setup-rust-action@v1
+        with:
+          rust-version: stable
+
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          persist-credentials: false
+          
+      - name: Install dependences
+        run: |
+          sudo apt-get install texlive-full doxygen
+
+      - name: Built manual
+        run: |
+          echo ${{ github.ref }} > version.txt
+          cmake docs/ && make
+          mkdir manual && cp -r html starneig_manual.pdf manual/
+
+      - name: Deploy manual to GitHub pages
+        uses: JamesIves/github-pages-deploy-action@releases/v3
+        with:
+          ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BRANCH: gh-pages
+          FOLDER: manual
+          TARGET_FOLDER: ${{ github.ref }}
+          COMMIT_MESSAGE: "Upload ${{ github.ref }} documentation"
+
+      - name: Deploy manual to GitHub
+        uses: svenstaro/upload-release-action@v1-release
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: starneig_manual.pdf
+          asset_name: starneig_manual.pdf
+          tag: ${{ github.ref }}
+          overwrite: true
