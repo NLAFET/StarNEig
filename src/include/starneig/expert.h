@@ -7,8 +7,6 @@
 /// @author Mirko Myllykoski (mirkom@cs.umu.se), Umeå University
 /// @author Angelika Schwarz (angies@cs.umu.se), Umeå University
 ///
-/// @section LICENSE
-///
 /// Copyright (c) 2019-2020, Umeå Universitet
 ///
 /// Redistribution and use in source and binary forms, with or without
