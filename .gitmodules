@@ -1,0 +1,9 @@
+[submodule "test/3rdparty/pdtgsen"]
+	path = test/3rdparty/pdtgsen
+	url = https://github.com/mirkomyl/pdtgsen.git
+[submodule "test/3rdparty/pdhgeqz"]
+	path = test/3rdparty/pdhgeqz
+	url = https://github.com/mirkomyl/pdhgeqz.git
+[submodule "test/3rdparty/custom_pdhseqr"]
+	path = test/3rdparty/custom_pdhseqr
+	url = https://github.com/mirkomyl/custom_pdhseqr.git
