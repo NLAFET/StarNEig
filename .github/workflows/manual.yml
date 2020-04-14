@@ -18,18 +18,14 @@ jobs:
 
       - name: Built manual
         run: |
-          mkdir build
-          cd build/
-          cmake ../docs/
-          make
-          rm -vr !("html"|"starneig_manual.pdf") 
-          cd ../
+          cmake docs/ && make
+          mkdir latest && cp -r html/ starneig_manual.pdf latest/
 
       - name: Deploy manual
         uses: JamesIves/github-pages-deploy-action@releases/v3
         with:
           ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
           BRANCH: gh-pages
-          FOLDER: build
+          FOLDER: latest
           TARGET_FOLDER: latest
           COMMIT_MESSAGE: "Update master branch documentation"
