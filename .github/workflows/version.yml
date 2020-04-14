@@ -13,6 +13,10 @@ jobs:
         with:
           rust-version: stable
 
+      - name: Get the version
+          id: get_version
+          run: echo ::set-output name=RELEASE_VERSION::${GITHUB_REF/refs\/tags\//}
+
       - name: Checkout
         uses: actions/checkout@v2
         with:
@@ -24,7 +28,7 @@ jobs:
 
       - name: Built manual
         run: |
-          echo ${{ github.ref }} > version.txt
+          echo ${{ env.RELEASE_VERSION }} > version.txt
           cmake docs/ && make
           mkdir manual && cp -r html starneig_manual.pdf manual/
 
@@ -35,14 +39,14 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           BRANCH: gh-pages
           FOLDER: manual
-          TARGET_FOLDER: ${{ github.ref }}
-          COMMIT_MESSAGE: "Upload ${{ github.ref }} documentation"
+          TARGET_FOLDER: ${{ env.RELEASE_VERSION }}
+          COMMIT_MESSAGE: "Upload ${{ env.RELEASE_VERSION }} documentation"
 
       - name: Deploy manual to GitHub
         uses: svenstaro/upload-release-action@v1-release
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           file: starneig_manual.pdf
-          asset_name: StarNEig-${{ github.ref }}.pdf
+          asset_name: StarNEig-${{ env.RELEASE_VERSION }}.pdf
           tag: ${{ github.ref }}
           overwrite: true
