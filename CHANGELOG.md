@@ -1,4 +1,5 @@
-### v0.1-beta.7:
+### v0.1.0:
+ - First stable release of the library.
 
 ### v0.1-beta.6:
  - Fix `starneig_node_enable_pinning()` and `starneig_node_disable_pinning()`
