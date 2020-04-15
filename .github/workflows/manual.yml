@@ -2,12 +2,17 @@ name: StarNEig manual
 
 on:
   push:
-    branches: [ master ]
+    branches:
+      - 'master'
+      - 'v*'
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
+      - name: Get the hash
+        run: echo ::set-env name=HASH::${GITHUB_SHA:0:10}
+
       - name: Checkout
         uses: actions/checkout@v2
         with:
@@ -18,7 +23,7 @@ jobs:
 
       - name: Built manual
         run: |
-          echo "commit/${GITHUB_SHA:0:10}" > version.txt
+          echo "${{ env.HASH }}" > version.txt
           cmake docs/ && make
           mkdir latest && cp -r html starneig_manual.pdf latest/
 
@@ -30,4 +35,4 @@ jobs:
           BRANCH: gh-pages
           FOLDER: latest
           TARGET_FOLDER: latest
-          COMMIT_MESSAGE: "Upload latest documentation"
+          COMMIT_MESSAGE: "Upload ${{ env.HASH }} documentation"
