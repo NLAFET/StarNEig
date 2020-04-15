@@ -38,6 +38,7 @@
 #include <starneig/configuration.h>
 #include <starneig/sep_dm.h>
 #include <starneig/gep_dm.h>
+#include <starneig/distr_helpers.h>
 #include <starneig/blacs_matrix.h>
 #include <starneig/blacs_helpers.h>
 #include "common.h"
@@ -360,7 +361,7 @@ starneig_error_t starneig_GEP_DM_HessenbergTriangular(
 
     starneig_blacs_descr_t descr_w;
     double *local_w;
-    starneig_create_blacs_matrix(
+    starneig_blacs_create_matrix(
         n, n,
         starneig_distr_matrix_get_row_blksz(_A),
         starneig_distr_matrix_get_col_blksz(_A),
@@ -482,7 +483,7 @@ starneig_error_t starneig_GEP_DM_HessenbergTriangular(
 
 cleanup:
 
-    starneig_destroy_blacs_matrix(&descr_w, (void **)&local_w);
+    starneig_blacs_destroy_matrix(&descr_w, (void **)&local_w);
 
     free(tau);
     free(work);
