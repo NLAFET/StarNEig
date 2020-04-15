@@ -235,12 +235,6 @@ void starneig_node_disable_pinning();
 /// @}
 ///
 
-// deprecated
-#ifdef STARNEIG_ENABLE_MPI
-void starneig_mpi_set_comm(MPI_Comm comm);
-MPI_Comm starneig_mpi_get_comm();
-#endif
-
 #ifdef __cplusplus
 }
 #endif

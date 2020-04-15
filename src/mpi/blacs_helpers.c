@@ -122,22 +122,3 @@ int starneig_blacs_descinit(
     descinit_(descr, &m, &n, &sm, &sn, &irsrc, &icsrc, &context, &ld, &info);
     return info;
 }
-
-// deprecated
-__attribute__ ((visibility ("default")))
-int starneig_numroc(
-    int n, int nb, int iproc, int isrcproc, int nprocs)
-{
-    starneig_warning("starneig_numroc has been deprecated.");
-    return starneig_blacs_numroc(n, nb, iproc, isrcproc, nprocs);
-}
-
-// deprecated
-__attribute__ ((visibility ("default")))
-int starneig_descinit(
-    struct starneig_blacs_descr *descr, int m, int n, int sm, int sn,
-    int irsrc, int icsrc, starneig_blacs_context_t context, int ld)
-{
-    starneig_warning("starneig_descinit has been deprecated.");
-    return starneig_descinit(descr, m, n, sm, sn, irsrc, icsrc, context, ld);
-}

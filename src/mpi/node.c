@@ -194,11 +194,3 @@ void starneig_mpi_broadcast(int root, size_t size, void *buffer)
     starneig_node_pause_starpu();
     starneig_mpi_stop_starpumpi();
 }
-
-// deprecated
-__attribute__ ((visibility ("default")))
-void starneig_broadcast(int root, size_t size, void *buffer)
-{
-    starneig_warning("starneig_broadcast has been deprecated.");
-    starneig_mpi_broadcast(root, size, buffer);
-}

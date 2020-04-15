@@ -101,15 +101,6 @@ MPI_Comm starneig_mpi_get_comm();
 void starneig_mpi_broadcast(int root, size_t size, void *buffer);
 
 ///
-/// @brief Broadcast a buffer. Deprecated.
-///
-/// @deprecated The starneig_broadcast() function has been replaced with the
-/// starneig_mpi_broadcast() function. This function will be removed in a
-/// future release of the library.
-///
-void starneig_broadcast(int root, size_t size, void *buffer);
-
-///
 /// @}
 ///
 

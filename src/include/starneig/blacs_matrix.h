@@ -193,19 +193,6 @@ void starneig_blacs_create_matrix(
     starneig_blacs_descr_t *descr, void **local);
 
 ///
-/// @brief Creates a BLACS matrix with uninitialized matrix elements.
-/// Deprecated.
-///
-/// @deprecated The starneig_create_blacs_matrix() function has been replaced
-/// with the starneig_blacs_create_matrix() function. This function will be
-/// removed in a future release of the library.
-///
-void starneig_create_blacs_matrix(
-    int rows, int cols, int row_blksz, int col_blksz, starneig_datatype_t type,
-    starneig_blacs_context_t context,
-    starneig_blacs_descr_t *descr, void **local);
-
-///
 /// @brief Destroyes a BLACS matrix.
 ///
 /// @param[in,out] descr
@@ -215,15 +202,6 @@ void starneig_create_blacs_matrix(
 ///         A pointer to the local array.
 ///
 void starneig_blacs_destroy_matrix(starneig_blacs_descr_t *descr, void **local);
-
-///
-/// @brief Destroyes a BLACS matrix. Deprecated.
-///
-/// @deprecated The starneig_destroy_blacs_matrix() function has been replaced
-/// with the starneig_blacs_destroy_matrix() function. This function will be
-/// removed in a future release of the library.
-///
-void starneig_destroy_blacs_matrix(starneig_blacs_descr_t *descr, void **local);
 
 ///
 /// @brief Convers a distributed matrix to a BLACS descriptor and a matching

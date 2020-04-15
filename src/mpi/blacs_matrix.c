@@ -233,24 +233,3 @@ int starneig_distr_matrix_is_compatible_with(
     starneig_distr_t distr = starneig_distr_matrix_get_distr(matrix);
     return starneig_distr_is_compatible_with(distr, context);
 }
-
-// deprecated
-__attribute__ ((visibility ("default")))
-void starneig_create_blacs_matrix(
-    int rows, int cols, int row_blksz, int col_blksz, starneig_datatype_t type,
-    starneig_blacs_context_t context,
-    starneig_blacs_descr_t *descr, void **local)
-{
-    starneig_warning("starneig_create_blacs_matrix has been deprecated.");
-    starneig_blacs_create_matrix(
-        rows, cols, row_blksz, col_blksz, type, context, descr, local);
-}
-
-// deprecated
-__attribute__ ((visibility ("default")))
-void starneig_destroy_blacs_matrix(
-    starneig_blacs_descr_t *descr, void **local)
-{
-    starneig_warning("starneig_destroy_blacs_matrix has been deprecated.");
-    starneig_blacs_destroy_matrix(descr, local);
-}

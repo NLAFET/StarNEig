@@ -462,9 +462,6 @@ int starneig_distr_matrix_get_col_blksz(starneig_distr_matrix_t matrix);
 /// @}
 ///
 
-// deprecated
-void starneig_broadcast(int root, size_t size, void *buffer);
-
 #ifdef __cplusplus
 }
 #endif
