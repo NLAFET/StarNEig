@@ -205,7 +205,7 @@ void threads_init(int argc, char * const *argv)
         status.blas_threads = get_core_count();
     printf(
         "THREADS: Using %d BLAS threads during initialization and "
-        "validation.\n", status.worker_threads);
+        "validation.\n", status.blas_threads);
 
     struct multiarg_t lapack_threads =
         read_multiarg("--lapack-threads", argc, argv, NULL, "default", NULL);
