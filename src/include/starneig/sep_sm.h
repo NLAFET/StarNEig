@@ -354,7 +354,7 @@ starneig_error_t starneig_SEP_SM_Select(
 ///         First column to be reduced.
 ///
 /// @param[in] end
-///         Last column to be reduced.
+///         Last column to be reduced + 1.
 ///
 /// @param[in,out] A
 ///         On entry, the general matrix \f$A\f$.
