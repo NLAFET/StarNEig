@@ -176,6 +176,8 @@ void compare_print_matrix(
     double eps, int m, int n, int ld, int ldr,
     double const *mat, double const *ref);
 
+void set_pinning(int value);
+
 ///
 /// @brief Allocated a matrix (two-dimensional array).
 ///
