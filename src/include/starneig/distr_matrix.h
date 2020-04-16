@@ -47,7 +47,7 @@ extern "C" {
 #include <starneig/configuration.h>
 
 #ifndef STARNEIG_ENABLE_MPI
-#error "This should be included only when STARNEIG_ENABLE_MPI is defined."
+#error "This header should be included only when STARNEIG_ENABLE_MPI is defined."
 #endif
 
 #include <stddef.h>
