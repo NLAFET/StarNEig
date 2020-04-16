@@ -32,6 +32,7 @@ Only certain interface functions have expert version:
  - starneig_SEP_SM_ReorderSchur_expert()
  - starneig_SEP_SM_Eigenvectors_expert()
 
+ - starneig_SEP_DM_Hessenberg_expert()
  - starneig_SEP_DM_Schur_expert()
  - starneig_SEP_DM_ReorderSchur_expert()
 

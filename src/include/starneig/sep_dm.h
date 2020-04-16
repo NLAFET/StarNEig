@@ -69,13 +69,8 @@ extern "C" {
 /// @{
 ///
 
-#ifdef STARNEIG_SEP_DM_HESSENBERG
-
 ///
 /// @brief Computes a Hessenberg decomposition of a general matrix.
-///
-/// @attention This function is a wrapper for several ScaLAPACK subroutines.
-///  The function exists if @ref STARNEIG_SEP_DM_HESSENBERG is defined.
 ///
 /// @param[in,out] A
 ///         On entry, the general matrix \f$A\f$.
@@ -91,8 +86,6 @@ extern "C" {
 starneig_error_t starneig_SEP_DM_Hessenberg(
     starneig_distr_matrix_t A,
     starneig_distr_matrix_t Q);
-
-#endif
 
 ///
 /// @brief Computes a Schur decomposition given a Hessenberg decomposition.
@@ -161,13 +154,8 @@ starneig_error_t starneig_SEP_DM_ReorderSchur(
     starneig_distr_matrix_t Q,
     double real[], double imag[]);
 
-#ifdef STARNEIG_SEP_DM_REDUCE
-
 ///
 /// @brief Computes a (reordered) Schur decomposition of a general matrix.
-///
-/// @attention This function uses several ScaLAPACK subroutines. The function
-/// exists if @ref STARNEIG_SEP_DM_REDUCE is defined.
 ///
 /// @param[in,out] A
 ///         On entry, the general matrix \f$A\f$.
@@ -216,8 +204,6 @@ starneig_error_t starneig_SEP_DM_Reduce(
     void *arg,
     int selected[],
     int *num_selected);
-
-#endif
 
 ///
 /// @brief Computes an eigenvector for each selected eigenvalue.
@@ -303,6 +289,35 @@ starneig_error_t starneig_SEP_DM_Select(
 /// @name Expert computational functions
 /// @{
 ///
+
+///
+/// @brief Computes a Hessenberg decomposition of a general matrix.
+///
+/// @param[in] conf
+///         Configuration structure.
+///
+/// @param[in] begin
+///         First column to be reduced.
+///
+/// @param[in] end
+///         Last column to be reduced + 1.
+///
+/// @param[in,out] A
+///         On entry, the general matrix \f$A\f$.
+///         On exit, the upper Hessenberg matrix \f$H\f$.
+///
+/// @param[in,out] Q
+///         On entry, the orthogonal matrix \f$Q\f$.
+///         On exit, the product matrix \f$Q * U\f$.
+///
+/// @return @ref STARNEIG_SUCCESS (0) on success. Negative integer -i when i'th
+/// argument is invalid. Positive error code otherwise.
+///
+starneig_error_t starneig_SEP_DM_Hessenberg_expert(
+    struct starneig_hessenberg_conf *conf,
+    int begin, int end,
+    starneig_distr_matrix_t A,
+    starneig_distr_matrix_t Q);
 
 ///
 /// @brief Computes a Schur decomposition given a Hessenberg decomposition.

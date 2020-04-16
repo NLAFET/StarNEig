@@ -45,7 +45,7 @@ Current status:
 
 | Component                         |      Shared memory     | Distributed memory | Accelerators (GPUs)  |
 |-----------------------------------|:----------------------:|:------------------:|:--------------------:|
-| Hessenberg reduction              |      **Complete**      | ScaLAPACK wrapper  |     **Single GPU**   |
+| Hessenberg reduction              |      **Complete**      |   *Experimental*   |     *Experimental*   |
 | Schur reduction                   |      **Complete**      |    **Complete**    |     *Experimental*   |
 | Eigenvalue reordering             |      **Complete**      |    **Complete**    |     *Experimental*   |
 | Eigenvectors                      |      **Complete**      |Waiting integration |      Not planned     |

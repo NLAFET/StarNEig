@@ -146,8 +146,7 @@ void func(...)
 A data distribution is destroyed with the starneig_distr_destroy() interface
 function.
 
-@remark Certain interface functions (starneig_SEP_DM_Hessenberg(),
-starneig_SEP_DM_Reduce(), starneig_GEP_DM_HessenbergTriangular(), and
+@remark Certain interface functions (starneig_GEP_DM_HessenbergTriangular() and
 starneig_GEP_DM_Reduce()) are wrappers for / use several ScaLAPACK
 subroutines. The involved matrices should thus have a two-dimensional block
 cyclic data distribution. The library will automatically convert the matrices
@@ -183,8 +182,7 @@ destroyed using the starneig_distr_matrix_destroy() interface function. This
 will deallocate all local resources.  See module @ref starneig_dm_matrix for
 further information.
 
-@remark Certain interface functions (starneig_SEP_DM_Hessenberg(),
-starneig_SEP_DM_Reduce(), starneig_GEP_DM_HessenbergTriangular(), and
+@remark Certain interface functions (starneig_GEP_DM_HessenbergTriangular() and
 starneig_GEP_DM_Reduce()) are wrappers for / use several ScaLAPACK
 subroutines. The involved matrices should thus be distributed in square blocks.
 In addition, the ScaLAPACK subroutines usually perform better when the block
