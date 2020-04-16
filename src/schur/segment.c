@@ -98,21 +98,21 @@ void starneig_free_segment(struct segment *segment)
     if (segment->aed_status_h != NULL)
         starpu_data_unregister_submit(segment->aed_status_h);
 
-    starneig_free_matrix_descr(segment->aed_args.matrix_a);
-    starneig_free_matrix_descr(segment->aed_args.matrix_b);
-    starneig_free_matrix_descr(segment->aed_args.matrix_q);
-    starneig_free_matrix_descr(segment->aed_args.matrix_z);
+    starneig_matrix_free(segment->aed_args.matrix_a);
+    starneig_matrix_free(segment->aed_args.matrix_b);
+    starneig_matrix_free(segment->aed_args.matrix_q);
+    starneig_matrix_free(segment->aed_args.matrix_z);
 
     if (segment->aed_deflate_status_h != NULL)
         starpu_data_unregister_submit(segment->aed_deflate_status_h);
     if (segment->aed_deflate_inducer_h != NULL)
         starpu_data_unregister_submit(segment->aed_deflate_inducer_h);
-    starneig_free_vector_descr(segment->aed_deflate_base);
+    starneig_vector_free(segment->aed_deflate_base);
 
-    starneig_free_vector_descr(segment->shifts_real);
-    starneig_free_vector_descr(segment->shifts_imag);
+    starneig_vector_free(segment->shifts_real);
+    starneig_vector_free(segment->shifts_imag);
 
-    starneig_free_vector_descr(segment->bulges_aftermath);
+    starneig_vector_free(segment->bulges_aftermath);
 
     starneig_free_segment_list(segment->children);
 

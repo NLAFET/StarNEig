@@ -41,6 +41,11 @@
 #include "../common/scratch.h"
 #include "../common/tasks.h"
 
+#ifdef STARNEIG_ENABLE_MPI
+#include <starneig/distr_helpers.h>
+#include <starpu_mpi.h>
+#endif
+
 ///
 /// @brief The noncritical updates are added to a special update chain and
 /// inserted separately.
@@ -53,6 +58,212 @@ struct update {
     starpu_data_handle_t T_h;
     struct update *next;
 };
+
+///
+/// @brief Inserts left-hand side updates.
+///
+/// @param[in] prio
+///         StarPU priority.
+///
+/// @param[in] rbegin
+///         First row that belongs to the update window.
+///
+/// @param[in] rend
+///         Last row that belongs to the update window + 1.
+///
+/// @param[in] cbegin
+///         First column that belongs to the update window.
+///
+/// @param[in] cend
+///         Last column that belongs to the update window + 1.
+///
+/// @param[in] nb
+///         Panel width.
+///
+/// @param[in] V_h
+///         Matrix V handle.
+///
+/// @param[in]  T_h
+///         Matrix T handle.
+///
+/// @param[in,out] matrix_a
+///         Pointer to the A matrix descriptor structure.
+///
+/// @param[in,out] mpi
+///         MPI info
+///
+static void insert_left_updates(
+    int prio, int rbegin, int rend, int cbegin, int cend, int nb,
+    starpu_data_handle_t V_h, starpu_data_handle_t T_h,
+    starneig_matrix_t matrix_a, mpi_info_t mpi)
+{
+    starneig_matrix_t W = starneig_matrix_init(
+        STARNEIG_MATRIX_N(matrix_a), nb, STARNEIG_MATRIX_BN(matrix_a), nb,
+        STARNEIG_MATRIX_SN(matrix_a), nb, sizeof(double),
+        starneig_single_owner_matrix_descr, (int[]){0}, mpi);
+
+    //
+    // loop over tile columns
+    //
+
+    int _cbegin;
+    _cbegin = cbegin;
+    while (_cbegin < cend) {
+        int _rbegin, offset;
+        int _cend = MIN(cend,
+            starneig_matrix_cut_hor_right(_cbegin+1, matrix_a));
+
+        //
+        // loop over tile rows, compute W <- A^T V T
+        //
+
+        _rbegin = rbegin; offset = 0;
+        while (_rbegin < rend) {
+            int _rend =
+                MIN(rend, starneig_matrix_cut_ver_down(_rbegin+1, matrix_a));
+            starneig_hessenberg_insert_update_left_a(
+                prio, _rbegin, _rend, _cbegin, _cend, nb, offset,
+                V_h, T_h, matrix_a, W, mpi);
+            offset += _rend - _rbegin;
+            _rbegin = _rend;
+        }
+
+        _cbegin = _cend;
+    }
+
+    //
+    // loop over tile columns
+    //
+
+    _cbegin = cbegin;
+    while (_cbegin < cend) {
+        int _rbegin, offset;
+        int _cend = MIN(cend,
+            starneig_matrix_cut_hor_right(_cbegin+1, matrix_a));
+
+        //
+        // loop over tile rows, compute A <- A - V W^T
+        //
+
+        _rbegin = rbegin; offset = 0;
+        while (_rbegin < rend) {
+            int _rend =
+                MIN(rend, starneig_matrix_cut_ver_down(_rbegin+1, matrix_a));
+            starneig_hessenberg_insert_update_left_b(
+                prio, _rbegin, _rend, _cbegin, _cend, nb, offset,
+                V_h, W, matrix_a, mpi);
+            offset += _rend - _rbegin;
+            _rbegin = _rend;
+        }
+
+        _cbegin = _cend;
+    }
+
+    starneig_matrix_free(W);
+}
+
+///
+/// @brief Inserts right-hand side updates.
+///
+/// @param[in] prio
+///         StarPU priority.
+///
+/// @param[in] rbegin
+///         First row that belongs to the update window.
+///
+/// @param[in] rend
+///         Last row that belongs to the update window + 1.
+///
+/// @param[in] cbegin
+///         First column that belongs to the update window.
+///
+/// @param[in] cend
+///         Last column that belongs to the update window + 1.
+///
+/// @param[in] nb
+///         Panel width.
+///
+/// @param[in] V_h
+///         Matrix V handle.
+///
+/// @param[in]  T_h
+///         Matrix T handle.
+///
+/// @param[in,out] matrix_a
+///         Pointer to the A matrix descriptor structure.
+///
+/// @param[in,out] mpi
+///         MPI info
+///
+static void insert_right_updates(
+    int prio, int rbegin, int rend, int cbegin, int cend, int nb,
+    starpu_data_handle_t V_h, starpu_data_handle_t T_h,
+    starneig_matrix_t matrix_a, mpi_info_t mpi)
+{
+    starneig_matrix_t W = starneig_matrix_init(
+        STARNEIG_MATRIX_M(matrix_a), nb, STARNEIG_MATRIX_BM(matrix_a), nb,
+        STARNEIG_MATRIX_SM(matrix_a), nb, sizeof(double),
+        starneig_single_owner_matrix_descr, (int[]){0}, mpi);
+
+    //
+    // loop over tile rows
+    //
+
+    int _rbegin;
+    _rbegin = rbegin;
+    while (_rbegin < rend) {
+        int _cbegin, offset;
+        int _rend = MIN(rend,
+            starneig_matrix_cut_ver_down(_rbegin+1, matrix_a));
+
+        //
+        // loop over tile columns, compute W <- A V T
+        //
+
+        _cbegin = cbegin; offset = 0;
+        while (_cbegin < cend) {
+            int _cend =
+                MIN(cend, starneig_matrix_cut_hor_right(_cbegin+1, matrix_a));
+            starneig_hessenberg_insert_update_right_a(
+                prio, _rbegin, _rend, _cbegin, _cend, nb, offset,
+                V_h, T_h, matrix_a, W, mpi);
+            offset += _cend - _cbegin;
+            _cbegin = _cend;
+        }
+
+        _rbegin = _rend;
+    }
+
+    //
+    // loop over tile rows
+    //
+
+    _rbegin = rbegin;
+    while (_rbegin < rend) {
+        int _cbegin, offset;
+        int _rend = MIN(rend,
+            starneig_matrix_cut_ver_down(_rbegin+1, matrix_a));
+
+        //
+        // loop over tile columns, compute A <- A - W V
+        //
+
+        _cbegin = cbegin; offset = 0;
+        while (_cbegin < cend) {
+            int _cend =
+                MIN(cend, starneig_matrix_cut_hor_right(_cbegin+1, matrix_a));
+            starneig_hessenberg_insert_update_right_b(
+                prio, _rbegin, _rend, _cbegin, _cend, nb, offset,
+                V_h, W, matrix_a, mpi);
+            offset += _cend - _cbegin;
+            _cbegin = _cend;
+        }
+
+        _rbegin = _rend;
+    }
+
+    starneig_matrix_free(W);
+}
 
 ///
 /// @brief Inserts noncritical updates.
@@ -90,7 +301,7 @@ struct update {
 static void insert_remaining(
     int panel_width, int begin, int end,
     int critical_prio, int update_prio, int misc_prio,
-    starneig_matrix_descr_t matrix_q, starneig_matrix_descr_t matrix_a,
+    starneig_matrix_t matrix_q, starneig_matrix_t matrix_a,
     struct update **updates, mpi_info_t mpi)
 {
     int n = STARNEIG_MATRIX_N(matrix_a);
@@ -103,30 +314,30 @@ static void insert_remaining(
         starpu_data_handle_t V_h = (*updates)->V_h;
         starpu_data_handle_t T_h = (*updates)->T_h;
 
-        int ver_part = STARNEIG_MATRIX_BM(matrix_a);
-        int hor_part = STARNEIG_MATRIX_BN(matrix_a);
-        int q_part = STARNEIG_MATRIX_BM(matrix_q);
-
         starneig_insert_copy_handle_to_matrix(i+1, end, i, i+nb,
             critical_prio, P_h, matrix_a, mpi);
 
         // update A from the right
-        for (int j = 0; j < i+1; j += ver_part)
-            starneig_hessenberg_insert_update_right(update_prio,
-                j, MIN(i+1, j+ver_part), i+1, end, nb, V_h, T_h,
-                matrix_a, mpi);
+        {
+            int cut = starneig_matrix_cut_ver_up(i+1, matrix_a);
+            insert_right_updates(critical_prio, cut, i+1, i+1, end, nb,
+                V_h, T_h, matrix_a, mpi);
+            insert_right_updates(update_prio, 0, cut, i+1, end, nb,
+            V_h, T_h, matrix_a, mpi);
+        }
 
         // update A from the left
-        for (int j = (end/hor_part)*hor_part; j < n; j += hor_part)
-            starneig_hessenberg_insert_update_left(update_prio,
-                i+1, end, MAX(end, j), MIN(n, j+hor_part), nb,
+        {
+            int cut = starneig_matrix_cut_hor_right(end, matrix_a);
+            insert_left_updates(critical_prio, i+1, end, end, cut, nb,
                 V_h, T_h, matrix_a, mpi);
+            insert_left_updates(update_prio, i+1, end, cut, n, nb,
+                V_h, T_h, matrix_a, mpi);
+        }
 
         // update Q from the right
-        for (int j = 0; j < m; j += q_part)
-            starneig_hessenberg_insert_update_right(misc_prio,
-                j, MIN(m, j+q_part), i+1, end, nb, V_h, T_h,
-                matrix_q, mpi);
+        insert_right_updates(misc_prio, 0, m, i+1, end, nb,
+            V_h, T_h, matrix_q, mpi);
 
         starpu_data_unregister_submit(V_h);
         starpu_data_unregister_submit(T_h);
@@ -140,11 +351,12 @@ static void insert_remaining(
 starneig_error_t starneig_hessenberg_insert_tasks(
     int panel_width, int begin, int end,
     int critical_prio, int update_prio, int misc_prio,
-    starneig_matrix_descr_t matrix_q, starneig_matrix_descr_t matrix_a,
+    starneig_matrix_t matrix_q, starneig_matrix_t matrix_a,
     bool limit_submitted, mpi_info_t mpi)
 {
 
-    int total_worker_count = starpu_worker_get_count();
+    // int total_worker_count = starpu_worker_get_count();
+
 
 #ifdef STARNEIG_ENABLE_CUDA
 
@@ -181,38 +393,37 @@ starneig_error_t starneig_hessenberg_insert_tasks(
     struct update *tail = NULL;
 
     //
-    // insert critical tasks (panels and trailing matrix updates)
+    // loop over panels
     //
-
-    starneig_vector_descr_t v = starneig_init_vector_descr(
-        STARNEIG_MATRIX_N(matrix_a), STARNEIG_MATRIX_BN(matrix_a),
-        sizeof(double), NULL, NULL, NULL);
-    starneig_vector_descr_t y = starneig_init_vector_descr(
-        STARNEIG_MATRIX_N(matrix_a), STARNEIG_MATRIX_BN(matrix_a),
-        sizeof(double), NULL, NULL, NULL);
 
     for (int i = begin; i < end-1; i += panel_width) {
         const int nb = MIN(panel_width, end-i-1);
 
         //
-        // check whether the GPU has enough memory
+        // check whether the GPU has enough memory to store the remaining part
+        // of the matrix
         //
 
-        int try_gpu = 0;
 #ifdef STARNEIG_ENABLE_CUDA
         if (0 < gpu_mem_size) {
-            int rbegin = starneig_matrix_cut_vectically_up(i+1, matrix_a);
-            int rend = starneig_matrix_cut_vectically_down(end, matrix_a);
-            int cbegin = starneig_matrix_cut_horizontally_left(i+1, matrix_a);
-            int cend = starneig_matrix_cut_horizontally_right(end, matrix_a);
+            int rbegin = starneig_matrix_cut_ver_up(i+1, matrix_a);
+            int rend = starneig_matrix_cut_ver_down(end, matrix_a);
+            int cbegin = starneig_matrix_cut_hor_left(i+1, matrix_a);
+            int cend = starneig_matrix_cut_hor_right(end, matrix_a);
 
             if ((rend-rbegin)*(cend-cbegin)*sizeof(double) < 0.75*gpu_mem_size){
-                starneig_prefetch_section_matrix_descr(
+                starneig_matrix_prefetch_section(
                     i+1, end, i+1, end, gpu_memory_node, 1, matrix_a);
-                try_gpu = 1;
             }
         }
 #endif
+
+        //
+        // Register P (current panel), and V, T and Y from
+        //
+        //    (I - V T V^T)^T A (I - V T V^T)
+        //  = (I - V T V^T)^T (A - Y V^T).
+        //
 
         starpu_data_handle_t P_h, V_h, T_h, Y_h;
         starpu_matrix_data_register(
@@ -224,59 +435,116 @@ starneig_error_t starneig_hessenberg_insert_tasks(
         starpu_matrix_data_register(
             &Y_h, -1, 0, end-i-1, end-i-1, nb, sizeof(double));
 
+#ifdef STARNEIG_ENABLE_MPI
+        if (mpi != NULL) {
+            starpu_mpi_data_register_comm(
+                P_h, mpi->tag_offset++, 0, starneig_mpi_get_comm());
+            starpu_mpi_data_register_comm(
+                V_h, mpi->tag_offset++, 0, starneig_mpi_get_comm());
+            starpu_mpi_data_register_comm(
+                T_h, mpi->tag_offset++, 0, starneig_mpi_get_comm());
+            starpu_mpi_data_register_comm(
+                Y_h, mpi->tag_offset++, 0, starneig_mpi_get_comm());
+        }
+#endif
+
+        starneig_insert_copy_matrix_to_handle(i+1, end, i, i+nb,
+            critical_prio, matrix_a, P_h, mpi);
+
+
+        starneig_insert_set_matrix_to_zero(critical_prio, V_h, mpi);
+
         //
         // loop over the columns in the panel
         //
 
-        starneig_insert_copy_matrix_to_handle(i+1, end, i, i+nb,
-            critical_prio, matrix_a, P_h, NULL);
-
         for (int j = 0; j < nb; j++) {
-            starneig_hessenberg_insert_prepare_column(
-                critical_prio, j, i+1, end, Y_h, V_h, T_h, P_h, v);
 
-            // trailing matrix operation
-            if (try_gpu) {
-                starneig_hessenberg_insert_compute_column(
-                    critical_prio, i+1, end, i+j+1, end,
-                    matrix_a, v, y);
-            }
-            else {
-                int _begin = i+1;
-                while (_begin < end) {
-                    int _end = MIN(end, starneig_matrix_cut_vectically_down(
-                        _begin+1, matrix_a));
-                    starneig_hessenberg_insert_compute_column(
-                        critical_prio, _begin, _end, i+j+1, end,
-                        matrix_a, v, y);
-                    _begin = _end;
+            // register v from (I - v \tau v^T)
+            starneig_vector_t v = starneig_vector_init(
+                STARNEIG_MATRIX_N(matrix_a), STARNEIG_MATRIX_BN(matrix_a),
+                sizeof(double), starneig_vector_single_owner_func, (int[]){0},
+                mpi);
+
+            // register y from y = A v
+            starneig_vector_t y = starneig_vector_init(
+                STARNEIG_MATRIX_N(matrix_a), STARNEIG_MATRIX_BN(matrix_a),
+                sizeof(double), starneig_vector_single_owner_func, (int[]){0},
+                mpi);
+
+            //
+            // compute v and update V
+            //
+
+            starneig_hessenberg_insert_prepare_column(
+                critical_prio, j, i+1, end, Y_h, V_h, T_h, P_h, v, mpi);
+
+            //
+            // compute y
+            //
+
+            {
+                int _rbegin = i+1;
+                while (_rbegin < end) {
+                    int _rend = MIN(end,
+                        starneig_matrix_cut_ver_down(_rbegin+1, matrix_a));
+
+                    int _cbegin = i+j+1;
+                    while (_cbegin < end) {
+                        int _cend = MIN(end,
+                            starneig_matrix_cut_hor_right(_cbegin+1, matrix_a));
+
+                        starneig_hessenberg_insert_compute_column(
+                            critical_prio, _rbegin, _rend, _cbegin, _cend,
+                            matrix_a, v, y, mpi);
+
+                        _cbegin = _cend;
+                    }
+
+                    _rbegin = _rend;
                 }
             }
 
+            //
+            // update Y and T
+            //
+
             starneig_hessenberg_insert_finish_column(
-                critical_prio, j, i+1, end, V_h, T_h, Y_h, y);
+                critical_prio, j, i+1, end, V_h, T_h, Y_h, y, mpi);
+
+            starneig_vector_free(v);
+            starneig_vector_free(y);
         }
 
         //
-        // update the trailing matrix
+        // update the trailing matrix from the right
         //
 
-        if (try_gpu) {
-            starneig_hessenberg_insert_update_trail(
-                critical_prio, i+1, end, i+nb, end, nb, 0,
-                V_h, T_h, Y_h, matrix_a, mpi);
-        }
-        else {
-            int _begin = i+nb;
-            while (_begin < end) {
-                int _end = MIN(end,
-                    starneig_matrix_cut_horizontally_right(_begin+1, matrix_a));
-                starneig_hessenberg_insert_update_trail(
-                    critical_prio, i+1, end, _begin, _end, nb, _begin-i-nb,
-                    V_h, T_h, Y_h, matrix_a, mpi);
-                _begin = _end;
+        {
+            int _cbegin = i+nb;
+            while (_cbegin < end) {
+                int _cend = MIN(end,
+                    starneig_matrix_cut_hor_right(_cbegin+1, matrix_a));
+                int _rbegin = i+1;
+                while (_rbegin < end) {
+                    int _rend = MIN(end,
+                        starneig_matrix_cut_ver_down(_rbegin+1, matrix_a));
+                    starneig_hessenberg_insert_update_trail_right(
+                        critical_prio, _rbegin, _rend, _cbegin, _cend, nb,
+                        _rbegin-i-1, _cbegin-i-nb, V_h, T_h, Y_h, matrix_a,
+                        mpi);
+                    _rbegin = _rend;
+                }
+                _cbegin = _cend;
             }
         }
+
+        //
+        // update the trailing matrix from the left
+        //
+
+        insert_left_updates(critical_prio, i+1, end, i+nb, end, nb,
+            V_h, T_h, matrix_a, mpi);
 
         starpu_data_unregister_submit(Y_h);
 
@@ -305,20 +573,18 @@ starneig_error_t starneig_hessenberg_insert_tasks(
         //
         // pause task insertion if necessary
         //
-
+/*
         if (limit_submitted &&
-        100*total_worker_count < starpu_task_nsubmitted()) {
+        1000*total_worker_count < starpu_task_nsubmitted()) {
             starneig_scratch_unregister();
             insert_remaining(
                 panel_width, begin, end, critical_prio, update_prio, misc_prio,
                 matrix_q, matrix_a, &updates, mpi);
             starneig_scratch_unregister();
-            starpu_task_wait_for_n_submitted(10*total_worker_count);
+            starpu_task_wait_for_n_submitted(100*total_worker_count);
         }
+*/
     }
-
-    starneig_free_vector_descr(v);
-    starneig_free_vector_descr(y);
 
     //
     // insert delayed update tasks

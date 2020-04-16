@@ -139,8 +139,6 @@ static struct starpu_codelet left_gemm_update_cl = {
 };
 
 ////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////
 
 #if defined STARNEIG_ENABLE_MRM && \
 (1 < STARPU_MAJOR_VERSION || 2 < STARPU_MINOR_VERSION)
@@ -227,8 +225,6 @@ static struct starpu_codelet right_gemm_update_cl = {
 };
 
 ////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////
 
 ///
 /// @brief copy_matrix_to_handle codelet copies a section of a matrix to a
@@ -302,8 +298,6 @@ static struct starpu_codelet set_to_identity_cl = {
 };
 
 ////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////
 
 ///
 /// @brief scan_diagonal_cl codelet scans the diagonal of a matrix pencil (A,B)
@@ -346,24 +340,84 @@ static struct starpu_codelet scan_diagonal_cl = {
 };
 
 ////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////
 
-static struct starpu_codelet set_to_zero_cl = {
-    .name = "starneig_set_to_zero",
-    .cpu_funcs = { starneig_cpu_set_to_zero },
-    .cpu_funcs_name = { "starneig_cpu_set_to_zero" },
+static struct starpu_codelet set_vector_to_zero_cl = {
+    .name = "starneig_set_vector_to_zero",
+    .cpu_funcs = { starneig_cpu_set_vector_to_zero },
+    .cpu_funcs_name = { "starneig_cpu_set_vector_to_zero" },
+#ifdef STARNEIG_ENABLE_CUDA
+//    .cuda_funcs = { starneig_cuda_set_vector_to_zero },
+//    .cuda_flags = { STARPU_CUDA_ASYNC },
+#endif
     .nbuffers = 1,
-    .modes = { STARPU_W }
+    .modes = { STARPU_W },
+    .model = (struct starpu_perfmodel[]) {{
+        .type = STARPU_REGRESSION_BASED,
+        .symbol = "starneig_set_vector_to_zero_pm",
+    }}
 };
 
 ////////////////////////////////////////////////////////////////////////////////
+
+static struct starpu_codelet set_matrix_to_zero_cl = {
+    .name = "starneig_set_matrix_to_zero",
+    .cpu_funcs = { starneig_cpu_set_matrix_to_zero },
+    .cpu_funcs_name = { "starneig_cpu_set_matrix_to_zero" },
+#ifdef STARNEIG_ENABLE_CUDA
+//    .cuda_funcs = { starneig_cuda_set_matrix_to_zero },
+//    .cuda_flags = { STARPU_CUDA_ASYNC },
+#endif
+    .nbuffers = 1,
+    .modes = { STARPU_W },
+    .model = (struct starpu_perfmodel[]) {{
+        .type = STARPU_REGRESSION_BASED,
+        .symbol = "starneig_set_matrix_to_zero_pm",
+    }}
+};
+
 ////////////////////////////////////////////////////////////////////////////////
+
+static struct starpu_codelet redux_vector_cl =
+{
+    .name = "starneig_redux_vector",
+    .cpu_funcs = { starneig_cpu_add_vectors },
+    .cpu_funcs_name = { "starneig_cpu_add_vectors" },
+#ifdef STARNEIG_ENABLE_CUDA
+    .cuda_funcs = { starneig_cuda_add_vectors },
+    .cuda_flags = { STARPU_CUDA_ASYNC },
+#endif
+    .nbuffers = 2,
+    .modes = { STARPU_RW, STARPU_R },
+    .model = (struct starpu_perfmodel[]) {{
+        .type = STARPU_REGRESSION_BASED,
+        .symbol = "starneig_redux_vector_pm",
+    }}
+};
+
+////////////////////////////////////////////////////////////////////////////////
+
+static struct starpu_codelet redux_matrix_cl =
+{
+    .name = "starneig_redux_matrix",
+    .cpu_funcs = { starneig_cpu_add_matrices },
+    .cpu_funcs_name = { "starneig_cpu_add_matrices" },
+#ifdef STARNEIG_ENABLE_CUDA
+    .cuda_funcs = { starneig_cuda_add_matrices },
+    .cuda_flags = { STARPU_CUDA_ASYNC },
+#endif
+    .nbuffers = 2,
+    .modes = { STARPU_RW, STARPU_R },
+    .model = (struct starpu_perfmodel[]) {{
+        .type = STARPU_REGRESSION_BASED,
+        .symbol = "starneig_redux_matrix_pm",
+    }}
+};
+
 ////////////////////////////////////////////////////////////////////////////////
 
 void starneig_insert_left_gemm_update(
     int rbegin, int rend, int cbegin, int cend, int splice, int prio,
-    starpu_data_handle_t lQ_h, starneig_matrix_descr_t matrix, mpi_info_t mpi)
+    starpu_data_handle_t lQ_h, starneig_matrix_t matrix, mpi_info_t mpi)
 {
     if (rend-rbegin < 1 || cend-cbegin < 1)
         return;
@@ -380,9 +434,9 @@ void starneig_insert_left_gemm_update(
         owner = starpu_mpi_data_get_rank(lQ_h);
 
         // initial prune
-        if (my_rank != owner && !starneig_involved_with_part_of_matrix_descr(
+        if (my_rank != owner && !starneig_matrix_involved_with_section(
         rbegin, rend, cbegin, cend, matrix)) {
-            starneig_flush_section_matrix_descr(
+            starneig_matrix_flush_section(
                 rbegin, rend, cbegin, cend, matrix);
             return;
         }
@@ -422,9 +476,9 @@ void starneig_insert_left_gemm_update(
 
 #if defined(STARNEIG_ENABLE_MPI) && defined(STARNEIG_ENABLE_PRUNING)
         if (mpi != NULL && my_rank != owner &&
-        !starneig_involved_with_part_of_matrix_descr(
+        !starneig_matrix_involved_with_section(
         rbegin, rend, sbegin, send, matrix)) {
-            starneig_flush_section_matrix_descr(
+            starneig_matrix_flush_section(
                 rbegin, rend, sbegin, send, matrix);
             continue;
         }
@@ -471,7 +525,7 @@ void starneig_insert_left_gemm_update(
                     starneig_mpi_get_comm(),
                     &left_gemm_update_cl,
                     STARPU_EXECUTE_ON_NODE,
-                    starneig_get_elem_owner_matrix_descr(rbegin, begin, matrix),
+                    starneig_matrix_get_elem_owner(rbegin, begin, matrix),
                     STARPU_PRIORITY, prio,
                     STARPU_FLOPS, flops,
                     STARPU_VALUE, &packing_info, sizeof(packing_info),
@@ -494,7 +548,7 @@ void starneig_insert_left_gemm_update(
 
 void starneig_insert_right_gemm_update(
     int rbegin, int rend, int cbegin, int cend, int splice, int prio,
-    starpu_data_handle_t lQ_h, starneig_matrix_descr_t matrix, mpi_info_t mpi)
+    starpu_data_handle_t lQ_h, starneig_matrix_t matrix, mpi_info_t mpi)
 {
     if (rend-rbegin < 1 || cend-cbegin < 1)
         return;
@@ -518,9 +572,9 @@ void starneig_insert_right_gemm_update(
         owner = starpu_mpi_data_get_rank(lQ_h);
 
         // initial prune
-        if (my_rank != owner && !starneig_involved_with_part_of_matrix_descr(
+        if (my_rank != owner && !starneig_matrix_involved_with_section(
         rbegin, rend, cbegin, cend, matrix)) {
-            starneig_flush_section_matrix_descr(
+            starneig_matrix_flush_section(
                 rbegin, rend, cbegin, cend, matrix);
             return;
         }
@@ -553,9 +607,9 @@ void starneig_insert_right_gemm_update(
 
 #if defined(STARNEIG_ENABLE_MPI) && defined(STARNEIG_ENABLE_PRUNING)
         if (mpi != NULL && my_rank != owner &&
-        !starneig_involved_with_part_of_matrix_descr(
+        !starneig_matrix_involved_with_section(
         sbegin, send, cbegin, cend, matrix)) {
-            starneig_flush_section_matrix_descr(
+            starneig_matrix_flush_section(
                 sbegin, send, cbegin, cend, matrix);
             continue;
         }
@@ -602,7 +656,7 @@ void starneig_insert_right_gemm_update(
                     starneig_mpi_get_comm(),
                     &right_gemm_update_cl,
                     STARPU_EXECUTE_ON_NODE,
-                    starneig_get_elem_owner_matrix_descr(begin, cbegin, matrix),
+                    starneig_matrix_get_elem_owner(begin, cbegin, matrix),
                     STARPU_PRIORITY, prio,
                     STARPU_FLOPS, flops,
                     STARPU_VALUE, &packing_info, sizeof(packing_info),
@@ -625,7 +679,7 @@ void starneig_insert_right_gemm_update(
 
 void insert_copy_matrix_reverse(
     int sr, int sc, int dr, int dc, int m, int n, int prio,
-    starneig_matrix_descr_t source, starneig_matrix_descr_t dest,
+    starneig_matrix_t source, starneig_matrix_t dest,
     mpi_info_t mpi)
 {
     int my_rank = starneig_mpi_get_comm_rank();
@@ -664,9 +718,9 @@ void insert_copy_matrix_reverse(
             int __cbegin = _cbegin + dc - sc;
             int __cend = _cend + dc - sc;
 
-            int source_rank = starneig_get_elem_owner_matrix_descr(
+            int source_rank = starneig_matrix_get_elem_owner(
                 _rbegin, _cbegin, source);
-            int dest_rank = starneig_get_elem_owner_matrix_descr(
+            int dest_rank = starneig_matrix_get_elem_owner(
                 __rbegin, __cbegin, dest);
 
             //
@@ -738,7 +792,7 @@ void insert_copy_matrix_reverse(
                 starneig_free_packing_helper(helper);
             }
 
-            starneig_flush_section_matrix_descr(
+            starneig_matrix_flush_section(
                 __rbegin, __rend, __cbegin, __cend, dest);
 
             starpu_data_unregister_submit(handle);
@@ -748,7 +802,7 @@ void insert_copy_matrix_reverse(
 
 void starneig_insert_copy_matrix(
     int sr, int sc, int dr, int dc, int m, int n, int prio,
-    starneig_matrix_descr_t source, starneig_matrix_descr_t dest,
+    starneig_matrix_t source, starneig_matrix_t dest,
     mpi_info_t mpi)
 {
     if (m < 1 || n < 1)
@@ -831,7 +885,7 @@ void starneig_insert_copy_matrix(
 
 void starneig_insert_copy_matrix_to_handle(
     int rbegin, int rend, int cbegin, int cend, int prio,
-    starneig_matrix_descr_t source, starpu_data_handle_t dest,
+    starneig_matrix_t source, starpu_data_handle_t dest,
     mpi_info_t mpi)
 {
     struct packing_helper *helper = starneig_init_packing_helper();
@@ -865,7 +919,7 @@ void starneig_insert_copy_matrix_to_handle(
 
 void starneig_insert_copy_handle_to_matrix(
     int rbegin, int rend, int cbegin, int cend, int prio,
-    starpu_data_handle_t source, starneig_matrix_descr_t dest,
+    starpu_data_handle_t source, starneig_matrix_t dest,
     mpi_info_t mpi)
 {
     struct packing_helper *helper = starneig_init_packing_helper();
@@ -898,7 +952,7 @@ void starneig_insert_copy_handle_to_matrix(
 }
 
 void starneig_insert_set_to_identity(
-    int prio, starneig_matrix_descr_t descr, mpi_info_t mpi)
+    int prio, starneig_matrix_t descr, mpi_info_t mpi)
 {
     struct packing_helper *helper = starneig_init_packing_helper();
 
@@ -913,7 +967,7 @@ void starneig_insert_set_to_identity(
             starneig_mpi_get_comm(),
             &set_to_identity_cl,
             STARPU_EXECUTE_ON_NODE,
-            starneig_get_elem_owner_matrix_descr(0, 0, descr),
+            starneig_matrix_get_elem_owner(0, 0, descr),
             STARPU_PRIORITY, prio,
             STARPU_VALUE, &packing_info, sizeof(packing_info),
             STARPU_DATA_MODE_ARRAY, helper->descrs, helper->count, 0);
@@ -934,31 +988,31 @@ void starneig_insert_scan_diagonal(
     void (*func)(
         int, int, int, int, int, int, int, void const *, void const *,
         void const *, void **masks),
-    void const *arg, starneig_matrix_descr_t A, starneig_matrix_descr_t B,
+    void const *arg, starneig_matrix_t A, starneig_matrix_t B,
     mpi_info_t mpi, ...)
 {
     //
     // extract mask vectors
     //
 
-    starneig_vector_descr_t mask[SCAN_DIAGONAL_MAX_MASKS];
-    starneig_vector_descr_t first = NULL;
+    starneig_vector_t mask[SCAN_DIAGONAL_MAX_MASKS];
+    starneig_vector_t first = NULL;
     int num_masks = 0;
     {
         va_list vl;
         va_start(vl, mpi);
 
-        first = mask[num_masks++] = va_arg(vl, starneig_vector_descr_t);
+        first = mask[num_masks++] = va_arg(vl, starneig_vector_t);
         if (first == NULL) {
             va_end(vl);
             return;
         }
 
-        starneig_vector_descr_t val = va_arg(vl, starneig_vector_descr_t);
+        starneig_vector_t val = va_arg(vl, starneig_vector_t);
         while (val != NULL) {
             STARNEIG_ASSERT(num_masks < SCAN_DIAGONAL_MAX_MASKS);
             mask[num_masks++] = val;
-            val = va_arg(vl, starneig_vector_descr_t);
+            val = va_arg(vl, starneig_vector_t);
         }
 
         va_end(vl);
@@ -968,8 +1022,8 @@ void starneig_insert_scan_diagonal(
     // loop over mask tiles (align everyting with the first mask vector)
     //
 
-    int bm = STARNEIG_VECTOR_BM(first);
-    int rbegin = STARNEIG_VECTOR_RBEGIN(first);
+    int bm = starneig_vector_get_tile_size(first);
+    int rbegin = starneig_vector_get_rbegin(first);
     int mask_end = mask_begin + (end-begin);
 
     for (int i = (rbegin+mask_begin)/bm; i < (rbegin+mask_end-1)/bm+1; i++) {
@@ -1022,7 +1076,7 @@ void starneig_insert_scan_diagonal(
                 starneig_mpi_get_comm(),
                 &scan_diagonal_cl,
                 STARPU_EXECUTE_ON_NODE,
-                starneig_get_tile_owner_vector_descr(i, first),
+                starneig_vector_get_tile_owner(i, first),
                 STARPU_PRIORITY, prio,
                 STARPU_VALUE, &num_masks, sizeof(num_masks),
                 STARPU_VALUE, &__rbegin, sizeof(__rbegin),
@@ -1109,17 +1163,58 @@ static void extract_eigenvalues_func(
 
 void starneig_insert_extract_eigenvalues(
     int prio,
-    starneig_matrix_descr_t A, starneig_matrix_descr_t B,
-    starneig_vector_descr_t real, starneig_vector_descr_t imag,
-    starneig_vector_descr_t beta, mpi_info_t mpi)
+    starneig_matrix_t A, starneig_matrix_t B,
+    starneig_vector_t real, starneig_vector_t imag,
+    starneig_vector_t beta, mpi_info_t mpi)
 {
     starneig_insert_scan_diagonal(
         0, STARNEIG_MATRIX_N(A), 0, 1, 1, 1, 1, prio,
         extract_eigenvalues_func, NULL, A, B, mpi, real, imag, beta, NULL);
 }
 
-void starneig_insert_set_to_zero(int prio, starpu_data_handle_t tile)
+void starneig_insert_set_vector_to_zero(
+    int prio, starpu_data_handle_t tile, mpi_info_t mpi)
 {
-    starpu_task_insert(&set_to_zero_cl,
-        STARPU_PRIORITY, prio, STARPU_W, tile, 0);
+#ifdef STARNEIG_ENABLE_MPI
+    if (mpi != NULL)
+        starpu_mpi_task_insert(
+            starneig_mpi_get_comm(),
+            &set_vector_to_zero_cl,
+            STARPU_EXECUTE_ON_DATA, tile,
+            STARPU_PRIORITY, prio, STARPU_W, tile, 0);
+    else
+#endif
+        starpu_task_insert(&set_vector_to_zero_cl,
+            STARPU_PRIORITY, prio, STARPU_W, tile, 0);
+}
+
+void starneig_insert_set_matrix_to_zero(
+    int prio, starpu_data_handle_t tile, mpi_info_t mpi)
+{
+#ifdef STARNEIG_ENABLE_MPI
+    if (mpi != NULL)
+        starpu_mpi_task_insert(
+            starneig_mpi_get_comm(),
+            &set_matrix_to_zero_cl,
+            STARPU_EXECUTE_ON_DATA, tile,
+            STARPU_PRIORITY, prio,
+            STARPU_W, tile, 0);
+    else
+#endif
+        starpu_task_insert(
+            &set_matrix_to_zero_cl,
+            STARPU_PRIORITY, prio,
+            STARPU_W, tile, 0);
+}
+
+void starneig_set_vector_reduction(starpu_data_handle_t handle)
+{
+    starpu_data_set_reduction_methods(
+        handle, &redux_vector_cl, &set_vector_to_zero_cl);
+}
+
+void starneig_set_matrix_reduction(starpu_data_handle_t handle)
+{
+    starpu_data_set_reduction_methods(
+        handle, &redux_matrix_cl, &set_matrix_to_zero_cl);
 }

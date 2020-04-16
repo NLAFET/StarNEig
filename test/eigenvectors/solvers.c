@@ -290,17 +290,17 @@ static int starpu_run(hook_solver_state_t state)
                 LOCAL_MATRIX_PTR(pencil->mat_x), LOCAL_MATRIX_LD(pencil->mat_x)
             );
     }
+/*
+#ifdef STARNEIG_ENABLE_MPI
+    if (env->format == HOOK_DATA_FORMAT_PENCIL_STARNEIG ||
+    env->format == HOOK_DATA_FORMAT_PENCIL_BLACS) {
+        pencil->mat_x = init_starneig_matrix(
+            n, selected_count,
+            STARNEIG_MATRIX_BM(pencil->mat_a),
+            STARNEIG_MATRIX_BN(pencil->mat_a),
+            NUM_REAL | PREC_DOUBLE,
+            STARNEIG_MATRIX_DISTR(pencil->mat_a));
 
-//#ifdef STARNEIG_ENABLE_MPI
-//    if (env->format == HOOK_DATA_FORMAT_PENCIL_STARNEIG ||
-//    env->format == HOOK_DATA_FORMAT_PENCIL_BLACS) {
-//        pencil->mat_x = init_starneig_matrix(
-//            n, selected_count,
-//            STARNEIG_MATRIX_BM(pencil->mat_a),
-//            STARNEIG_MATRIX_BN(pencil->mat_a),
-//            NUM_REAL | PREC_DOUBLE,
-//            STARNEIG_MATRIX_DISTR(pencil->mat_a));
-//
 //        if (pencil->mat_b != NULL)
 //            ret = starneig_GEP_DM_Eigenvectors_expert(&conf, selected,
 //                STARNEIG_MATRIX_HANDLE(pencil->mat_a),
@@ -309,14 +309,14 @@ static int starpu_run(hook_solver_state_t state)
 //                STARNEIG_MATRIX_HANDLE(pencil->mat_x)
 //            );
 //        else
-//            ret = starneig_SEP_DM_Eigenvectors_expert(&conf, selected,
-//                STARNEIG_MATRIX_HANDLE(pencil->mat_a),
-//                STARNEIG_MATRIX_HANDLE(pencil->mat_q),
-//                STARNEIG_MATRIX_HANDLE(pencil->mat_x)
-//            );
-//    }
-//#endif
-
+            ret = starneig_SEP_DM_Eigenvectors_expert(&conf, selected,
+                STARNEIG_MATRIX_HANDLE(pencil->mat_a),
+                STARNEIG_MATRIX_HANDLE(pencil->mat_q),
+                STARNEIG_MATRIX_HANDLE(pencil->mat_x)
+            );
+    }
+#endif
+*/
     return ret;
 }
 
@@ -444,17 +444,17 @@ static int starpu_simple_run(hook_solver_state_t state)
                 LOCAL_MATRIX_PTR(pencil->mat_x), LOCAL_MATRIX_LD(pencil->mat_x)
             );
     }
+/*
+#ifdef STARNEIG_ENABLE_MPI
+    if (env->format == HOOK_DATA_FORMAT_PENCIL_STARNEIG ||
+    env->format == HOOK_DATA_FORMAT_PENCIL_BLACS) {
+        pencil->mat_x = init_starneig_matrix(
+            n, selected_count,
+            STARNEIG_MATRIX_BM(pencil->mat_a),
+            STARNEIG_MATRIX_BN(pencil->mat_a),
+            NUM_REAL | PREC_DOUBLE,
+            STARNEIG_MATRIX_DISTR(pencil->mat_a));
 
-//#ifdef STARNEIG_ENABLE_MPI
-//    if (env->format == HOOK_DATA_FORMAT_PENCIL_STARNEIG ||
-//    env->format == HOOK_DATA_FORMAT_PENCIL_BLACS) {
-//        pencil->mat_x = init_starneig_matrix(
-//            n, selected_count,
-//            STARNEIG_MATRIX_BM(pencil->mat_a),
-//            STARNEIG_MATRIX_BN(pencil->mat_a),
-//            NUM_REAL | PREC_DOUBLE,
-//            STARNEIG_MATRIX_DISTR(pencil->mat_a));
-//
 //        if (pencil->mat_b != NULL)
 //            ret = starneig_GEP_DM_Eigenvectors(selected,
 //                STARNEIG_MATRIX_HANDLE(pencil->mat_a),
@@ -463,14 +463,14 @@ static int starpu_simple_run(hook_solver_state_t state)
 //                STARNEIG_MATRIX_HANDLE(pencil->mat_x)
 //            );
 //        else
-//            ret = starneig_SEP_DM_Eigenvectors(selected,
-//                STARNEIG_MATRIX_HANDLE(pencil->mat_a),
-//                STARNEIG_MATRIX_HANDLE(pencil->mat_q),
-//                STARNEIG_MATRIX_HANDLE(pencil->mat_x)
-//            );
-//    }
-//#endif
-
+            ret = starneig_SEP_DM_Eigenvectors(selected,
+                STARNEIG_MATRIX_HANDLE(pencil->mat_a),
+                STARNEIG_MATRIX_HANDLE(pencil->mat_q),
+                STARNEIG_MATRIX_HANDLE(pencil->mat_x)
+            );
+    }
+#endif
+*/
     return ret;
 }
 

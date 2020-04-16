@@ -603,16 +603,9 @@ static int starpu_run(hook_solver_state_t state)
 #endif
         }
         else {
-#ifdef STARNEIG_SEP_DM_HESSENBERG
             ret = starneig_SEP_DM_Hessenberg(
                 STARNEIG_MATRIX_HANDLE(pencil->mat_a),
                 STARNEIG_MATRIX_HANDLE(pencil->mat_q));
-#else
-            fprintf(stderr,
-                "Solver does not support standard cases in distributed "
-                "memory.\n");
-            return -1;
-#endif
         }
     }
 #endif
@@ -761,16 +754,9 @@ static int starpu_simple_run(hook_solver_state_t state)
 #endif
         }
         else {
-#ifdef STARNEIG_SEP_DM_HESSENBERG
             ret = starneig_SEP_DM_Hessenberg(
                 STARNEIG_MATRIX_HANDLE(pencil->mat_a),
                 STARNEIG_MATRIX_HANDLE(pencil->mat_q));
-#else
-            fprintf(stderr,
-                "Solver does not support distributed memory in standard "
-                "cases.\n");
-            return -1;
-#endif
         }
     }
 #endif

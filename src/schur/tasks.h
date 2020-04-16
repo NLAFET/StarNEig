@@ -90,7 +90,7 @@
 ///
 void starneig_schur_insert_push_inf_top(
     int begin, int end, int top, int bottom, int prio, double thres_inf,
-    starneig_matrix_descr_t matrix_a, starneig_matrix_descr_t matrix_b,
+    starneig_matrix_t matrix_a, starneig_matrix_t matrix_b,
     starpu_data_handle_t *lQ_h, starpu_data_handle_t *lZ_h, mpi_info_t mpi);
 
 ///
@@ -153,9 +153,9 @@ void starneig_schur_insert_push_bulges(
     int begin, int end, int shifts_begin, int shifts_end,
     bulge_chasing_mode_t mode, int prio,
     double thres_a, double thres_b, double thres_inf,
-    starneig_vector_descr_t shifts_real, starneig_vector_descr_t shifts_imag,
-    starneig_vector_descr_t aftermath,
-    starneig_matrix_descr_t matrix_a, starneig_matrix_descr_t matrix_b,
+    starneig_vector_t shifts_real, starneig_vector_t shifts_imag,
+    starneig_vector_t aftermath,
+    starneig_matrix_t matrix_a, starneig_matrix_t matrix_b,
     starpu_data_handle_t *lQ_h, starpu_data_handle_t *lZ_h, mpi_info_t mpi);
 
 ///
@@ -225,8 +225,8 @@ double starneig_predict_aggressively_deflate(int generalized, int window_size);
 void starneig_schur_insert_aggressively_deflate(
     int begin, int end, int prio,
     double thres_a, double thres_b, double thres_inf,
-    starneig_matrix_descr_t matrix_a, starneig_matrix_descr_t matrix_b,
-    starneig_vector_descr_t shifts_real, starneig_vector_descr_t shifts_imag,
+    starneig_matrix_t matrix_a, starneig_matrix_t matrix_b,
+    starneig_vector_t shifts_real, starneig_vector_t shifts_imag,
     starpu_data_handle_t *status_h, starpu_data_handle_t *lQ_h,
     starpu_data_handle_t *lZ_h, mpi_info_t mpi);
 
@@ -277,7 +277,7 @@ void starneig_schur_insert_aggressively_deflate(
 void starneig_schur_insert_small_schur(
     int begin, int end, int prio,
     double thres_a, double thres_b, double thres_inf,
-    starneig_matrix_descr_t matrix_a, starneig_matrix_descr_t matrix_b,
+    starneig_matrix_t matrix_a, starneig_matrix_t matrix_b,
     starpu_data_handle_t *status_h, starpu_data_handle_t *lQ_h,
     starpu_data_handle_t *lZ_h, mpi_info_t mpi);
 
@@ -311,8 +311,8 @@ void starneig_schur_insert_small_schur(
 ///         MPI info.
 ///
 void starneig_schur_insert_small_hessenberg(
-    int begin, int end, int prio, starneig_matrix_descr_t matrix_a,
-    starneig_matrix_descr_t matrix_b, starpu_data_handle_t *lQ_h,
+    int begin, int end, int prio, starneig_matrix_t matrix_a,
+    starneig_matrix_t matrix_b, starpu_data_handle_t *lQ_h,
     starpu_data_handle_t *lZ_h, mpi_info_t mpi);
 
 ///
@@ -331,7 +331,7 @@ void starneig_schur_insert_small_hessenberg(
 ///         transformation matrix).
 ///
 void starneig_schur_insert_form_spike(
-    int prio, starneig_matrix_descr_t matrix_q, starneig_vector_descr_t *base);
+    int prio, starneig_matrix_t matrix_q, starneig_vector_t *base);
 
 ///
 /// @brief Inserts an embed_spike task.
@@ -352,8 +352,8 @@ void starneig_schur_insert_form_spike(
 ///          Padded AED window from the matrix A.
 ///
 void starneig_schur_insert_embed_spike(
-    int end, int prio, starneig_vector_descr_t base,
-    starneig_matrix_descr_t matrix_a);
+    int end, int prio, starneig_vector_t base,
+    starneig_matrix_t matrix_a);
 
 ///
 /// @brief Inserts a deflate task.
@@ -403,8 +403,8 @@ void starneig_schur_insert_embed_spike(
 void starneig_schur_insert_deflate(
     int begin, int end, int deflate, int prio,
     double thres_a, starpu_data_handle_t inducer_h,
-    starpu_data_handle_t status_h, starneig_vector_descr_t base,
-    starneig_matrix_descr_t matrix_a, starneig_matrix_descr_t matrix_b,
+    starpu_data_handle_t status_h, starneig_vector_t base,
+    starneig_matrix_t matrix_a, starneig_matrix_t matrix_b,
     starpu_data_handle_t *lQ_h, starpu_data_handle_t *lZ_h);
 
 ///
@@ -437,9 +437,9 @@ void starneig_schur_insert_deflate(
 ///             MPI info.
 ///
 void starneig_schur_insert_extract_shifts(
-    int begin, int end, int prio, starneig_matrix_descr_t matrix_a,
-    starneig_matrix_descr_t matrix_b, starneig_vector_descr_t real,
-    starneig_vector_descr_t imag, mpi_info_t mpi);
+    int begin, int end, int prio, starneig_matrix_t matrix_a,
+    starneig_matrix_t matrix_b, starneig_vector_t real,
+    starneig_vector_t imag, mpi_info_t mpi);
 
 ///
 /// @brief Inserts tasks that compute the Frobenius norm of a matrix.
@@ -456,6 +456,6 @@ void starneig_schur_insert_extract_shifts(
 /// @return  The Frobenius norm of the matrix.
 ///
 starpu_data_handle_t starneig_schur_insert_compute_norm(
-    int prio, starneig_matrix_descr_t matrix, mpi_info_t mpi);
+    int prio, starneig_matrix_t matrix, mpi_info_t mpi);
 
 #endif

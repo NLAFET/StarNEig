@@ -38,47 +38,46 @@
 #include <starneig/configuration.h>
 #include "vector.h"
 #include "common.h"
+#include "tasks.h"
 
 #ifdef STARNEIG_ENABLE_MPI
 #include <starneig/distr_helpers.h>
 #include <starpu_mpi.h>
 #endif
 
-static void set_to_zero(void *buffers[], void *cl_args)
-{
-    void *ptr = (void *) STARPU_VECTOR_GET_PTR(buffers[0]);
-    int m = STARPU_VECTOR_GET_NX(buffers[0]);
-    size_t elemsize = STARPU_VECTOR_GET_ELEMSIZE(buffers[0]);
+///
+/// @brief vector descriptor structure.
+///
+struct starneig_vector_descr {
+    int rbegin;                             ///< first row
+    int rend;                               ///< last row + 1
+    int bm;                                 ///< tile height (row count)
+    int elemsize;                           ///< element size
+    int tm_count;                           ///< number of tile rows
+    starpu_data_handle_t *tiles;            ///< data tiles
+#ifdef STARNEIG_ENABLE_MPI
+    int tag_offset;                         ///< tag offset
+    int *owners;                            ///< section owners (MPI ranks)
+#endif
+};
 
-    memset(ptr, 0, m*elemsize);
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
+int starneig_vector_single_owner_func(int i, void const *ptr)
+{
+    return *((int const *) ptr);
 }
 
-static void insert_set_to_zero(starpu_data_handle_t tile)
-{
-    static struct starpu_codelet set_to_zero_cl = {
-        .name = "starneig_set_to_zero",
-        .cpu_funcs = { set_to_zero },
-        .cpu_funcs_name = { "set_to_zero" },
-        .nbuffers = 1,
-        .modes = { STARPU_W }
-    };
-
-    starpu_task_insert(&set_to_zero_cl,
-        STARPU_PRIORITY, STARPU_MAX_PRIO, STARPU_W, tile, 0);
-}
-
-////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////
-
-starneig_vector_descr_t starneig_init_vector_descr(
+starneig_vector_t starneig_vector_init(
     int m, int bm, size_t elemsize, int (*distrib)(int, void const *),
     void *distarg, mpi_info_t mpi)
 {
     STARNEIG_ASSERT_MSG(0 < m && 0 < elemsize, "Invalid dimensions.");
     STARNEIG_ASSERT_MSG(0 < bm, "Invalid tile dimensions.");
 
-    starneig_vector_descr_t descr =
+    starneig_vector_t descr =
         malloc(sizeof(struct starneig_vector_descr));
 
     descr->rbegin = 0;
@@ -105,19 +104,16 @@ starneig_vector_descr_t starneig_init_vector_descr(
     }
 #endif
 
-    descr->parent = NULL;
-    descr->mode = STARNEIG_VECTOR_ROOT;
-
     return descr;
 }
 
-starneig_vector_descr_t starneig_register_vector_descr(
+starneig_vector_t starneig_vector_register(
     int m, int bm, size_t elemsize, int (*distrib)(int, void const *),
     void *distarg, void *vec, mpi_info_t mpi)
 {
     int my_rank = starneig_mpi_get_comm_rank();
 
-    starneig_vector_descr_t descr = starneig_init_vector_descr(
+    starneig_vector_t descr = starneig_vector_init(
         m, bm, elemsize, distrib, distarg, mpi);
 
     if (vec != NULL) {
@@ -126,43 +122,18 @@ starneig_vector_descr_t starneig_register_vector_descr(
             starpu_vector_data_register(&handle, STARPU_MAIN_RAM,
                 (uintptr_t)vec+i*descr->bm*elemsize,
                 MIN(descr->bm, m - i*descr->bm), elemsize);
-            if (starneig_get_tile_owner_vector_descr(i, descr) != my_rank)
+            if (starneig_vector_get_tile_owner(i, descr) != my_rank)
                 starpu_data_invalidate(handle);
-            starneig_register_tile_with_vector_descr(i, handle, descr);
+            starneig_vector_set_tile(i, handle, descr);
         }
     }
 
     return descr;
 }
 
-starneig_vector_descr_t starneig_create_sub_vector_descr(
-    int begin, int end, starneig_vector_descr_t descr)
+void starneig_vector_unregister(starneig_vector_t descr)
 {
-    STARNEIG_ASSERT(descr != NULL);
-    STARNEIG_ASSERT(0 <= begin && end <= STARNEIG_VECTOR_M(descr));
-
-    starneig_vector_descr_t sub_descr =
-        malloc(sizeof(struct starneig_vector_descr));
-    memcpy(sub_descr, descr, sizeof(struct starneig_vector_descr));
-
-    sub_descr->rbegin = descr->rbegin + begin;
-    sub_descr->rend = descr->rbegin + end;
-
-#ifdef STARNEIG_ENABLE_MPI
-    sub_descr->owners = NULL;
-#endif
-
-    sub_descr->tiles = NULL;
-    sub_descr->parent = descr;
-    sub_descr->mode = STARNEIG_VECTOR_SUB_VECTOR;
-
-    return sub_descr;
-
-}
-
-void starneig_unregister_vector_descr(starneig_vector_descr_t descr)
-{
-    if (descr == NULL || descr->mode == STARNEIG_VECTOR_SUB_VECTOR)
+    if (descr == NULL)
         return;
 
     for (int i = 0; i < descr->tm_count; i++) {
@@ -172,7 +143,7 @@ void starneig_unregister_vector_descr(starneig_vector_descr_t descr)
     }
 }
 
-void starneig_free_vector_descr(starneig_vector_descr_t descr)
+void starneig_vector_free(starneig_vector_t descr)
 {
     if (descr == NULL)
         return;
@@ -191,11 +162,67 @@ void starneig_free_vector_descr(starneig_vector_descr_t descr)
     free(descr);
 }
 
-void starneig_register_tile_with_vector_descr(
-    int i, starpu_data_handle_t handle, starneig_vector_descr_t descr)
+int starneig_vector_get_rbegin(const starneig_vector_t descr)
+{
+    return descr->rbegin;
+}
+
+int starneig_vector_get_rend(const starneig_vector_t descr)
+{
+    return descr->rend;
+}
+
+int starneig_vector_get_rows(const starneig_vector_t descr)
+{
+    return descr->rend - descr->rbegin;
+}
+
+int starneig_vector_get_tile_size(const starneig_vector_t descr)
+{
+    return descr->bm;
+}
+
+size_t starneig_vector_get_elemsize(
+    const starneig_vector_t descr)
+{
+    return descr->elemsize;
+}
+
+int starneig_vector_is_distributed(
+    const starneig_vector_t descr)
+{
+#ifdef STARNEIG_ENABLE_MPI
+    return 0 <= descr->tag_offset;
+#else
+    return 0;
+#endif
+}
+
+int starneig_vector_get_tile_idx(int row, const starneig_vector_t descr)
+{
+    return (starneig_vector_get_rbegin(descr) + row) /
+        starneig_vector_get_tile_size(descr);
+}
+
+int starneig_vector_get_in_tile_idx(
+    int row, int tile, const starneig_vector_t descr)
+{
+    return
+        starneig_vector_get_rbegin(descr) + row
+            - tile * starneig_vector_get_tile_size(descr);
+}
+
+int starneig_vector_get_ext_idx(int tile, int row, starneig_vector_t descr)
+{
+    return
+        tile * starneig_vector_get_tile_size(descr)
+            + starneig_vector_get_rbegin(descr) + row;
+}
+
+void starneig_vector_set_tile(
+    int i, starpu_data_handle_t handle, starneig_vector_t descr)
 {
     STARNEIG_ASSERT(descr != NULL);
-    STARNEIG_ASSERT(descr->parent == NULL);
     STARNEIG_ASSERT(0 <= i && i < descr->tm_count);
     STARNEIG_ASSERT(descr->tiles[i] == NULL);
 
@@ -210,13 +237,9 @@ void starneig_register_tile_with_vector_descr(
     descr->tiles[i] = handle;
 }
 
-starpu_data_handle_t starneig_get_tile_from_vector_descr(
-    int i, starneig_vector_descr_t descr)
+starpu_data_handle_t starneig_vector_get_tile(int i, starneig_vector_t descr)
 {
     STARNEIG_ASSERT(descr != NULL);
-
-    if (descr->mode == STARNEIG_VECTOR_SUB_VECTOR)
-        return starneig_get_tile_from_vector_descr(i, descr->parent);
 
     STARNEIG_ASSERT(0 <= i && i < descr->tm_count);
 
@@ -229,38 +252,41 @@ starpu_data_handle_t starneig_get_tile_from_vector_descr(
 #ifdef STARNEIG_ENABLE_MPI
         if (0 <= descr->tag_offset) {
             int my_rank = starneig_mpi_get_comm_rank();
-            int owner = starneig_get_tile_owner_vector_descr(i, descr);
+            int owner = starneig_vector_get_tile_owner(i, descr);
             starpu_mpi_data_register_comm(
                 descr->tiles[i], descr->tag_offset + i, owner,
                 starneig_mpi_get_comm());
             if (my_rank == owner)
-                insert_set_to_zero(descr->tiles[i]);
+                starneig_insert_set_vector_to_zero(
+                    STARPU_MAX_PRIO, descr->tiles[i], NULL);
         }
         else {
-            insert_set_to_zero(descr->tiles[i]);
+            starneig_insert_set_vector_to_zero(
+                STARPU_MAX_PRIO, descr->tiles[i], NULL);
         }
 #else
-        insert_set_to_zero(descr->tiles[i]);
+    starneig_insert_set_vector_to_zero(
+        STARPU_MAX_PRIO, descr->tiles[i], NULL);
 #endif
     }
 
     return descr->tiles[i];
 }
 
-void starneig_gather_vector_descr(int root, starneig_vector_descr_t descr)
+void starneig_vector_gather(int root, starneig_vector_t descr)
 {
-    starneig_gather_segment_vector_descr(
+    starneig_vector_gather_section(
         root, 0, descr->rend - descr->rbegin, descr);
 }
 
-void starneig_scatter_vector_descr(int root, starneig_vector_descr_t descr)
+void starneig_vector_scatter(int root, starneig_vector_t descr)
 {
-    starneig_scatter_segment_vector_descr(
+    starneig_vector_scatter_section(
         root, 0, descr->rend - descr->rbegin, descr);
 }
 
-void starneig_gather_segment_vector_descr(
-    int root, int begin, int end, starneig_vector_descr_t descr)
+void starneig_vector_gather_section(
+    int root, int begin, int end, starneig_vector_t descr)
 {
 #ifdef STARNEIG_ENABLE_MPI
     if (descr->tag_offset < 0)
@@ -274,7 +300,7 @@ void starneig_gather_segment_vector_descr(
     for (int i = tbegin; i < tend; i++) {
         if (root == my_rank || descr->owners[i] == my_rank) {
             starpu_data_handle_t handle =
-                starneig_get_tile_from_vector_descr(i, descr);
+                starneig_vector_get_tile(i, descr);
             starpu_mpi_gather_detached(
                 &handle, 1, root, starneig_mpi_get_comm(),
                 NULL, NULL, NULL, NULL);
@@ -283,8 +309,8 @@ void starneig_gather_segment_vector_descr(
 #endif
 }
 
-void starneig_scatter_segment_vector_descr(
-    int root, int begin, int end, starneig_vector_descr_t descr)
+void starneig_vector_scatter_section(
+    int root, int begin, int end, starneig_vector_t descr)
 {
 #ifdef STARNEIG_ENABLE_MPI
     if (descr->tag_offset < 0)
@@ -298,7 +324,7 @@ void starneig_scatter_segment_vector_descr(
     for (int i = tbegin; i < tend; i++) {
         if (root == my_rank || descr->owners[i] == my_rank) {
             starpu_data_handle_t handle =
-                starneig_get_tile_from_vector_descr(i, descr);
+                starneig_vector_get_tile(i, descr);
             starpu_mpi_scatter_detached(
                 &handle, 1, root, starneig_mpi_get_comm(),
                 NULL, NULL, NULL, NULL);
@@ -307,37 +333,30 @@ void starneig_scatter_segment_vector_descr(
 #endif
 }
 
-int starneig_get_tile_owner_vector_descr(int i, starneig_vector_descr_t descr)
+int starneig_vector_get_tile_owner(int i, starneig_vector_t descr)
 {
 #ifdef STARNEIG_ENABLE_MPI
-    if (descr->parent != NULL)
-        return starneig_get_tile_owner_vector_descr(i, descr->parent);
-
     if (0 <= descr->tag_offset)
         return descr->owners[i];
 #endif
     return starneig_mpi_get_comm_rank();
 }
 
-int starneig_get_elem_owner_vector_descr(int i, starneig_vector_descr_t descr)
+int starneig_vector_get_elem_owner(int i, starneig_vector_t descr)
 {
 #ifdef STARNEIG_ENABLE_MPI
-    return starneig_get_tile_owner_vector_descr(
+    return starneig_vector_get_tile_owner(
         (descr->rbegin + i)/descr->bm, descr);
 #endif
     return starneig_mpi_get_comm_rank();
 }
 
-int starneig_involved_with_part_of_vector_descr(
-    int begin, int end, starneig_vector_descr_t descr)
+int starneig_vector_involved_with_section(
+    int begin, int end, starneig_vector_t descr)
 {
 #ifdef STARNEIG_ENABLE_MPI
     if (descr->tag_offset < 0)
         return 1;
-
-    if (descr->parent != NULL)
-        return starneig_involved_with_part_of_vector_descr(
-            descr->rbegin+begin, descr->rbegin+end, descr);
 
     int my_rank = starneig_mpi_get_comm_rank();
 
@@ -345,11 +364,27 @@ int starneig_involved_with_part_of_vector_descr(
     int bend = (descr->rbegin + end-1) / descr->bm + 1;
 
     for (int i = bbegin; i < bend; i++)
-        if (starneig_get_tile_owner_vector_descr(i, descr) == my_rank)
+        if (starneig_vector_get_tile_owner(i, descr) == my_rank)
             return 1;
 
     return 0;
 #else
     return 1;
 #endif
+}
+
+int starneig_vector_cut_up(int row, const starneig_vector_t descr)
+{
+    int rbegin = starneig_vector_get_rbegin(descr);
+    int bm = starneig_vector_get_tile_size(descr);
+
+    return MAX(0, ((rbegin + row) / bm) * bm - rbegin);
+}
+
+int starneig_vector_cut_down(int row, const starneig_vector_t descr)
+{
+    int rbegin = starneig_vector_get_rbegin(descr);
+    int bm = starneig_vector_get_tile_size(descr);
+
+    return MAX(0, divceil(rbegin + row, bm) * bm - rbegin);
 }

@@ -72,8 +72,8 @@
 ///
 void starneig_reorder_insert_window(
     int prio, int small_window_size, int small_window_threshold,
-    struct window *window, starneig_vector_descr_t selected,
-    starneig_matrix_descr_t matrix_a, starneig_matrix_descr_t matrix_b,
+    struct window *window, starneig_vector_t selected,
+    starneig_matrix_t matrix_a, starneig_matrix_t matrix_b,
     mpi_info_t mpi);
 
 #endif

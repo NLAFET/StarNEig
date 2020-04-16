@@ -196,10 +196,10 @@ starneig_error_t starneig_SEP_DM_Select(
     mpi_info_t mpi = starneig_mpi_get_info();
 
     int tile_size = starneig_mpi_find_valid_tile_size(128, S, NULL, NULL, NULL);
-    starneig_matrix_descr_t S_d = starneig_mpi_cache_convert_and_release(
+    starneig_matrix_t S_d = starneig_mpi_cache_convert_and_release(
         tile_size, tile_size, MATRIX_TYPE_UPPER_HESSENBERG, S, mpi);
 
-    starneig_vector_descr_t selected_d = starneig_init_matching_vector_descr(
+    starneig_vector_t selected_d = starneig_init_matching_vector_descr(
         S_d, sizeof(int), selected, mpi);
 
     struct sep_args args = {
@@ -213,12 +213,12 @@ starneig_error_t starneig_SEP_DM_Select(
 
     int world_size = starneig_mpi_get_comm_size();
     for (int i = 0; i < world_size; i++)
-        starneig_gather_vector_descr(i, selected_d);
+        starneig_vector_gather(i, selected_d);
 
-    starneig_acquire_matrix_descr(S_d);
+    starneig_matrix_acquire(S_d);
 
-    starneig_unregister_vector_descr(selected_d);
-    starneig_free_vector_descr(selected_d);
+    starneig_vector_unregister(selected_d);
+    starneig_vector_free(selected_d);
 
     starpu_task_wait_for_all();
     starpu_mpi_cache_flush_all_data(starneig_mpi_get_comm());
@@ -264,13 +264,13 @@ starneig_error_t starneig_GEP_DM_Select(
 
     int tile_size = starneig_mpi_find_valid_tile_size(128, S, T, NULL, NULL);
 
-    starneig_matrix_descr_t S_d = starneig_mpi_cache_convert_and_release(
+    starneig_matrix_t S_d = starneig_mpi_cache_convert_and_release(
         tile_size, tile_size, MATRIX_TYPE_UPPER_HESSENBERG, S, mpi);
 
-    starneig_matrix_descr_t T_d = starneig_mpi_cache_convert_and_release(
+    starneig_matrix_t T_d = starneig_mpi_cache_convert_and_release(
         tile_size, tile_size, MATRIX_TYPE_UPPER_TRIANGULAR, T, mpi);
 
-    starneig_vector_descr_t selected_d = starneig_init_matching_vector_descr(
+    starneig_vector_t selected_d = starneig_init_matching_vector_descr(
         S_d, sizeof(int), selected, mpi);
 
     struct gep_args args = {
@@ -284,13 +284,13 @@ starneig_error_t starneig_GEP_DM_Select(
 
     int world_size = starneig_mpi_get_comm_size();
     for (int i = 0; i < world_size; i++)
-        starneig_gather_vector_descr(i, selected_d);
+        starneig_vector_gather(i, selected_d);
 
-    starneig_acquire_matrix_descr(S_d);
-    starneig_acquire_matrix_descr(T_d);
+    starneig_matrix_acquire(S_d);
+    starneig_matrix_acquire(T_d);
 
-    starneig_unregister_vector_descr(selected_d);
-    starneig_free_vector_descr(selected_d);
+    starneig_vector_unregister(selected_d);
+    starneig_vector_free(selected_d);
 
     starpu_task_wait_for_all();
     starpu_mpi_cache_flush_all_data(starneig_mpi_get_comm());

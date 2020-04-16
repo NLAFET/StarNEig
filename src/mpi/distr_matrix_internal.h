@@ -140,7 +140,7 @@ static inline size_t starneig_mpi_get_elemsize(starneig_datatype_t type)
 ///
 /// @return The matching entry in the descriptor cache.
 ///
-starneig_matrix_descr_t starneig_mpi_cache_convert(
+starneig_matrix_t starneig_mpi_cache_convert(
     int bm, int bn, enum starneig_matrix_type fill,
     starneig_distr_matrix_t matrix, mpi_info_t mpi);
 
@@ -165,7 +165,7 @@ starneig_matrix_descr_t starneig_mpi_cache_convert(
 ///
 /// @return The matching entry in the descriptor cache.
 ///
-starneig_matrix_descr_t starneig_mpi_cache_convert_and_release(
+starneig_matrix_t starneig_mpi_cache_convert_and_release(
     int bm, int bn, enum starneig_matrix_type fill,
     starneig_distr_matrix_t matrix, mpi_info_t mpi);
 

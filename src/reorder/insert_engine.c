@@ -98,9 +98,9 @@ static inline int calc_tile_prio(int idx, int length, int longest)
 static void dummy_insert_window(
     int small_window_size,
     int small_window_threshold,
-    starneig_vector_descr_t selected,
-    starneig_matrix_descr_t matrix_a,
-    starneig_matrix_descr_t matrix_b,
+    starneig_vector_t selected,
+    starneig_matrix_t matrix_a,
+    starneig_matrix_t matrix_b,
     struct window *window,
     mpi_info_t mpi)
 {
@@ -125,7 +125,7 @@ static void dummy_insert_window(
 ///         MPI info
 ///
 static void dummy_insert_right_update(
-    int height, struct window const *window, starneig_matrix_descr_t matrix,
+    int height, struct window const *window, starneig_matrix_t matrix,
     mpi_info_t mpi)
 {
     // figure out which accumulator matrix should be used
@@ -157,7 +157,7 @@ static void dummy_insert_right_update(
 ///         MPI info
 ///
 static void dummy_insert_left_update(
-    int width, struct window const *window, starneig_matrix_descr_t matrix,
+    int width, struct window const *window, starneig_matrix_t matrix,
     mpi_info_t mpi)
 {
     starneig_insert_left_gemm_update(
@@ -181,7 +181,7 @@ static void dummy_insert_left_update(
 ///         MPI info
 ///
 static void dummy_insert_q_update(
-    int height, struct window const *window, starneig_matrix_descr_t matrix,
+    int height, struct window const *window, starneig_matrix_t matrix,
      mpi_info_t mpi)
 {
     starneig_insert_right_gemm_update(
@@ -205,7 +205,7 @@ static void dummy_insert_q_update(
 ///         MPI info
 ///
 static void dummy_insert_z_update(
-    int height, struct window const *window, starneig_matrix_descr_t matrix,
+    int height, struct window const *window, starneig_matrix_t matrix,
     mpi_info_t mpi)
 {
     starneig_insert_right_gemm_update(
@@ -274,9 +274,9 @@ static void dummy_insert_z_update(
 static void insert_window(
     int small_window_size,
     int small_window_threshold,
-    starneig_vector_descr_t selected,
-    starneig_matrix_descr_t matrix_a,
-    starneig_matrix_descr_t matrix_b,
+    starneig_vector_t selected,
+    starneig_matrix_t matrix_a,
+    starneig_matrix_t matrix_b,
     struct window *window,
     struct window_chain *chain,
     mpi_info_t mpi)
@@ -361,9 +361,9 @@ static void insert_window(
 static void insert_window_chain(
     int small_window_size,
     int small_window_threshold,
-    starneig_vector_descr_t selected,
-    starneig_matrix_descr_t matrix_a,
-    starneig_matrix_descr_t matrix_b,
+    starneig_vector_t selected,
+    starneig_matrix_t matrix_a,
+    starneig_matrix_t matrix_b,
     struct window_chain *chain,
     mpi_info_t mpi)
 {
@@ -434,7 +434,7 @@ static void insert_window_chain(
 ///
 static void insert_right_updates(
     int height, int longest, struct window_chain const *chain,
-    starneig_matrix_descr_t matrix, mpi_info_t mpi)
+    starneig_matrix_t matrix, mpi_info_t mpi)
 {
     // all right updates below this row have already been inserted
     int end = ((STARNEIG_MATRIX_RBEGIN(matrix) + chain->begin) /
@@ -507,7 +507,7 @@ static void insert_right_updates(
 ///
 static void insert_low_prio_right_updates(
     int height, int longest, struct window_chain const *chain,
-    starneig_matrix_descr_t matrix, mpi_info_t mpi)
+    starneig_matrix_t matrix, mpi_info_t mpi)
 {
     // all right-hand side updates below this row have already been inserted
     int end = ((STARNEIG_MATRIX_RBEGIN(matrix) + chain->begin) /
@@ -551,7 +551,7 @@ static void insert_low_prio_right_updates(
 ///
 static void insert_left_updates(
     int width, int longest, struct window_chain const *chain,
-    starneig_matrix_descr_t matrix, mpi_info_t mpi)
+    starneig_matrix_t matrix, mpi_info_t mpi)
 {
     int n = STARNEIG_MATRIX_N(matrix);
 
@@ -611,7 +611,7 @@ static void insert_left_updates(
 ///
 static void insert_q_updates(
     int height, int longest, struct window_chain const *chain,
-    starneig_matrix_descr_t matrix, mpi_info_t mpi)
+    starneig_matrix_t matrix, mpi_info_t mpi)
 {
     // go through all windows in the window chain
     for (struct window *it = chain->bottom; it != NULL; it = it->up) {
@@ -643,7 +643,7 @@ static void insert_q_updates(
 ///
 static void insert_z_updates(
     int height, int longest, struct window_chain const *chain,
-    starneig_matrix_descr_t matrix, mpi_info_t mpi)
+    starneig_matrix_t matrix, mpi_info_t mpi)
 {
     // go through all windows in the window chain
     for (struct window *it = chain->bottom; it != NULL; it = it->up) {
@@ -677,11 +677,11 @@ static void reorder_window(
     int longest,
     struct starneig_engine_conf_t const *conf,
     blueprint_step_t const *steps,
-    starneig_vector_descr_t selected,
-    starneig_matrix_descr_t matrix_q,
-    starneig_matrix_descr_t matrix_z,
-    starneig_matrix_descr_t matrix_a,
-    starneig_matrix_descr_t matrix_b,
+    starneig_vector_t selected,
+    starneig_matrix_t matrix_q,
+    starneig_matrix_t matrix_z,
+    starneig_matrix_t matrix_a,
+    starneig_matrix_t matrix_b,
     struct window *window,
     mpi_info_t mpi)
 {
@@ -742,11 +742,11 @@ static void process_chain(
     int longest,
     struct starneig_engine_conf_t const *conf,
     blueprint_step_t const *steps,
-    starneig_vector_descr_t selected,
-    starneig_matrix_descr_t matrix_q,
-    starneig_matrix_descr_t matrix_z,
-    starneig_matrix_descr_t matrix_a,
-    starneig_matrix_descr_t matrix_b,
+    starneig_vector_t selected,
+    starneig_matrix_t matrix_q,
+    starneig_matrix_t matrix_z,
+    starneig_matrix_t matrix_a,
+    starneig_matrix_t matrix_b,
     struct window_chain *chain,
     mpi_info_t mpi)
 {
@@ -824,11 +824,11 @@ static void process_chain_list(
     int longest,
     struct starneig_engine_conf_t const *conf,
     blueprint_step_t const *steps,
-    starneig_vector_descr_t selected,
-    starneig_matrix_descr_t matrix_q,
-    starneig_matrix_descr_t matrix_z,
-    starneig_matrix_descr_t matrix_a,
-    starneig_matrix_descr_t matrix_b,
+    starneig_vector_t selected,
+    starneig_matrix_t matrix_q,
+    starneig_matrix_t matrix_z,
+    starneig_matrix_t matrix_a,
+    starneig_matrix_t matrix_b,
     struct chain_list *list,
     mpi_info_t mpi)
 {
@@ -870,11 +870,11 @@ static void process_chain_list(
 void starneig_process_plan(
     struct starneig_engine_conf_t const *conf,
     blueprint_step_t const *steps,
-    starneig_vector_descr_t selected,
-    starneig_matrix_descr_t matrix_q,
-    starneig_matrix_descr_t matrix_z,
-    starneig_matrix_descr_t matrix_a,
-    starneig_matrix_descr_t matrix_b,
+    starneig_vector_t selected,
+    starneig_matrix_t matrix_q,
+    starneig_matrix_t matrix_z,
+    starneig_matrix_t matrix_a,
+    starneig_matrix_t matrix_b,
     struct plan *plan,
     mpi_info_t mpi)
 {

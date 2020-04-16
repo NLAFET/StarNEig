@@ -403,11 +403,11 @@ int starneig_reorder_get_optimal_tile_size(int n, double select_ratio)
 
 starneig_error_t starneig_reorder_insert_tasks(
     struct starneig_reorder_conf const *conf,
-    starneig_vector_descr_t selected,
-    starneig_matrix_descr_t Q, starneig_matrix_descr_t Z,
-    starneig_matrix_descr_t A, starneig_matrix_descr_t B,
-    starneig_vector_descr_t real, starneig_vector_descr_t imag,
-    starneig_vector_descr_t beta,
+    starneig_vector_t selected,
+    starneig_matrix_t Q, starneig_matrix_t Z,
+    starneig_matrix_t A, starneig_matrix_t B,
+    starneig_vector_t real, starneig_vector_t imag,
+    starneig_vector_t beta,
     mpi_info_t mpi)
 {
     // use default configuration if necessary
@@ -458,7 +458,7 @@ starneig_error_t starneig_reorder_insert_tasks(
         return STARNEIG_INVALID_ARGUMENTS;
     }
 
-    if (STARNEIG_VECTOR_BM(selected) != tile_size) {
+    if (starneig_vector_get_tile_size(selected) != tile_size) {
         starneig_error(
             "Eigenvalue selection bitmap has invalid dimensions. Exiting...");
         return STARNEIG_INVALID_ARGUMENTS;
@@ -659,10 +659,10 @@ starneig_error_t starneig_reorder_insert_tasks(
 
     int *host_selected = starneig_acquire_vector_descr(selected);
 
-    starneig_vector_descr_t complex_distr_d =
+    starneig_vector_t complex_distr_d =
         starneig_extract_subdiagonals(A, mpi);
     int *complex_distr = starneig_acquire_vector_descr(complex_distr_d);
-    starneig_free_vector_descr(complex_distr_d);
+    starneig_vector_free(complex_distr_d);
 
     struct plan *plan = plan_desc->func(n, window_size, values_per_chain,
         tile_size, host_selected, complex_distr);

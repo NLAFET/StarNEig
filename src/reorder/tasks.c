@@ -117,8 +117,8 @@ defined(STARNEIG_ENABLE_CUDA_REORDER_WINDOW)
 
 void starneig_reorder_insert_window(
     int prio, int small_window_size, int small_window_threshold,
-    struct window *window, starneig_vector_descr_t selected,
-    starneig_matrix_descr_t matrix_a, starneig_matrix_descr_t matrix_b,
+    struct window *window, starneig_vector_t selected,
+    starneig_matrix_t matrix_a, starneig_matrix_t matrix_b,
     mpi_info_t mpi)
 {
     window->lq_h = window->lz_h = NULL;
@@ -131,7 +131,7 @@ void starneig_reorder_insert_window(
     // figure out who is going to own the accumulator matrices
     int owner = 0;
     if (mpi != NULL)
-        owner = starneig_get_elem_owner_matrix_descr(
+        owner = starneig_matrix_get_elem_owner(
             window->begin, window->begin, matrix_a);
 #endif
 

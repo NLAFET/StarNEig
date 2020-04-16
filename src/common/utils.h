@@ -53,7 +53,7 @@
 /// @return non-zero if the dimensions are valid, zero otherwise
 ///
 int starneig_is_valid_matrix(
-    int n, int tile_size, const starneig_matrix_descr_t descr);
+    int n, int tile_size, const starneig_matrix_t descr);
 
 ///
 /// @brief Calculates a valid update task width/height
@@ -80,8 +80,8 @@ int starneig_calc_update_size(
 ///
 /// @returns a vector descriptor that has a matching tile layout
 ///
-starneig_vector_descr_t starneig_init_matching_vector_descr(
-    const starneig_matrix_descr_t descr, size_t elemsize, void *vec,
+starneig_vector_t starneig_init_matching_vector_descr(
+    const starneig_matrix_t descr, size_t elemsize, void *vec,
     mpi_info_t mpi);
 
 ///
@@ -92,8 +92,8 @@ starneig_vector_descr_t starneig_init_matching_vector_descr(
 ///
 /// @return locations of the non-zero sub-diagonals
 ///
-starneig_vector_descr_t starneig_extract_subdiagonals(
-    starneig_matrix_descr_t descr, mpi_info_t mpi);
+starneig_vector_t starneig_extract_subdiagonals(
+    starneig_matrix_t descr, mpi_info_t mpi);
 
 ///
 /// @brief Acquires the whole vector descriptor and returns a local copy of it's
@@ -103,6 +103,6 @@ starneig_vector_descr_t starneig_extract_subdiagonals(
 ///
 /// @return local copy
 ///
-void * starneig_acquire_vector_descr(starneig_vector_descr_t descr);
+void * starneig_acquire_vector_descr(starneig_vector_t descr);
 
 #endif

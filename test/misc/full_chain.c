@@ -266,15 +266,10 @@ static int starpu_run(hook_solver_state_t state)
 #endif
         }
         else {
-#ifdef STARNEIG_SEP_DM_REDUCE
             ret = starneig_SEP_DM_Reduce(
                 STARNEIG_MATRIX_HANDLE(pencil->mat_a),
                 STARNEIG_MATRIX_HANDLE(pencil->mat_q),
                 real, imag, &sep_predicate, NULL, NULL, &num_selected);
-#else
-            fprintf(stderr, "starneig_SEP_DM_Reduce() does not exists.\n");
-            ret = -1;
-#endif
         }
     }
 #endif

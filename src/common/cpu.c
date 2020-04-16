@@ -356,14 +356,48 @@ void starneig_cpu_scan_diagonal(void *buffers[], void *cl_args)
         free(mask[i]);
 }
 
-void starneig_cpu_set_to_zero(void *buffers[], void *cl_args)
+void starneig_cpu_set_vector_to_zero(void *buffers[], void *cl_args)
 {
-    void *ptr = (void *) STARPU_MATRIX_GET_PTR(buffers[0]);
+    void *A = (void *) STARPU_VECTOR_GET_PTR(buffers[0]);
+    int m = STARPU_VECTOR_GET_NX(buffers[0]);
+    size_t elemsize = STARPU_VECTOR_GET_ELEMSIZE(buffers[0]);
+    memset(A, 0, m*elemsize);
+}
+
+void starneig_cpu_add_vectors(void *buffers[], void *cl_args)
+{
+    double *Y = (double *) STARPU_VECTOR_GET_PTR(buffers[0]);
+    double *X = (double *) STARPU_VECTOR_GET_PTR(buffers[1]);
+    int m = STARPU_VECTOR_GET_NX(buffers[0]);
+
+    for (int i = 0; i < m; i++)
+        Y[i] += X[i];
+}
+
+void starneig_cpu_set_matrix_to_zero(void *buffers[], void *cl_args)
+{
+    void *A = (void *) STARPU_MATRIX_GET_PTR(buffers[0]);
     int m = STARPU_MATRIX_GET_NX(buffers[0]);
     int n = STARPU_MATRIX_GET_NY(buffers[0]);
-    int ld = STARPU_MATRIX_GET_LD(buffers[0]);
+    size_t ldA = STARPU_MATRIX_GET_LD(buffers[0]);
     size_t elemsize = STARPU_MATRIX_GET_ELEMSIZE(buffers[0]);
 
     for (int i = 0; i < n; i++)
-        memset(ptr+(size_t)i*ld*elemsize, 0, m*elemsize);
+        memset(A+i*ldA*elemsize, 0, m*elemsize);
+}
+
+void starneig_cpu_add_matrices(void *buffers[], void *cl_args)
+{
+    double *Y = (double *) STARPU_MATRIX_GET_PTR(buffers[0]);
+    size_t ldY = STARPU_MATRIX_GET_LD(buffers[0]);
+
+    double *X = (double *) STARPU_MATRIX_GET_PTR(buffers[1]);
+    size_t ldX = STARPU_MATRIX_GET_LD(buffers[1]);
+
+    int m = STARPU_MATRIX_GET_NX(buffers[1]);
+    int n = STARPU_MATRIX_GET_NY(buffers[1]);
+
+    for (int i = 0; i < n; i++)
+        for (int j = 0; j < m; j++)
+            Y[i*ldY+j] += X[i*ldX+j];
 }

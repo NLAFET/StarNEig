@@ -60,7 +60,7 @@ static starneig_error_t hessenberg(
 
     if (conf->tile_size == STARNEIG_HESSENBERG_DEFAULT_TILE_SIZE) {
         int workers = starpu_worker_get_count();
-        conf->tile_size = MAX(128, MIN(1024, divceil(n/(2*workers), 8)*8));
+        conf->tile_size = MAX(256, MIN(4096, divceil(n/sqrt(8*workers), 8)*8));
         starneig_message("Setting tile size to %d.", conf->tile_size);
     }
     else {
@@ -86,12 +86,12 @@ static starneig_error_t hessenberg(
     // register, partition and pack
     //
 
-    starneig_matrix_descr_t matrix_a = starneig_register_matrix_descr(
+    starneig_matrix_t matrix_a = starneig_matrix_register(
         MATRIX_TYPE_FULL, n, n, conf->tile_size, conf->tile_size,
         -1, -1, ldA, sizeof(double), NULL, NULL, A, NULL);
     STARNEIG_EVENT_SET_LABEL(matrix_a, 'A');
 
-    starneig_matrix_descr_t matrix_q = starneig_register_matrix_descr(
+    starneig_matrix_t matrix_q = starneig_matrix_register(
         MATRIX_TYPE_FULL, n, n, conf->tile_size, conf->tile_size,
         -1, -1, ldQ, sizeof(double), NULL, NULL, Q, NULL);
     STARNEIG_EVENT_SET_LABEL(matrix_q, 'Q');
@@ -111,11 +111,11 @@ static starneig_error_t hessenberg(
     // finalize
     //
 
-    starneig_unregister_matrix_descr(matrix_a);
-    starneig_unregister_matrix_descr(matrix_q);
+    starneig_matrix_unregister(matrix_a);
+    starneig_matrix_unregister(matrix_q);
 
-    starneig_free_matrix_descr(matrix_a);
-    starneig_free_matrix_descr(matrix_q);
+    starneig_matrix_free(matrix_a);
+    starneig_matrix_free(matrix_q);
 
     STARNEIG_EVENT_STORE(n, "trace.dat");
     STARNEIG_EVENT_FREE();

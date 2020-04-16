@@ -117,7 +117,8 @@ starneig_error_t starneig_eigvec_std_insert_backsolve_tasks(
                 STARPU_R, S_tiles[i][j],
                 STARPU_W, S_tiles_norms[i][j], 0);
 
-            starneig_insert_set_to_zero(critical_prio, X_tiles[i][j]);
+            starneig_insert_set_matrix_to_zero(
+                critical_prio, X_tiles[i][j], NULL);
 
         }
     }

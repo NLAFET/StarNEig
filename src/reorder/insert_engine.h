@@ -143,11 +143,11 @@ struct starneig_engine_conf_t {
 void starneig_process_plan(
     struct starneig_engine_conf_t const *conf,
     blueprint_step_t const *steps,
-    starneig_vector_descr_t selected,
-    starneig_matrix_descr_t matrix_q,
-    starneig_matrix_descr_t matrix_z,
-    starneig_matrix_descr_t matrix_a,
-    starneig_matrix_descr_t matrix_b,
+    starneig_vector_t selected,
+    starneig_matrix_t matrix_q,
+    starneig_matrix_t matrix_z,
+    starneig_matrix_t matrix_a,
+    starneig_matrix_t matrix_b,
     struct plan *plan,
     mpi_info_t mpi);
 

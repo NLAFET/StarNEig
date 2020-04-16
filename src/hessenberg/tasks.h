@@ -73,11 +73,14 @@
 /// @param[out] v
 ///         An intemediate vector interface for the trailing matrix operation.
 ///
+/// @param[in,out] mpi
+///         MPI info
+///
 void starneig_hessenberg_insert_prepare_column(
     int prio, int i, int begin, int end,
     starpu_data_handle_t Y_h, starpu_data_handle_t V_h,
     starpu_data_handle_t T_h, starpu_data_handle_t P_h,
-    starneig_vector_descr_t v);
+    starneig_vector_t v, mpi_info_t mpi);
 
 ///
 /// @brief Performs the trailing matrix operation.
@@ -97,7 +100,7 @@ void starneig_hessenberg_insert_prepare_column(
 /// @param[in] cend
 ///         Last column that belongs to the trailing matrix + 1.
 ///
-/// @param[in] matrix_a
+/// @param[in] A
 ///         A pointer to the A matrix descriptor structure.
 ///
 /// @param[in] v
@@ -106,10 +109,13 @@ void starneig_hessenberg_insert_prepare_column(
 /// @param[out] y
 ///         An intemediate vector interface from the trailing matrix operation.
 ///
+/// @param[in,out] mpi
+///         MPI info
+///
 void starneig_hessenberg_insert_compute_column(
     int prio, int rbegin, int rend, int cbegin, int cend,
-    starneig_matrix_descr_t matrix_a, starneig_vector_descr_t v,
-    starneig_vector_descr_t y);
+    starneig_matrix_t A, starneig_vector_t v,
+    starneig_vector_t y, mpi_info_t mpi);
 
 ///
 /// @brief Finalizes a column reduction.
@@ -138,13 +144,66 @@ void starneig_hessenberg_insert_compute_column(
 /// @param[in] y
 ///         An intemediate vector interface from the trailing matrix operation.
 ///
+/// @param[in,out] mpi
+///         MPI info
+///
 void starneig_hessenberg_insert_finish_column(
     int prio, int i, int begin, int end,
     starpu_data_handle_t V_h, starpu_data_handle_t T_h,
-    starpu_data_handle_t Y_h, starneig_vector_descr_t y);
+    starpu_data_handle_t Y_h, starneig_vector_t y, mpi_info_t mpi);
 
 ///
-/// @brief Inserts a update_trail task.
+/// @brief Inserts an update_trail_right task.
+///
+/// @param[in] prio
+///         StarPU priority.
+///
+/// @param[in] rbegin
+///         First row that belongs to the update window.
+///
+/// @param[in] rend
+///         Last row that belongs to the update window + 1.
+///
+/// @param[in] cbegin
+///         First column that belongs to the update window.
+///
+/// @param[in] cend
+///         Last column that belongs to the update window + 1.
+///
+/// @param[in] nb
+///         Panel width.
+///
+/// @param[in] roffset
+///         First row of the trailing matrix that belogns to the block
+///         row.
+///
+/// @param[in] coffset
+///         First column of the trailing matrix that belogns to the block
+///         column.
+///
+/// @param[in] V_h
+///         Matrix V handle.
+///
+/// @param[in] T_h
+///         Matrix T handle.
+///
+/// @param[in]  Y_h
+///         Matrix T handle.
+///
+/// @param[in,out] A
+///         Pointer to the A matrix descriptor structure.
+///
+/// @param[in,out] mpi
+///         MPI info
+///
+void starneig_hessenberg_insert_update_trail_right(
+    int prio, int rbegin, int rend, int cbegin, int cend, int nb,
+    int roffset, int coffset, starpu_data_handle_t V_h,
+    starpu_data_handle_t T_h, starpu_data_handle_t Y_h,
+    starneig_matrix_t A, mpi_info_t mpi);
+
+///
+/// @brief Inserts an update_left_a task.
 ///
 /// @param[in] prio
 ///         StarPU priority.
@@ -165,8 +224,7 @@ void starneig_hessenberg_insert_finish_column(
 ///         Panel width.
 ///
 /// @param[in] offset
-///         First column of the trailing matrix that belogns to the block
-///         column.
+///         Horizontal offset of the beginning of the updatable region.
 ///
 /// @param[in] V_h
 ///         Matrix V handle.
@@ -174,25 +232,22 @@ void starneig_hessenberg_insert_finish_column(
 /// @param[in]  T_h
 ///         Matrix T handle.
 ///
-/// @param[in]  Y_h
-///         Matrix T handle.
-///
-/// @param[in,out] matrix_a
+/// @param[in] A
 ///         Pointer to the A matrix descriptor structure.
 ///
-/// @param[in] parallel
-///         A parallel task is inserted if this variable is non-zero.
+/// @param[in,out] W
+///         Pointer to the W matrix descriptor structure.
 ///
 /// @param[in,out] mpi
 ///         MPI info
 ///
-void starneig_hessenberg_insert_update_trail(
-    int prio, int rbegin, int rend, int cbegin, int cend, int nb,
-    int offset, starpu_data_handle_t V_h, starpu_data_handle_t T_h,
-    starpu_data_handle_t Y_h, starneig_matrix_descr_t matrix_a, mpi_info_t mpi);
+void starneig_hessenberg_insert_update_left_a(
+    int prio, int rbegin, int rend, int cbegin, int cend, int nb, int offset,
+    starpu_data_handle_t V_h, starpu_data_handle_t T_h,
+    starneig_matrix_t A, starneig_matrix_t W, mpi_info_t mpi);
 
 ///
-/// @brief Inserts a update_right task.
+/// @brief Inserts an update_left_b task.
 ///
 /// @param[in] prio
 ///         StarPU priority.
@@ -212,25 +267,28 @@ void starneig_hessenberg_insert_update_trail(
 /// @param[in] nb
 ///         Panel width.
 ///
+/// @param[in] offset
+///         Horizontal offset of the beginning of the updatable region.
+///
 /// @param[in] V_h
 ///         Matrix V handle.
 ///
-/// @param[in]  T_h
-///         Matrix T handle.
+/// @param[in] W
+///         Pointer to the W matrix descriptor structure.
 ///
-/// @param[in,out] matrix_a
+/// @param[in,out] A
 ///         Pointer to the A matrix descriptor structure.
 ///
 /// @param[in,out] mpi
-///             MPI info
+///         MPI info
 ///
-void starneig_hessenberg_insert_update_right(
-    int prio, int rbegin, int rend, int cbegin, int cend, int nb,
-    starpu_data_handle_t V_h, starpu_data_handle_t T_h,
-    starneig_matrix_descr_t matrix_a, mpi_info_t mpi);
+void starneig_hessenberg_insert_update_left_b(
+    int prio, int rbegin, int rend, int cbegin, int cend, int nb, int offset,
+    starpu_data_handle_t V_h, starneig_matrix_t W,
+    starneig_matrix_t A, mpi_info_t mpi);
 
 ///
-/// @brief Inserts a update_left task.
+/// @brief Inserts an update_right_a task.
 ///
 /// @param[in] prio
 ///         StarPU priority.
@@ -250,21 +308,69 @@ void starneig_hessenberg_insert_update_right(
 /// @param[in] nb
 ///         Panel width.
 ///
+/// @param[in] offset
+///         Vertical offset of the beginning of the updatable region.
+///
 /// @param[in] V_h
 ///         Matrix V handle.
 ///
 /// @param[in]  T_h
 ///         Matrix T handle.
 ///
-/// @param[in,out] matrix_a
+/// @param[in] A
+///         Pointer to the A matrix descriptor structure.
+///
+/// @param[in,out] W
+///         Pointer to the W matrix descriptor structure.
+///
+/// @param[in,out] mpi
+///         MPI info
+///
+void starneig_hessenberg_insert_update_right_a(
+    int prio, int rbegin, int rend, int cbegin, int cend, int nb, int offset,
+    starpu_data_handle_t V_h, starpu_data_handle_t T_h,
+    starneig_matrix_t A, starneig_matrix_t W,
+    mpi_info_t mpi);
+
+///
+/// @brief Inserts an update_right_b task.
+///
+/// @param[in] prio
+///         StarPU priority.
+///
+/// @param[in] rbegin
+///         First row that belongs to the update window.
+///
+/// @param[in] rend
+///         Last row that belongs to the update window + 1.
+///
+/// @param[in] cbegin
+///         First column that belongs to the update window.
+///
+/// @param[in] cend
+///         Last column that belongs to the update window + 1.
+///
+/// @param[in] nb
+///         Panel width.
+///
+/// @param[in] offset
+///         Vertical offset of the beginning of the updatable region.
+///
+/// @param[in] V_h
+///         Matrix V handle.
+///
+/// @param[in] W
+///         Pointer to the W matrix descriptor structure.
+///
+/// @param[in,out] A
 ///         Pointer to the A matrix descriptor structure.
 ///
 /// @param[in,out] mpi
-///             MPI info
+///         MPI info
 ///
-void starneig_hessenberg_insert_update_left(
-    int prio, int rbegin, int rend, int cbegin, int cend, int nb,
-    starpu_data_handle_t V_h, starpu_data_handle_t T_h,
-    starneig_matrix_descr_t matrix_a, mpi_info_t mpi);
+void starneig_hessenberg_insert_update_right_b(
+    int prio, int rbegin, int rend, int cbegin, int cend, int nb, int offset,
+    starpu_data_handle_t V_h, starneig_matrix_t W,
+    starneig_matrix_t A, mpi_info_t mpi);
 
 #endif

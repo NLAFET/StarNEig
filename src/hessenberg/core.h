@@ -81,7 +81,7 @@
 starneig_error_t starneig_hessenberg_insert_tasks(
     int panel_width, int begin, int end,
     int critical_prio, int update_prio, int misc_prio,
-    starneig_matrix_descr_t matrix_q, starneig_matrix_descr_t matrix_a,
+    starneig_matrix_t matrix_q, starneig_matrix_t matrix_a,
     bool limit_submitted, mpi_info_t mpi);
 
 #endif

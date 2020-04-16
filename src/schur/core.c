@@ -234,9 +234,9 @@ static void insert_segment_updates(
     }
 
     #define update_matrix(matrix_x, x_height, x_width) { \
-        int vert_cut = starneig_matrix_cut_vectically_up( \
+        int vert_cut = starneig_matrix_cut_ver_up( \
             segment->begin, matrix_x); \
-        int hor_cut = starneig_matrix_cut_horizontally_right( \
+        int hor_cut = starneig_matrix_cut_hor_right( \
             segment->end, matrix_x); \
         \
         starneig_insert_right_gemm_update( \
@@ -321,11 +321,11 @@ static void insert_reverse_updates(
 
     #define update_matrix(matrix_x, x_height, x_width) { \
         int vert_cut = \
-            starneig_matrix_cut_vectically_up(segment->begin, matrix_x); \
+            starneig_matrix_cut_ver_up(segment->begin, matrix_x); \
         int top_cut = \
-            starneig_matrix_cut_vectically_up(top, matrix_x); \
+            starneig_matrix_cut_ver_up(top, matrix_x); \
         int hor_cut = \
-            starneig_matrix_cut_horizontally_right(segment->end, matrix_x); \
+            starneig_matrix_cut_hor_right(segment->end, matrix_x); \
         \
         starneig_insert_right_gemm_update( \
             top_cut, begin, begin, end, STARNEIG_MATRIX_BM(matrix_x), \
@@ -411,9 +411,9 @@ static void insert_aed_updates(
         int x_height = STARNEIG_MATRIX_BM(matrix_x); \
         int x_width = STARNEIG_MATRIX_BN(matrix_x); \
         \
-        int off_cut = starneig_matrix_cut_vectically_up( \
+        int off_cut = starneig_matrix_cut_ver_up( \
             segment->begin, matrix_x); \
-        int aed_cut = starneig_matrix_cut_vectically_up( \
+        int aed_cut = starneig_matrix_cut_ver_up( \
             MAX(segment->begin, begin-aed_window_size), matrix_x); \
         \
         starneig_insert_right_gemm_update( \
@@ -498,7 +498,7 @@ static void insert_push_inf_top(
             break;
 
         int wbegin = MAX(begin,
-            starneig_matrix_cut_vectically_up(end, args->matrix_a) -
+            starneig_matrix_cut_ver_up(end, args->matrix_a) -
             STARNEIG_MATRIX_BM(args->matrix_a));
         int wend = end;
 
@@ -650,7 +650,7 @@ static void insert_bulges_fixed(
     if (args->mpi != NULL) {
         int world_size = starneig_mpi_get_comm_size();
         for (int i = 0; i < world_size; i++)
-            starneig_gather_segment_vector_descr(
+            starneig_vector_gather_section(
                 i, segment->begin, segment->end, segment->bulges_aftermath);
     }
 #endif
@@ -686,7 +686,7 @@ static void insert_bulges_rounded(
     int total_shifts = (MIN(segment->computed_shifts, requested_shifts)/2)*2;
     int total_chains = divceil(total_shifts, shifts_per_window);
 
-    int top = starneig_matrix_cut_vectically_up(
+    int top = starneig_matrix_cut_ver_up(
         segment->begin, args->matrix_a) +
         (2 - 2*total_chains)*STARNEIG_MATRIX_BM(args->matrix_a);
 
@@ -757,7 +757,7 @@ static void insert_bulges_rounded(
     if (args->mpi != NULL) {
         int world_size = starneig_mpi_get_comm_size();
         for (int i = 0; i < world_size; i++)
-            starneig_gather_segment_vector_descr(
+            starneig_vector_gather_section(
                 i, segment->begin, segment->end, segment->bulges_aftermath);
     }
 #endif
@@ -784,7 +784,7 @@ static enum segment_status perform_deflate_finalize(
     struct segment *segment, struct process_args *args)
 {
     int my_rank = starneig_mpi_get_comm_rank();
-    int owner = starneig_get_tile_owner_matrix_descr(
+    int owner = starneig_matrix_get_tile_owner(
         0, 0, segment->aed_args.matrix_a);
 
     //
@@ -1019,16 +1019,16 @@ cleanup:
     starpu_data_unregister_submit(segment->aed_status_h);
     segment->aed_status_h = NULL;
 
-    starneig_free_matrix_descr(segment->aed_args.matrix_a);
+    starneig_matrix_free(segment->aed_args.matrix_a);
     segment->aed_args.matrix_a = NULL;
 
-    starneig_free_matrix_descr(segment->aed_args.matrix_b);
+    starneig_matrix_free(segment->aed_args.matrix_b);
     segment->aed_args.matrix_b = NULL;
 
-    starneig_free_matrix_descr(segment->aed_args.matrix_q);
+    starneig_matrix_free(segment->aed_args.matrix_q);
     segment->aed_args.matrix_q = NULL;
 
-    starneig_free_matrix_descr(segment->aed_args.matrix_z);
+    starneig_matrix_free(segment->aed_args.matrix_z);
     segment->aed_args.matrix_z = NULL;
 
     if (segment->aed_deflate_status_h != NULL)
@@ -1039,13 +1039,13 @@ cleanup:
         starpu_data_unregister_submit(segment->aed_deflate_inducer_h);
     segment->aed_deflate_inducer_h = NULL;
 
-    starneig_free_vector_descr(segment->aed_deflate_base);
+    starneig_vector_free(segment->aed_deflate_base);
     segment->aed_deflate_base = NULL;
 
-    starneig_free_vector_descr(segment->shifts_real);
+    starneig_vector_free(segment->shifts_real);
     segment->shifts_real = NULL;
 
-    starneig_free_vector_descr(segment->shifts_imag);
+    starneig_vector_free(segment->shifts_imag);
     segment->shifts_imag = NULL;
 
     return segment->status;
@@ -1088,7 +1088,7 @@ static enum segment_status perform_deflate_step(
             STARNEIG_MATRIX_M(segment->aed_args.matrix_a);
 
         // extract the spike inducer
-        segment->aed_deflate_inducer_h = starneig_get_elem_from_matrix_descr(
+        segment->aed_deflate_inducer_h = starneig_matrix_get_elem(
             1, 0, segment->aed_args.matrix_a, NULL);
 
         // extract the spike base
@@ -1312,7 +1312,7 @@ static enum segment_status perform_small(
     // free the aftermath vector
 
     if (segment->bulges_aftermath != NULL) {
-        starneig_free_vector_descr(segment->bulges_aftermath);
+        starneig_vector_free(segment->bulges_aftermath);
         segment->bulges_aftermath = NULL;
     }
 
@@ -1370,17 +1370,17 @@ static enum segment_status perform_small_aed(
 
     // setup the shift vectors
 
-    int owner = starneig_get_elem_owner_matrix_descr(
+    int owner = starneig_matrix_get_elem_owner(
         segment->aed_begin, segment->aed_begin, args->matrix_a);
 
-    segment->shifts_real = starneig_init_vector_descr(
+    segment->shifts_real = starneig_vector_init(
         segment->end-segment->aed_begin, segment->end-segment->aed_begin,
-        sizeof(double), starneig_single_owner_vector_descr, &owner,
+        sizeof(double), starneig_vector_single_owner_func, &owner,
         args->mpi);
 
-    segment->shifts_imag = starneig_init_vector_descr(
+    segment->shifts_imag = starneig_vector_init(
         segment->end-segment->aed_begin, segment->end-segment->aed_begin,
-        sizeof(double), starneig_single_owner_vector_descr, &owner,
+        sizeof(double), starneig_vector_single_owner_func, &owner,
         args->mpi);
 
     // insert a AED window task
@@ -1428,7 +1428,7 @@ static enum segment_status perform_large_aed(
     segment->aed_begin =
         MAX(segment->begin, segment->end - window_size - 1);
 
-    int owner = starneig_get_elem_owner_matrix_descr(
+    int owner = starneig_matrix_get_elem_owner(
         segment->aed_begin, segment->aed_begin, args->matrix_a);
 
     starpu_variable_data_register(
@@ -1452,7 +1452,7 @@ static enum segment_status perform_large_aed(
     // this is based on some experiments performed on Intel(R) Core(TM) i5-6600
     int tile_size = MAX(24, ((0.025*(segment->end-segment->aed_begin)+11)/8)*8);
 
-    starneig_matrix_descr_t matrix_a = starneig_init_matrix_descr(
+    starneig_matrix_t matrix_a = starneig_matrix_init(
         segment->end-segment->aed_begin, segment->end-segment->aed_begin,
         tile_size, tile_size, -1, -1, sizeof(double),
         starneig_single_owner_matrix_descr, &owner, args->mpi);
@@ -1464,9 +1464,9 @@ static enum segment_status perform_large_aed(
         segment->end-segment->aed_begin, segment->end-segment->aed_begin,
         args->max_prio, args->matrix_a, matrix_a, args->mpi);
 
-    starneig_matrix_descr_t matrix_b = NULL;
+    starneig_matrix_t matrix_b = NULL;
     if (args->matrix_b != NULL) {
-        matrix_b = starneig_init_matrix_descr(
+        matrix_b = starneig_matrix_init(
             segment->end-segment->aed_begin, segment->end-segment->aed_begin,
             tile_size, tile_size, -1, -1, sizeof(double),
             starneig_single_owner_matrix_descr, &owner, args->mpi);
@@ -1482,14 +1482,14 @@ static enum segment_status perform_large_aed(
 
     // create shift vectors
 
-    segment->shifts_real = starneig_init_vector_descr(
+    segment->shifts_real = starneig_vector_init(
         segment->end-segment->aed_begin, segment->end-segment->aed_begin,
-        sizeof(double), starneig_single_owner_vector_descr, &owner,
+        sizeof(double), starneig_vector_single_owner_func, &owner,
         args->mpi);
 
-    segment->shifts_imag = starneig_init_vector_descr(
+    segment->shifts_imag = starneig_vector_init(
         segment->end-segment->aed_begin, segment->end-segment->aed_begin,
-        sizeof(double), starneig_single_owner_vector_descr, &owner,
+        sizeof(double), starneig_vector_single_owner_func, &owner,
         args->mpi);
 
     starneig_verbose("Rank %d is going to perform a parallel AED.", owner);
@@ -1499,7 +1499,7 @@ static enum segment_status perform_large_aed(
 
         // initialize local left-hand side transformation matrix
 
-        starneig_matrix_descr_t matrix_q = starneig_init_matrix_descr(
+        starneig_matrix_t matrix_q = starneig_matrix_init(
             segment->end-segment->aed_begin,
             segment->end-segment->aed_begin,
             tile_size, tile_size, -1, -1, sizeof(double), NULL, NULL, NULL);
@@ -1507,9 +1507,9 @@ static enum segment_status perform_large_aed(
         starneig_insert_set_to_identity(args->max_prio, matrix_q, NULL);
 
         // initialize local right-hand side transformation matrix
-        starneig_matrix_descr_t matrix_z = NULL;
+        starneig_matrix_t matrix_z = NULL;
         if (args->matrix_b != NULL) {
-            matrix_z = starneig_init_matrix_descr(
+            matrix_z = starneig_matrix_init(
                 segment->end-segment->aed_begin,
                 segment->end-segment->aed_begin,
                 tile_size, tile_size, -1, -1, sizeof(double), NULL, NULL, NULL);
@@ -1589,23 +1589,23 @@ static enum segment_status perform_aftermath_check(
     // Process all intersecting aftermath vector tiles. The matching tiles
     // were gathered when the bulge chasing tasks were inserted.
 
-    int ds_begin = STARNEIG_VECTOR_TILE_IDX(
+    int ds_begin = starneig_vector_get_tile_idx(
         segment->begin, segment->bulges_aftermath);
-    int ds_end = STARNEIG_VECTOR_TILE_IDX(
+    int ds_end = starneig_vector_get_tile_idx(
         segment->end - 1, segment->bulges_aftermath) + 1;
     for (int i = ds_begin; i < ds_end; i++) {
 
         // acquire the matching aftermath vector tile
 
         starpu_data_handle_t handle =
-            starneig_get_tile_from_vector_descr(i, segment->bulges_aftermath);
+            starneig_vector_get_tile(i, segment->bulges_aftermath);
         starpu_data_acquire(handle, STARPU_R);
         int *aftermath = (int *) starpu_vector_get_local_ptr(handle);
 
-        int _begin = MAX(0, STARNEIG_VECTOR_IN_TILE_IDX(
+        int _begin = MAX(0, starneig_vector_get_in_tile_idx(
             segment->begin, i, segment->bulges_aftermath));
-        int _end = MIN(STARNEIG_VECTOR_BM(segment->bulges_aftermath),
-            STARNEIG_VECTOR_IN_TILE_IDX(
+        int _end = MIN(starneig_vector_get_tile_size(segment->bulges_aftermath),
+            starneig_vector_get_in_tile_idx(
                 segment->end, i, segment->bulges_aftermath));
 
         // scan the current tile
@@ -1621,7 +1621,7 @@ static enum segment_status perform_aftermath_check(
                 }
 
                 int loc =
-                    STARNEIG_VECTOR_EXT_IDX(i, j, segment->bulges_aftermath);
+                    starneig_vector_get_ext_idx(i, j, segment->bulges_aftermath);
 
                 starneig_verbose("Zero right-hand side entry at row %d.", loc);
 
@@ -1629,7 +1629,7 @@ static enum segment_status perform_aftermath_check(
             }
 
             // skip the first row of the segment
-            if (STARNEIG_VECTOR_EXT_IDX(i, j, segment->bulges_aftermath)
+            if (starneig_vector_get_ext_idx(i, j, segment->bulges_aftermath)
             == segment->begin)
                 continue;
 
@@ -1639,10 +1639,10 @@ static enum segment_status perform_aftermath_check(
                 deflated = 1;
 
                 // enlarge the bottommost segment candidate
-                end = STARNEIG_VECTOR_EXT_IDX(i, j, segment->bulges_aftermath);
+                end = starneig_vector_get_ext_idx(i, j, segment->bulges_aftermath);
 
                 starneig_verbose("Deflated at row %d.",
-                    STARNEIG_VECTOR_EXT_IDX(i, j, segment->bulges_aftermath));
+                    starneig_vector_get_ext_idx(i, j, segment->bulges_aftermath));
 
                 // deflate 1-by-1 blocks directly
                 if (end - prev_begin == 1) {
@@ -1847,7 +1847,7 @@ static enum segment_status process_segment_bootstrap(
     if (args->mpi != NULL) {
         int world_size = starneig_mpi_get_comm_size();
         for (int i = 0; i < world_size; i++)
-            starneig_gather_segment_vector_descr(
+            starneig_vector_gather_section(
                 i, segment->begin, segment->end, segment->bulges_aftermath);
     }
 #endif
@@ -2110,10 +2110,10 @@ static enum segment_status process_segment_aed_small(
     starpu_data_unregister_submit(segment->aed_status_h);
     segment->aed_status_h = NULL;
 
-    starneig_free_vector_descr(segment->shifts_real);
+    starneig_vector_free(segment->shifts_real);
     segment->shifts_real = NULL;
 
-    starneig_free_vector_descr(segment->shifts_imag);
+    starneig_vector_free(segment->shifts_imag);
     segment->shifts_imag = NULL;
 
     return segment->status;
@@ -2341,13 +2341,13 @@ static starneig_error_t scan_segment_list(
 
 starneig_error_t starneig_schur_insert_tasks(
     struct starneig_schur_conf const *conf,
-    starneig_matrix_descr_t Q,
-    starneig_matrix_descr_t Z,
-    starneig_matrix_descr_t A,
-    starneig_matrix_descr_t B,
-    starneig_vector_descr_t real,
-    starneig_vector_descr_t imag,
-    starneig_vector_descr_t beta,
+    starneig_matrix_t Q,
+    starneig_matrix_t Z,
+    starneig_matrix_t A,
+    starneig_matrix_t B,
+    starneig_vector_t real,
+    starneig_vector_t imag,
+    starneig_vector_t beta,
     mpi_info_t mpi)
 {
     starneig_error_t ret = STARNEIG_SUCCESS;

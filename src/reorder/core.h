@@ -84,11 +84,11 @@ int starneig_reorder_get_optimal_tile_size(int n, double select_ratio);
 ///
 starneig_error_t starneig_reorder_insert_tasks(
     struct starneig_reorder_conf const *conf,
-    starneig_vector_descr_t selected,
-    starneig_matrix_descr_t Q, starneig_matrix_descr_t Z,
-    starneig_matrix_descr_t A, starneig_matrix_descr_t B,
-    starneig_vector_descr_t real, starneig_vector_descr_t imag,
-    starneig_vector_descr_t beta,
+    starneig_vector_t selected,
+    starneig_matrix_t Q, starneig_matrix_t Z,
+    starneig_matrix_t A, starneig_matrix_t B,
+    starneig_vector_t real, starneig_vector_t imag,
+    starneig_vector_t beta,
     mpi_info_t mpi);
 
 #endif

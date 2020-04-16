@@ -45,92 +45,26 @@
 
 #define SCAN_DIAGONAL_MAX_MASKS 10
 
-///
-/// @prief left_gemm_update codelet / CPU implementation.
-///
-/// @param[in,out] buffers
-///         StarPU buffers.
-///
-/// @param[in] cl_arg
-///         StarPU arguments.
-///
 void starneig_cpu_left_gemm_update(void *buffers[], void *cl_args);
 
-///
-/// @prief right_gemm_update codelet / CPU implementation.
-///
-/// @param[in,out] buffers
-///         StarPU buffers.
-///
-/// @param[in] cl_arg
-///         StarPU arguments.
-///
 void starneig_cpu_right_gemm_update(void *buffers[], void *cl_args);
 
-///
-/// @prief copy_matrix_to_handle codelet / CPU implementation.
-///
-/// @param[in,out] buffers
-///         StarPU buffers.
-///
-/// @param[in] cl_arg
-///         StarPU arguments.
-///
 void starneig_cpu_copy_matrix_to_handle(void *buffers[], void *cl_args);
 
-///
-/// @prief copy_handle_to_matrix codelet / CPU implementation.
-///
-/// @param[in,out] buffers
-///         StarPU buffers.
-///
-/// @param[in] cl_arg
-///         StarPU arguments.
-///
 void starneig_cpu_copy_handle_to_matrix(void *buffers[], void *cl_args);
 
-///
-/// @prief copy_matrix codelet / CPU implementation.
-///
-/// @param[in,out] buffers
-///         StarPU buffers.
-///
-/// @param[in] cl_arg
-///         StarPU arguments.
-///
 void starneig_cpu_copy_matrix(void *buffers[], void *cl_args);
 
-///
-/// @prief set_to_identity codelet / CPU implementation.
-///
-/// @param[in,out] buffers
-///         StarPU buffers.
-///
-/// @param[in] cl_arg
-///         StarPU arguments.
-///
 void starneig_cpu_set_to_identity(void *buffers[], void *cl_args);
 
-///
-/// @prief scan_diagonal codelet / CPU implementation.
-///
-/// @param[in,out] buffers
-///         StarPU buffers.
-///
-/// @param[in] cl_arg
-///         StarPU arguments.
-///
 void starneig_cpu_scan_diagonal(void *buffers[], void *cl_args);
 
-///
-/// @prief set_to_zero codelet / CPU implementation.
-///
-/// @param[in,out] buffers
-///         StarPU buffers.
-///
-/// @param[in] cl_arg
-///         StarPU arguments.
-///
-void starneig_cpu_set_to_zero(void *buffers[], void *cl_args);
+void starneig_cpu_set_vector_to_zero(void *buffers[], void *cl_args);
+
+void starneig_cpu_add_vectors(void *buffers[], void *cl_args);
+
+void starneig_cpu_set_matrix_to_zero(void *buffers[], void *cl_args);
+
+void starneig_cpu_add_matrices(void *buffers[], void *cl_args);
 
 #endif

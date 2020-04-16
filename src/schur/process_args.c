@@ -163,10 +163,10 @@ int starneig_get_optimal_shift_count(int n, int workers)
 
 starneig_error_t starneig_build_process_args_from(
     struct process_args const *source,
-    const starneig_matrix_descr_t matrix_q,
-    const starneig_matrix_descr_t matrix_z,
-    const starneig_matrix_descr_t matrix_a,
-    const starneig_matrix_descr_t matrix_b,
+    const starneig_matrix_t matrix_q,
+    const starneig_matrix_t matrix_z,
+    const starneig_matrix_t matrix_a,
+    const starneig_matrix_t matrix_b,
     struct process_args *args)
 {
     args->mpi = source->mpi;
@@ -247,10 +247,10 @@ starneig_error_t starneig_build_process_args_from(
 
 starneig_error_t starneig_build_process_args(
     struct starneig_schur_conf const *conf,
-    const starneig_matrix_descr_t matrix_q,
-    const starneig_matrix_descr_t matrix_z,
-    const starneig_matrix_descr_t matrix_a,
-    const starneig_matrix_descr_t matrix_b,
+    const starneig_matrix_t matrix_q,
+    const starneig_matrix_t matrix_z,
+    const starneig_matrix_t matrix_a,
+    const starneig_matrix_t matrix_b,
     double thres_a, double thres_b, double thres_inf,
     mpi_info_t mpi, struct process_args *args)
 {

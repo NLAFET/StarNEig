@@ -86,7 +86,7 @@ static void prep_packing_helper(int k, struct packing_helper *helper)
 ///
 static void prefill_packing_info(
     int rbegin, int rend, int cbegin, int cend,
-    const starneig_matrix_descr_t matrix, struct packing_info *info,
+    const starneig_matrix_t matrix, struct packing_info *info,
     packing_mode_flag_t flag)
 {
     STARNEIG_ASSERT(0 <= rbegin && rend <= STARNEIG_MATRIX_M(matrix));
@@ -121,7 +121,7 @@ static void prefill_packing_info(
 static void pack_window_full(
     enum starpu_data_access_mode mode,
     int rbegin, int rend, int cbegin, int cend,
-    starneig_matrix_descr_t matrix, struct packing_helper *helper,
+    starneig_matrix_t matrix, struct packing_helper *helper,
     struct packing_info *info, packing_mode_flag_t flag)
 {
     STARNEIG_ASSERT(!(flag & PACKING_MODE_SUBMIT_UNREGISTER));
@@ -143,7 +143,7 @@ static void pack_window_full(
     for (int i = cbbegin; i < cbend; i++) {
         for (int j = rbbegin; j < rbend; j++) {
             descrs[k].handle =
-                starneig_get_tile_from_matrix_descr(j, i, matrix);
+                starneig_matrix_get_tile(j, i, matrix);
             descrs[k].mode = mode;
             flags[k] = PACKING_MODE_DEFAULT;
             k++;
@@ -163,11 +163,12 @@ static void pack_window_full(
 
 static void pack_window_upper_hess(
     enum starpu_data_access_mode mode, int begin, int end,
-    starneig_matrix_descr_t matrix, struct packing_helper *helper,
+    starneig_matrix_t matrix, struct packing_helper *helper,
     struct packing_info *info, packing_mode_flag_t flag)
 {
     STARNEIG_ASSERT(!(flag & PACKING_MODE_SUBMIT_UNREGISTER));
-    STARNEIG_ASSERT(STARNEIG_MATRIX_RBEGIN(matrix) == STARNEIG_MATRIX_CBEGIN(matrix));
+    STARNEIG_ASSERT(
+        STARNEIG_MATRIX_RBEGIN(matrix) == STARNEIG_MATRIX_CBEGIN(matrix));
 
     int rbbegin = STARNEIG_MATRIX_TILE_IDX(begin, matrix);
     int rbend = STARNEIG_MATRIX_TILE_IDX(end-1, matrix) + 1;
@@ -195,7 +196,7 @@ static void pack_window_upper_hess(
             if (
             j*STARNEIG_MATRIX_BM(matrix) <= (i+1)*STARNEIG_MATRIX_BN(matrix)) {
                 descrs[k].handle =
-                    starneig_get_tile_from_matrix_descr(j, i, matrix);
+                    starneig_matrix_get_tile(j, i, matrix);
                 descrs[k].mode = mode;
                 flags[k] = PACKING_MODE_DEFAULT;
                 k++;
@@ -216,11 +217,12 @@ static void pack_window_upper_hess(
 
 static void pack_window_upper_triag(
     enum starpu_data_access_mode mode, int begin, int end,
-    starneig_matrix_descr_t matrix, struct packing_helper *helper,
+    starneig_matrix_t matrix, struct packing_helper *helper,
     struct packing_info *info, packing_mode_flag_t flag)
 {
     STARNEIG_ASSERT(!(flag & PACKING_MODE_SUBMIT_UNREGISTER));
-    STARNEIG_ASSERT(STARNEIG_MATRIX_RBEGIN(matrix) == STARNEIG_MATRIX_CBEGIN(matrix));
+    STARNEIG_ASSERT(
+        STARNEIG_MATRIX_RBEGIN(matrix) == STARNEIG_MATRIX_CBEGIN(matrix));
 
     int rbbegin = STARNEIG_MATRIX_TILE_IDX(begin, matrix);
     int rbend = STARNEIG_MATRIX_TILE_IDX(end-1, matrix) + 1;
@@ -248,7 +250,7 @@ static void pack_window_upper_triag(
             if (j*STARNEIG_MATRIX_BM(matrix) <=
             (i+1)*STARNEIG_MATRIX_BN(matrix)-1) {
                 descrs[k].handle =
-                    starneig_get_tile_from_matrix_descr(j, i, matrix);
+                    starneig_matrix_get_tile(j, i, matrix);
                 descrs[k].mode = mode;
                 flags[k] = PACKING_MODE_DEFAULT;
                 k++;
@@ -540,7 +542,7 @@ void starneig_pack_cached_scratch_matrix(
 
 void starneig_pack_range(
     enum starpu_data_access_mode mode, int begin, int end,
-    starneig_vector_descr_t vector, struct packing_helper *helper,
+    starneig_vector_t vector, struct packing_helper *helper,
     struct range_packing_info *info, packing_mode_flag_t flag)
 {
     if (vector == NULL) {
@@ -550,8 +552,8 @@ void starneig_pack_range(
 
     STARNEIG_ASSERT(!(flag & PACKING_MODE_SUBMIT_UNREGISTER));
 
-    int bbegin = begin / STARNEIG_VECTOR_BM(vector);
-    int bend = (end-1) / STARNEIG_VECTOR_BM(vector) + 1;
+    int bbegin = begin / starneig_vector_get_tile_size(vector);
+    int bend = (end-1) / starneig_vector_get_tile_size(vector) + 1;
 
     prep_packing_helper(bend - bbegin , helper);
 
@@ -560,7 +562,7 @@ void starneig_pack_range(
 
     int k = 0;
     for (int i = bbegin; i < bend; i++) {
-        descrs[k].handle = starneig_get_tile_from_vector_descr(i, vector);
+        descrs[k].handle = starneig_vector_get_tile(i, vector);
         descrs[k].mode = mode;
         flags[k] = flag;
         k++;
@@ -569,11 +571,11 @@ void starneig_pack_range(
     helper->count += k;
 
     info->flag = flag;
-    info->elemsize = STARNEIG_VECTOR_ELEMSIZE(vector);
-    info->bm = STARNEIG_VECTOR_BM(vector);
-    info->begin = begin - bbegin*STARNEIG_VECTOR_BM(vector);
-    info->end = end - bbegin*STARNEIG_VECTOR_BM(vector);
-    info->m = STARNEIG_VECTOR_M(vector);
+    info->elemsize = starneig_vector_get_elemsize(vector);
+    info->bm = starneig_vector_get_tile_size(vector);
+    info->begin = begin - bbegin*starneig_vector_get_tile_size(vector);
+    info->end = end - bbegin*starneig_vector_get_tile_size(vector);
+    info->m = starneig_vector_get_rows(vector);
     info->offset = begin;
     info->handles = k;
 }
@@ -621,7 +623,7 @@ void starneig_join_range(
 void starneig_pack_window(
     enum starpu_data_access_mode mode,
     int rbegin, int rend, int cbegin, int cend,
-    starneig_matrix_descr_t matrix, struct packing_helper *helper,
+    starneig_matrix_t matrix, struct packing_helper *helper,
     struct packing_info *info, packing_mode_flag_t flag)
 {
     if (matrix == NULL) {
@@ -666,7 +668,7 @@ void starneig_join_sub_window(
 
 void starneig_pack_diag_window(
     enum starpu_data_access_mode mode, int begin, int end,
-    starneig_matrix_descr_t matrix, struct packing_helper *helper,
+    starneig_matrix_t matrix, struct packing_helper *helper,
     struct packing_info *info, packing_mode_flag_t flag)
 {
     if (matrix == NULL) {

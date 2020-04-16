@@ -46,8 +46,6 @@ static const double *one = (const double[]) { 1.0 };
 static const double *m_one = (const double[]) { -1.0 };
 static const double *zero = (const double[]) { 0.0 };
 
-extern "C" void dlarfg_(int const *, double *, double *, int const *, double *);
-
 ///
 /// @brief Custom matrix-vector multiplication CUDA kernel.
 ///
@@ -104,7 +102,7 @@ static __global__ void tiled_matrix_vector(
     if (threadIdx.y == 0 && rbegin <= idx && idx < rend) {
         for (int i = 0; i < blockDim.y-1; i++)
             v += s[i*blockDim.x+threadIdx.x];
-        ((double *)y[tid])[rid] = v;
+        ((double *)y[tid])[rid] += v;
     }
 }
 
@@ -151,210 +149,161 @@ void starneig_hessenberg_cuda_compute_column(
         STARPU_CUDA_REPORT_ERROR(err);
 }
 
-extern "C" void starneig_hessenberg_cuda_update_trail(
+void starneig_hessenberg_cuda_update_trail_right(
     void *buffers[], void *cl_args)
 {
-    struct packing_info packing_info;
+    struct packing_info A_pi;
+    int nb, roffset, coffset;
+    starpu_codelet_unpack_args(cl_args, &A_pi, &nb, &roffset, &coffset);
+
+    int m = A_pi.rend - A_pi.rbegin;
+    int n = A_pi.cend - A_pi.cbegin;
+
+    double *V = (double *) STARPU_MATRIX_GET_PTR(buffers[0]);
+    int ldV = STARPU_MATRIX_GET_LD(buffers[0]);
+
+    double *Y = (double *) STARPU_MATRIX_GET_PTR(buffers[1]);
+    int ldY = STARPU_MATRIX_GET_LD(buffers[1]);
+
+    double *A = (double *) STARPU_MATRIX_GET_PTR(buffers[2]);
+    int ldA = STARPU_MATRIX_GET_LD(buffers[2]);
+
+    struct tile_addr *A_da =
+        starneig_cuda_prepare_join_window(&A_pi, buffers+3);
+
+    cudaStream_t stream = starpu_cuda_get_local_stream();
+    cublasHandle_t handle = starpu_cublas_get_local_handle();
+    cublasSetPointerMode(handle, CUBLAS_POINTER_MODE_HOST);
+    cublasSetStream(handle, stream);
+
+    // join tiles
+    starneig_cuda_join_window(stream, &A_pi, A_da, ldA, A, 0);
+
+    // A <- Y V^T
+    cublasDgemm(handle, CUBLAS_OP_N, CUBLAS_OP_T,
+        m, n, nb, m_one, Y+roffset, ldY, V+coffset+nb-1, ldV, one, A, ldA);
+
+    // split tiles
+    starneig_cuda_join_window(stream, &A_pi, A_da, ldA, A, 1);
+}
+
+void starneig_hessenberg_cuda_update_left_a(
+    void *buffers[], void *cl_args)
+{
+    struct packing_info A_pi, W_pi;
     int nb, offset;
-    starpu_codelet_unpack_args(cl_args, &packing_info, &nb, &offset);
+    starpu_codelet_unpack_args(cl_args, &A_pi, &W_pi, &nb, &offset);
 
-    int m = packing_info.rend - packing_info.rbegin;
-    int n = packing_info.cend - packing_info.cbegin;
+    int m = A_pi.rend - A_pi.rbegin;
+    int n = A_pi.cend - A_pi.cbegin;
 
-    double *V = (double *) STARPU_MATRIX_GET_PTR(buffers[0]);
-    int ldV = STARPU_MATRIX_GET_LD(buffers[0]);
+    int k = 0;
 
-    double *T = (double *) STARPU_MATRIX_GET_PTR(buffers[1]);
-    int ldT = STARPU_MATRIX_GET_LD(buffers[1]);
+    double *V = (double *) STARPU_MATRIX_GET_PTR(buffers[k]);
+    int ldV = STARPU_MATRIX_GET_LD(buffers[k]);
+    k++;
 
-    double *Y = (double *) STARPU_MATRIX_GET_PTR(buffers[2]);
-    int ldY = STARPU_MATRIX_GET_LD(buffers[2]);
+    double *T = (double *) STARPU_MATRIX_GET_PTR(buffers[k]);
+    int ldT = STARPU_MATRIX_GET_LD(buffers[k]);
+    k++;
 
-    double *A = (double *) STARPU_MATRIX_GET_PTR(buffers[3]);
-    int nA = STARPU_MATRIX_GET_NY(buffers[3]);
-    int ldA = STARPU_MATRIX_GET_LD(buffers[3]);
+    double *A = (double *) STARPU_MATRIX_GET_PTR(buffers[k]);
+    int ldA = STARPU_MATRIX_GET_LD(buffers[k]);
+    k++;
 
-    double *W = (double *) STARPU_MATRIX_GET_PTR(buffers[4]);
-    int mW = STARPU_MATRIX_GET_NX(buffers[4]);
-    int ldW = STARPU_MATRIX_GET_LD(buffers[4]);
+    double *W = (double *) STARPU_MATRIX_GET_PTR(buffers[k]);
+    int ldW = STARPU_MATRIX_GET_LD(buffers[k]);
+    k++;
 
-    int max_width = MIN(nA, mW);
+    double *P = (double *) STARPU_MATRIX_GET_PTR(buffers[k]);
+    int ldP = STARPU_MATRIX_GET_LD(buffers[k]);
+    k++;
 
-    struct tile_addr *device_args =
-        starneig_cuda_prepare_join_window(&packing_info, buffers+5);
+    struct tile_addr *A_da =
+        starneig_cuda_prepare_join_window(&A_pi, buffers+k);
+    k += A_pi.handles;
+
+    struct tile_addr *W_da =
+        starneig_cuda_prepare_join_window(&W_pi, buffers+k);
+    k += W_pi.handles;
 
     cudaStream_t stream = starpu_cuda_get_local_stream();
     cublasHandle_t handle = starpu_cublas_get_local_handle();
     cublasSetPointerMode(handle, CUBLAS_POINTER_MODE_HOST);
     cublasSetStream(handle, stream);
 
-    for (int i = 0; i < n; i += max_width) {
+    // join A tiles
+    starneig_cuda_join_window(stream, &A_pi, A_da, ldA, A, 0);
 
-        //
-        // join tiles and update from the right
-        //
+    // join W tiles
+    starneig_cuda_join_window(stream, &W_pi, W_da, ldW, W, 0);
 
-        starneig_cuda_join_sub_window(0, m, i, MIN(n, i+max_width),
-            stream, &packing_info, device_args, ldA, A, 0);
+    // P <- A^T * V
+    cublasDgemm(
+        handle, CUBLAS_OP_T, CUBLAS_OP_N, n, nb, m,
+        one, A, ldA, V+offset, ldV, zero, P, ldP);
 
-        cublasDgemm(handle, CUBLAS_OP_N, CUBLAS_OP_T,
-            m, MIN(max_width, n-i), nb, m_one,
-            Y, ldY, V+offset+i+nb-1, ldV, one, A, ldA);
+    // P <- P * T
+    cublasDtrmm(
+        handle, CUBLAS_SIDE_RIGHT, CUBLAS_FILL_MODE_UPPER, CUBLAS_OP_N,
+        CUBLAS_DIAG_NON_UNIT, n, nb, one, T, ldT, P, ldP, P, ldP);
 
-        //
-        // update from the left
-        //
+    // W <- W + P
+    cublasDgeam(handle, CUBLAS_OP_N, CUBLAS_OP_N, n, nb,
+        one, W, ldW, one, P, ldP, W, ldW);
 
-        int width = MIN(max_width, n-i);
-        if (0 < width) {
-            cublasDgeam(handle, CUBLAS_OP_T, CUBLAS_OP_T, width, nb,
-                one, A, ldA, zero, A, ldA, W, ldW);
-
-            cublasDtrmm(
-                handle, CUBLAS_SIDE_RIGHT, CUBLAS_FILL_MODE_LOWER, CUBLAS_OP_N,
-                CUBLAS_DIAG_UNIT, width, nb, one, V, ldV, W, ldW, W, ldW);
-
-            if (nb < m)
-                cublasDgemm(handle, CUBLAS_OP_T, CUBLAS_OP_N, width, nb, m-nb,
-                    one, A+nb, ldA, V+nb, ldV, one, W, ldW);
-
-            cublasDtrmm(
-                handle, CUBLAS_SIDE_RIGHT, CUBLAS_FILL_MODE_UPPER, CUBLAS_OP_N,
-                CUBLAS_DIAG_NON_UNIT, width, nb, one, T, ldT, W, ldW, W, ldW);
-
-            if (nb < m)
-                cublasDgemm(handle, CUBLAS_OP_N, CUBLAS_OP_T, m-nb, width, nb,
-                    m_one, V+nb, ldV, W, ldW, one, A+nb, ldA);
-
-            cublasDtrmm(
-                handle, CUBLAS_SIDE_RIGHT, CUBLAS_FILL_MODE_LOWER, CUBLAS_OP_T,
-                CUBLAS_DIAG_UNIT, width, nb, one, V, ldV, W, ldW, W, ldW);
-
-            cublasDgeam(handle, CUBLAS_OP_N, CUBLAS_OP_T, nb, width,
-                one, A, ldA, m_one, W, ldW, A, ldA);
-        }
-
-        //
-        // copy tiles back
-        //
-
-        starneig_cuda_join_sub_window(0, m, i, MIN(n, i+max_width),
-            stream, &packing_info, device_args, ldA, A, 1);
-    }
+    // split W tiles
+    starneig_cuda_join_window(stream, &W_pi, W_da, ldW, W, 1);
 }
 
-extern "C" void starneig_hessenberg_cuda_update_right(
+void starneig_hessenberg_cuda_update_left_b(
     void *buffers[], void *cl_args)
 {
-    struct packing_info packing_info;
-    int nb;
-    starpu_codelet_unpack_args(cl_args, &packing_info, &nb);
+    struct packing_info A_pi, W_pi;
+    int nb, offset;
+    starpu_codelet_unpack_args(cl_args, &A_pi, &W_pi, &nb, &offset);
 
-    int m = packing_info.rend - packing_info.rbegin;
-    int n = packing_info.cend - packing_info.cbegin;
+    int m = A_pi.rend - A_pi.rbegin;
+    int n = A_pi.cend - A_pi.cbegin;
 
-    double *V = (double *) STARPU_MATRIX_GET_PTR(buffers[0]);
-    int ldV = STARPU_MATRIX_GET_LD(buffers[0]);
+    int k = 0;
 
-    double *T = (double *) STARPU_MATRIX_GET_PTR(buffers[1]);
-    int ldT = STARPU_MATRIX_GET_LD(buffers[1]);
+    double *V = (double *) STARPU_MATRIX_GET_PTR(buffers[k]);
+    int ldV = STARPU_MATRIX_GET_LD(buffers[k]);
+    k++;
 
-    double *A = (double *) STARPU_MATRIX_GET_PTR(buffers[2]);
-    int ldA = STARPU_MATRIX_GET_LD(buffers[2]);
+    double *W = (double *) STARPU_MATRIX_GET_PTR(buffers[k]);
+    int ldW = STARPU_MATRIX_GET_LD(buffers[k]);
+    k++;
 
-    double *W = (double *) STARPU_MATRIX_GET_PTR(buffers[3]);
-    int ldW = STARPU_MATRIX_GET_LD(buffers[3]);
+    double *A = (double *) STARPU_MATRIX_GET_PTR(buffers[k]);
+    int ldA = STARPU_MATRIX_GET_LD(buffers[k]);
+    k++;
 
-    struct tile_addr *device_args =
-        starneig_cuda_prepare_join_window(&packing_info, buffers + 4);
+    struct tile_addr *W_da =
+        starneig_cuda_prepare_join_window(&W_pi, buffers+k);
+    k += W_pi.handles;
+
+    struct tile_addr *A_da =
+        starneig_cuda_prepare_join_window(&A_pi, buffers+k);
+    k += A_pi.handles;
 
     cudaStream_t stream = starpu_cuda_get_local_stream();
     cublasHandle_t handle = starpu_cublas_get_local_handle();
     cublasSetPointerMode(handle, CUBLAS_POINTER_MODE_HOST);
     cublasSetStream(handle, stream);
 
-    starneig_cuda_join_window(stream, &packing_info, device_args, ldA, A, 0);
+    // join A tiles
+    starneig_cuda_join_window(stream, &A_pi, A_da, ldA, A, 0);
 
-    cublasDgeam(handle, CUBLAS_OP_N, CUBLAS_OP_N, m, nb,
-        one, A, ldA, zero, A, ldA, W, ldW);
+    // join W tiles
+    starneig_cuda_join_window(stream, &W_pi, W_da, ldW, W, 0);
 
-    cublasDtrmm(handle, CUBLAS_SIDE_RIGHT, CUBLAS_FILL_MODE_LOWER,
-        CUBLAS_OP_N, CUBLAS_DIAG_UNIT, m, nb, one, V, ldV, W, ldW, W, ldW);
+    //  A <- A - V * W^T
+    cublasDgemm(
+        handle, CUBLAS_OP_N, CUBLAS_OP_T, m, n, nb,
+        m_one, V+offset, ldV, W, ldW, one, A, ldA);
 
-    if (nb < n)
-        cublasDgemm(handle, CUBLAS_OP_N, CUBLAS_OP_N, m, nb, n-nb,
-            one, A+nb*ldA, ldA, V+nb, ldV, one, W, ldW);
-
-    cublasDtrmm(handle, CUBLAS_SIDE_RIGHT, CUBLAS_FILL_MODE_UPPER,
-        CUBLAS_OP_N, CUBLAS_DIAG_NON_UNIT, m, nb, one, T, ldT, W, ldW, W, ldW);
-
-    if (nb < n)
-        cublasDgemm(handle, CUBLAS_OP_N, CUBLAS_OP_T, m, n-nb, nb,
-            m_one, W, ldW, V+nb, ldV, one, A+nb*ldA, ldA);
-
-    cublasDtrmm(handle, CUBLAS_SIDE_RIGHT, CUBLAS_FILL_MODE_LOWER,
-        CUBLAS_OP_T, CUBLAS_DIAG_UNIT, m, nb, one, V, ldV, W, ldW, W, ldW);
-
-    cublasDgeam(handle, CUBLAS_OP_N, CUBLAS_OP_N, m, nb,
-        one, A, ldA, m_one, W, ldW, A, ldA);
-
-    starneig_cuda_join_window(stream, &packing_info, device_args, ldA, A, 1);
-}
-
-extern "C" void starneig_hessenberg_cuda_update_left(
-    void *buffers[], void *cl_args)
-{
-    struct packing_info packing_info;
-    int nb;
-    starpu_codelet_unpack_args(cl_args, &packing_info, &nb);
-
-    int m = packing_info.rend - packing_info.rbegin;
-    int n = packing_info.cend - packing_info.cbegin;
-
-    double *V = (double *) STARPU_MATRIX_GET_PTR(buffers[0]);
-    int ldV = STARPU_MATRIX_GET_LD(buffers[0]);
-
-    double *T = (double *) STARPU_MATRIX_GET_PTR(buffers[1]);
-    int ldT = STARPU_MATRIX_GET_LD(buffers[1]);
-
-    double *A = (double *) STARPU_MATRIX_GET_PTR(buffers[2]);
-    int ldA = STARPU_MATRIX_GET_LD(buffers[2]);
-
-    double *W = (double *) STARPU_MATRIX_GET_PTR(buffers[3]);
-    int ldW = STARPU_MATRIX_GET_LD(buffers[3]);
-
-    struct tile_addr *device_args =
-        starneig_cuda_prepare_join_window(&packing_info, buffers+4);
-
-    cudaStream_t stream = starpu_cuda_get_local_stream();
-    cublasHandle_t handle = starpu_cublas_get_local_handle();
-    cublasSetPointerMode(handle, CUBLAS_POINTER_MODE_HOST);
-    cublasSetStream(handle, stream);
-
-    starneig_cuda_join_window(stream, &packing_info, device_args, ldA, A, 0);
-
-    cublasDgeam(handle, CUBLAS_OP_T, CUBLAS_OP_T, n, nb,
-        one, A, ldA, zero, A, ldA, W, ldW);
-
-    cublasDtrmm(handle, CUBLAS_SIDE_RIGHT, CUBLAS_FILL_MODE_LOWER,
-        CUBLAS_OP_N, CUBLAS_DIAG_UNIT, n, nb, one, V, ldV, W, ldW, W, ldW);
-
-    if (nb < m)
-        cublasDgemm(handle, CUBLAS_OP_T, CUBLAS_OP_N, n, nb, m-nb,
-            one, A+nb, ldA, V+nb, ldV, one, W, ldW);
-
-    cublasDtrmm(handle, CUBLAS_SIDE_RIGHT, CUBLAS_FILL_MODE_UPPER,
-        CUBLAS_OP_N, CUBLAS_DIAG_NON_UNIT, n, nb, one, T, ldT, W, ldW, W, ldW);
-
-    if (nb < m)
-        cublasDgemm(handle, CUBLAS_OP_N, CUBLAS_OP_T, m-nb, n, nb,
-            m_one, V+nb, ldV, W, ldW, one, A+nb, ldA);
-
-    cublasDtrmm(handle, CUBLAS_SIDE_RIGHT, CUBLAS_FILL_MODE_LOWER,
-        CUBLAS_OP_T, CUBLAS_DIAG_UNIT, n, nb, one, V, ldV, W, ldW, W, ldW);
-
-    cublasDgeam(handle, CUBLAS_OP_T, CUBLAS_OP_N, nb, n,
-        m_one, W, ldW, one, A, ldA, A, ldA);
-
-    starneig_cuda_join_window(stream, &packing_info, device_args, ldA, A, 1);
+    // split A tiles
+    starneig_cuda_join_window(stream, &A_pi, A_da, ldA, A, 1);
 }

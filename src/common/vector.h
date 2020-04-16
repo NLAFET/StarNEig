@@ -45,257 +45,303 @@
 #include <starpu.h>
 
 ///
-/// @brief Vector descriptor structure.
+/// @brief Vector descriptor.
 ///
-struct starneig_vector_descr {
-    int rbegin;                             ///< first row
-    int rend;                               ///< last row + 1
-    int bm;                                 ///< tile height (row count)
-    int elemsize;                           ///< element size
-    int tm_count;                           ///< number of tile rows
-    starpu_data_handle_t *tiles;            ///< data tiles
-#ifdef STARNEIG_ENABLE_MPI
-    int tag_offset;                         ///< tag offset
-    int *owners;                            ///< section owners (MPI ranks)
-#endif
-    struct starneig_vector_descr *parent;   ///< parent descriptor
-    enum {
-        STARNEIG_VECTOR_ROOT,               ///< root descriptor (no parent)
-        STARNEIG_VECTOR_SUB_VECTOR,         ///< sub-vector descriptor
-    } mode;                                 ///< descriptor mode
-};
-
-typedef struct starneig_vector_descr * starneig_vector_descr_t;
-
-static inline int STARNEIG_VECTOR_RBEGIN(const starneig_vector_descr_t descr)
-{
-    return descr->rbegin;
-}
-
-static inline int STARNEIG_VECTOR_REND(const starneig_vector_descr_t descr)
-{
-    return descr->rend;
-}
-
-static inline int STARNEIG_VECTOR_M(const starneig_vector_descr_t descr)
-{
-    return descr->rend - descr->rbegin;
-}
-
-static inline int STARNEIG_VECTOR_BM(const starneig_vector_descr_t descr)
-{
-    return descr->bm;
-}
-
-static inline size_t STARNEIG_VECTOR_ELEMSIZE(
-    const starneig_vector_descr_t descr)
-{
-    return descr->elemsize;
-}
-
-static inline int STARNEIG_VECTOR_DISTRIBUTED(
-    const starneig_vector_descr_t descr)
-{
-#ifdef STARNEIG_ENABLE_MPI
-    return 0 <= descr->tag_offset;
-#else
-    return 0;
-#endif
-}
-
-static inline int STARNEIG_VECTOR_TILE_IDX(
-    int row, const starneig_vector_descr_t descr)
-{
-    return (STARNEIG_VECTOR_RBEGIN(descr) + row) / STARNEIG_VECTOR_BM(descr);
-}
-
-static inline int STARNEIG_VECTOR_IN_TILE_IDX(
-    int row, int tile, const starneig_vector_descr_t descr)
-{
-    return
-        STARNEIG_VECTOR_RBEGIN(descr) + row - tile * STARNEIG_VECTOR_BM(descr);
-}
-
-static inline int STARNEIG_VECTOR_EXT_IDX(
-    int tile, int row, starneig_vector_descr_t descr)
-{
-    return
-        tile * STARNEIG_VECTOR_BM(descr) + STARNEIG_VECTOR_RBEGIN(descr) + row;
-}
+typedef struct starneig_vector_descr * starneig_vector_t;
 
 ///
-/// @brief Cuts the vector from the nearest tile boundary (rounded upwards).
+/// @brief Single owner vector disctribution function.
 ///
-/// @param[in]  row    cutting point candidate
-/// @param[in]  descr  vector descriptor
-///
-/// @return cutting point that follows the underlying tile boundaries
-///
-static inline int starneig_vector_cut_up(
-    int row, const starneig_vector_descr_t descr)
-{
-    int rbegin = STARNEIG_VECTOR_RBEGIN(descr);
-    int bm = STARNEIG_VECTOR_BM(descr);
-
-    return MAX(0, ((rbegin + row) / bm) * bm - rbegin);
-}
+int starneig_vector_single_owner_func(int i, void const *ptr);
 
 ///
-/// @brief Cuts the vector from the nearest tile boundary (rounded downwards).
+/// @brief Creates an empty vector descriptor.
 ///
-/// @param[in]  row    cutting point candidate
-/// @param[in]  descr  vector descriptor
+/// @param[in] m
+///         Vector height (row count).
 ///
-/// @return cutting point that follows the underlying tile boundaries
+/// @param[in] bm
+///         Tile height (row count).
 ///
-static inline int starneig_vector_cut_down(
-    int row, const starneig_vector_descr_t descr)
-{
-    int rbegin = STARNEIG_VECTOR_RBEGIN(descr);
-    int bm = STARNEIG_VECTOR_BM(descr);
-
-    return MAX(0, divceil(rbegin + row, bm) * bm - rbegin);
-}
-
-static inline int starneig_single_owner_vector_descr(int i, void const *ptr)
-{
-    return *((int const *) ptr);
-}
-
+/// @param[in] elemsize
+///         Vector element size.
 ///
-/// @brief Creates an empty vector descriptor structure.
+/// @param[in] distrib
+///         Distribution function.
 ///
-/// @param[in] m - vector height (row count)
-/// @param[in] bm - tile height (row count)
-/// @param[in] elemsize - element size
-/// @param[in] distrib - distribution function
-/// @param[in] distarg - distribution function argument
-/// @param[in,out] mpi  MPI info
+/// @param[in] distarg
+///         Distribution function argument.
 ///
-/// @return a pointer to the new vector descriptor structure
+/// @param[in,out] mpi
+///         MPI info.
 ///
-starneig_vector_descr_t starneig_init_vector_descr(
+/// @return New empty vector descriptor.
+///
+starneig_vector_t starneig_vector_init(
     int m, int bm, size_t elemsize, int (*distrib)(int, void const *),
     void *distarg, mpi_info_t mpi);
 
 ///
-/// @brief Creates a vector descriptor structure and registers a vector with it.
+/// @brief Creates a vector descriptor and registers a vector with it.
 ///
-/// @param[in] m - vector height (row count)
-/// @param[in] bm - tile height (row count)
-/// @param[in] elemsize - element size
-/// @param[in] distrib - distribution function
-/// @param[in] distarg - distribution function argument
-/// @param[in,out] vec - pointer to the vector
-/// @param[in,out] mpi  MPI info
+/// @param[in] m
+///         Vector height (row count).
 ///
-/// @return a pointer to the new vector descriptor structure
+/// @param[in] bm
+///         Tile height (row count).
 ///
-starneig_vector_descr_t starneig_register_vector_descr(
+/// @param[in] elemsize
+///         Vector element size.
+///
+/// @param[in] distrib
+///         Distribution function.
+///
+/// @param[in] distarg
+///         Distribution function argument.
+///
+/// @param[in] vec
+///         Pointer to the vector.
+///
+/// @param[in,out] mpi
+///         MPI info.
+///
+/// @return New vector descriptor.
+///
+starneig_vector_t starneig_vector_register(
     int m, int bm, size_t elemsize, int (*distrib)(int, void const *),
     void *distarg, void *vec, mpi_info_t mpi);
 
 ///
-/// @brief Creates a sub-vector descriptor structure.
+/// @brief Takes a previously initialized vector descriptor and unregister all
+/// registered StarPU resources.
 ///
-/// @param[in]    begin   first row that belongs to the sub-vector
-/// @param[in]    end     last row that belong to the sub-vector + 1
-/// @param[in,out] descr   parent vector descriptor structure
+/// @param[in,out] descr
+///         Vector descriptor.
 ///
-/// @return new sub-vector descriptor structure
-///
-starneig_vector_descr_t starneig_create_sub_vector_descr(
-    int begin, int end, starneig_vector_descr_t descr);
+void starneig_vector_unregister(starneig_vector_t descr);
 
 ///
-/// @brief Takes a previously initialized vector descriptor structure and
-/// unregister all registered StarPU resources.
+/// @brief Frees a previously initialized vector descriptor.
 ///
-/// @param[in,out] descr - pointer to the vector descriptor structure
+/// @param[in,out] descr
+///         Vector descriptor.
 ///
-void starneig_unregister_vector_descr(starneig_vector_descr_t descr);
+void starneig_vector_free(starneig_vector_t descr);
 
 ///
-/// @brief Frees a previously initialized vector descriptor structure.
+/// @brief Returns the first row that belongs to a vector descriptor.
 ///
-/// @param[in,out] descr - pointer to the vector descriptor structure
+/// @param[in] descr
+///         Vector descriptor.
 ///
-void starneig_free_vector_descr(starneig_vector_descr_t descr);
+/// @return First row that belongs to the vector descriptor.
+///
+int starneig_vector_get_rbegin(const starneig_vector_t descr);
 
 ///
-/// @brief Registers a tile with a vector descriptor structure
+/// @brief Returns the last row that belongs to a vector descriptor.
 ///
-/// @param[in] i - tile's row index
-/// @param[in] handle - tile handle
-/// @param[in,out] descr - pointer to the vector descriptor structure
+/// @param[in] descr
+///         Vector descriptor.
 ///
-void starneig_register_tile_with_vector_descr(
-    int i, starpu_data_handle_t handle, starneig_vector_descr_t descr);
+/// @return Last row that belongs to the vector descriptor + 1.
+///
+int starneig_vector_get_rend(const starneig_vector_t descr);
 
 ///
-/// @brief Returns a tile from a vector descriptor structure.
+/// @brief Returns the length of a vector descriptor.
 ///
-/// @param[in] i - tile's row index
-/// @param[in,out] descr - pointer to the vector descriptor structure
+/// @param[in] descr
+///         Vector descriptor.
 ///
-/// @return the tile handle
+/// @return Length of the vector descriptor.
 ///
-starpu_data_handle_t starneig_get_tile_from_vector_descr(
-    int i, starneig_vector_descr_t descr);
+int starneig_vector_get_rows(const starneig_vector_t descr);
 
 ///
-/// @brief Gathers the contents of a vector descriptor structure to a node.
+/// @brief Returns the length of a vector descriptor tile.
 ///
-/// $param[in] root - root node
-/// $param[in] descr - pointer to the vector descriptor structure
+/// @param[in] descr
+///         Vector descriptor.
 ///
-void starneig_gather_vector_descr(int root, starneig_vector_descr_t descr);
+/// @return Length of the vector descriptor tile.
+///
+int starneig_vector_get_tile_size(const starneig_vector_t descr);
 
 ///
-/// @brief Scatters the contents of a vector descriptor structure from a node.
+/// @brief Returns the element size of a vector descriptor.
 ///
-/// $param[in] root - root node
-/// $param[in] descr - pointer to the vector descriptor structure
+/// @param[in] descr
+///         Vector descriptor.
 ///
-void starneig_scatter_vector_descr(int root, starneig_vector_descr_t descr);
+/// @return Element size of the vector descriptor.
+///
+size_t starneig_vector_get_elemsize(const starneig_vector_t descr);
 
 ///
-/// @brief Gathers the contents of a vector descriptor structure to a node.
+/// @brief Checks whether a vector descriptor is distributed.
 ///
-/// $param[in] root   root node
-/// $param[in] begin  first row to be gathered
-/// $param[in] end    last row to be gathered + 1
-/// $param[in] descr  pointer to the vector descriptor structure
+/// @param[in] descr
+///         Vector descriptor.
 ///
-void starneig_gather_segment_vector_descr(
-    int root, int begin, int end, starneig_vector_descr_t descr);
+/// @return Non-zero is the vector descriptor is distributed.
+///
+int starneig_vector_is_distributed(const starneig_vector_t descr);
 
 ///
-/// @brief Scatters the contents of a vector descriptor structure from a node.
+/// @brief Return the tile row index of the tile that contains a given row.
 ///
-/// $param[in] root   root node
-/// $param[in] begin  first row to be gathered
-/// $param[in] end    last row to be gathered + 1
-/// $param[in] descr  pointer to the vector descriptor structure
+/// @param[in] row
+///         Row index.
 ///
-void starneig_scatter_segment_vector_descr(
-    int root, int begin, int end, starneig_vector_descr_t descr);
+/// @param[in] descr
+///         Vector descriptor.
+///
+/// @return The tile row index of the tile that contains a given row.
+///
+int starneig_vector_get_tile_idx(
+    int row, const starneig_vector_t descr);
 
 ///
-/// @brief Returns the owner of a given data tile.
+/// @brief Return the in-tile row index of a row.
 ///
-/// @param[in]     i  tile's row index
-/// @param[in] descr  pointer to the vector descriptor structure
+/// @param[in] row
+///         Row index.
 ///
-int starneig_get_tile_owner_vector_descr(int i, starneig_vector_descr_t descr);
+/// @param[in] descr
+///         Vector descriptor.
+///
+/// @return The in-tile row index of a row.
+///
+int starneig_vector_get_in_tile_idx(
+    int row, int tile, const starneig_vector_t descr);
+
+///
+/// @brief Return the extern row index of a row given the tile and in-tile row
+/// indeces.
+///
+/// @param[in] tile
+///         Tile row index.
+///
+/// @param[in] row
+///         In-tile row index.
+///
+/// @param[in] descr
+///         Vector descriptor.
+///
+/// @return The extern row index of a row.
+///
+int starneig_vector_get_ext_idx(
+    int tile, int row, starneig_vector_t descr);
+
+///
+/// @brief Registers a tile with a vector descriptor.
+///
+/// @param[in] i
+///         Tile row index.
+///
+/// @param[in] handle
+///         Tile data handle.
+///
+/// @param[in,out] descr
+///         Vector descriptor.
+///
+void starneig_vector_set_tile(
+    int i, starpu_data_handle_t handle, starneig_vector_t descr);
+
+///
+/// @brief Returns a tile from a vector descriptor.
+///
+/// @param[in] i
+///         Tile row index.
+///
+/// @param[in,out] descr
+///         Vector descriptor.
+///
+/// @return Tile handle.
+///
+starpu_data_handle_t starneig_vector_get_tile(
+    int i, starneig_vector_t descr);
+
+///
+/// @brief Gathers the content of a vector descriptor to a node.
+///
+/// @param[in] node
+///         MPI node.
+///
+/// @param[in] descr
+///         Vector descriptor.
+///
+void starneig_vector_gather(int root, starneig_vector_t descr);
+
+///
+/// @brief Scatters the content of a vector descriptor from a node.
+///
+/// @param[in] node
+///         MPI node.
+///
+/// @param[in] descr
+///         Vector descriptor.
+///
+void starneig_vector_scatter(int node, starneig_vector_t descr);
+
+///
+/// @brief Gathers a section of a vector descriptor to a node.
+///
+/// $param[in] node
+///         MPI node.
+///
+/// @param[in] begin
+///         First row to be gathered.
+///
+/// @param[in] end
+///         Last row to be gathered + 1.
+///
+/// $param[in] descr
+///         Vector descriptor.
+///
+void starneig_vector_gather_section(
+    int node, int begin, int end, starneig_vector_t descr);
+
+///
+/// @brief Scatters a section of a vector descriptor from a node.
+///
+/// $param[in] node
+///         MPI node.
+///
+/// @param[in] begin
+///         First row to be scattered.
+///
+/// @param[in] end
+///         Last row to be scattered + 1.
+///
+/// $param[in] descr
+///         Vector descriptor.
+///
+void starneig_vector_scatter_section(
+    int node, int begin, int end, starneig_vector_t descr);
+
+///
+/// @brief Returns the owner of a given tile.
+///
+/// @param[in] i
+///         Tile row index.
+///
+/// $param[in] descr
+///         Vector descriptor.
+///
+int starneig_vector_get_tile_owner(int i, starneig_vector_t descr);
 
 ///
 /// @brief Returns the owner of a given vector element.
 ///
-/// @param[in]     i  row index
-/// @param[in] descr  pointer to the vector descriptor structure
+/// @param[in] i
+///         Row index.
 ///
-int starneig_get_elem_owner_vector_descr(int i, starneig_vector_descr_t descr);
+/// $param[in] descr
+///         Vector descriptor.
+///
+int starneig_vector_get_elem_owner(int i, starneig_vector_t descr);
 
 ///
 /// @brief Checks whether the current MPI rank is involved with a section of a
@@ -306,7 +352,33 @@ int starneig_get_elem_owner_vector_descr(int i, starneig_vector_descr_t descr);
 ///
 /// @return 1 if the MPI rank is involved, 0 otherwise
 ///
-int starneig_involved_with_part_of_vector_descr(
-    int begin, int end, starneig_vector_descr_t descr);
+int starneig_vector_involved_with_section(
+    int begin, int end, starneig_vector_t descr);
+
+///
+/// @brief Cuts the vector from the nearest tile boundary (rounded upwards).
+///
+/// @param[in] row
+///         Cutting point candidate.
+///
+/// @param[in] descr
+///         Vector descriptor.
+///
+/// @return Cutting point that follows the underlying tile boundaries.
+///
+int starneig_vector_cut_up(int row, const starneig_vector_t descr);
+
+///
+/// @brief Cuts the vector from the nearest tile boundary (rounded downwards).
+///
+/// @param[in] row
+///         Cutting point candidate.
+///
+/// @param[in] descr
+///         Vector descriptor.
+///
+/// @return Cutting point that follows the underlying tile boundaries.
+///
+int starneig_vector_cut_down(int row, const starneig_vector_t descr);
 
 #endif

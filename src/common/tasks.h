@@ -77,7 +77,7 @@
 ///
 void starneig_insert_left_gemm_update(
     int rbegin, int rend, int cbegin, int cend, int splice, int prio,
-    starpu_data_handle_t lq_h, starneig_matrix_descr_t matrix, mpi_info_t mpi);
+    starpu_data_handle_t lq_h, starneig_matrix_t matrix, mpi_info_t mpi);
 
 ///
 /// @brief Inserts right_gemm_update task(s).
@@ -111,7 +111,7 @@ void starneig_insert_left_gemm_update(
 ///
 void starneig_insert_right_gemm_update(
     int rbegin, int rend, int cbegin, int cend, int splice, int prio,
-    starpu_data_handle_t lq_h, starneig_matrix_descr_t matrix, mpi_info_t mpi);
+    starpu_data_handle_t lq_h, starneig_matrix_t matrix, mpi_info_t mpi);
 
 ///
 /// @brief Inserts copy_matrix task(s).
@@ -148,7 +148,7 @@ void starneig_insert_right_gemm_update(
 ///
 void starneig_insert_copy_matrix(
     int sr, int sc, int dr, int dc, int m, int n, int prio,
-    starneig_matrix_descr_t source, starneig_matrix_descr_t dest,
+    starneig_matrix_t source, starneig_matrix_t dest,
     mpi_info_t mpi);
 
 ///
@@ -180,7 +180,7 @@ void starneig_insert_copy_matrix(
 ///
 void starneig_insert_copy_matrix_to_handle(
     int rbegin, int rend, int cbegin, int cend, int prio,
-    starneig_matrix_descr_t source, starpu_data_handle_t dest,
+    starneig_matrix_t source, starpu_data_handle_t dest,
     mpi_info_t mpi);
 
 ///
@@ -212,7 +212,7 @@ void starneig_insert_copy_matrix_to_handle(
 ///
 void starneig_insert_copy_handle_to_matrix(
     int rbegin, int rend, int cbegin, int cend, int prio,
-    starpu_data_handle_t source, starneig_matrix_descr_t dest,
+    starpu_data_handle_t source, starneig_matrix_t dest,
     mpi_info_t mpi);
 
 ///
@@ -228,7 +228,7 @@ void starneig_insert_copy_handle_to_matrix(
 ///         MPI info
 ///
 void starneig_insert_set_to_identity(
-    int prio, starneig_matrix_descr_t descr, mpi_info_t mpi);
+    int prio, starneig_matrix_t descr, mpi_info_t mpi);
 
 ///
 /// @brief Inserts scan_diagonal task(s).
@@ -294,7 +294,7 @@ void starneig_insert_scan_diagonal(
     void (*func)(
         int, int, int, int, int, int, int, void const *, void const *,
         void const *, void **masks),
-    void const *arg, starneig_matrix_descr_t A, starneig_matrix_descr_t B,
+    void const *arg, starneig_matrix_t A, starneig_matrix_t B,
     mpi_info_t mpi, ...);
 
 ///
@@ -323,9 +323,24 @@ void starneig_insert_scan_diagonal(
 ///
 void starneig_insert_extract_eigenvalues(
     int prio,
-    starneig_matrix_descr_t A, starneig_matrix_descr_t B,
-    starneig_vector_descr_t real, starneig_vector_descr_t imag,
-    starneig_vector_descr_t beta, mpi_info_t mpi);
+    starneig_matrix_t A, starneig_matrix_t B,
+    starneig_vector_t real, starneig_vector_t imag,
+    starneig_vector_t beta, mpi_info_t mpi);
+
+///
+/// @brief Initializes a vector data handle with zeros.
+///
+/// @param[in] prio
+///         StarPU priority.
+///
+/// @param[in,out] handle
+///         The vector data handle.
+///
+/// @param[in,out] mpi
+///         MPI info.
+///
+void starneig_insert_set_vector_to_zero(
+    int prio, starpu_data_handle_t handle, mpi_info_t mpi);
 
 ///
 /// @brief Initializes a matrix data handle with zeros.
@@ -336,6 +351,28 @@ void starneig_insert_extract_eigenvalues(
 /// @param[in,out] handle
 ///         The matrix data handle.
 ///
-void starneig_insert_set_to_zero(int prio, starpu_data_handle_t handle);
+/// @param[in,out] mpi
+///         MPI info.
+///
+void starneig_insert_set_matrix_to_zero(
+    int prio, starpu_data_handle_t handle, mpi_info_t mpi);
+
+///
+/// @brief Sets vector data handle reduction method.
+///
+///
+/// @param[in,out] handle
+///         The matrix data handle.
+///
+void starneig_set_vector_reduction(starpu_data_handle_t handle);
+
+///
+/// @brief Sets matrix data handle reduction method.
+///
+///
+/// @param[in,out] handle
+///         The matrix data handle.
+///
+void starneig_set_matrix_reduction(starpu_data_handle_t handle);
 
 #endif

@@ -51,19 +51,6 @@
 #endif
 
 ///
-/// @brief Size base function for prepare_column codelet.
-///
-static size_t prepare_column_size_base(
-    struct starpu_task *task, unsigned nimpl)
-{
-    int i;
-    struct range_packing_info v_pi;
-    starpu_codelet_unpack_args(task->cl_arg, &i, &v_pi);
-
-    return i * (v_pi.end - v_pi.begin);
-}
-
-///
 /// @brief Reduces a column inside a (rend-rbegin) X (cend-cbegin) panel.
 ///
 ///  Arguments:
@@ -89,25 +76,11 @@ static struct starpu_codelet prepare_column_cl = {
     .nbuffers = STARPU_VARIABLE_NBUFFERS,
     .model = (struct starpu_perfmodel[]) {{
         .type = STARPU_REGRESSION_BASED,
-        .symbol = "starneig_prepare_column_pm",
-        .size_base = &prepare_column_size_base
+        .symbol = "starneig_prepare_column_pm"
     }}
 };
 
 ////////////////////////////////////////////////////////////////////////////////
-
-///
-/// @brief Size base function for compute_column codelet.
-///
-static size_t compute_column_size_base(
-    struct starpu_task *task, unsigned nimpl)
-{
-    struct packing_info A_pi;
-    struct range_packing_info v_pi, y_pi;
-    starpu_codelet_unpack_args(task->cl_arg, &A_pi, &v_pi, &y_pi);
-
-    return (A_pi.rend - A_pi.rbegin) * (A_pi.cend - A_pi.cbegin);
-}
 
 ///
 /// @brief Performs a (rend-rbegin) X (cend-cbegin) trailing matrix operation.
@@ -137,25 +110,11 @@ static struct starpu_codelet compute_column_cl = {
     .nbuffers = STARPU_VARIABLE_NBUFFERS,
     .model = (struct starpu_perfmodel[]) {{
         .type = STARPU_REGRESSION_BASED,
-        .symbol = "starneig_compute_column_pm",
-        .size_base = &compute_column_size_base
+        .symbol = "starneig_compute_column_pm"
     }}
 };
 
 ////////////////////////////////////////////////////////////////////////////////
-
-///
-/// @brief Size base function for finish_column codelet.
-///
-static size_t finish_column_size_base(
-    struct starpu_task *task, unsigned nimpl)
-{
-    struct range_packing_info y_pi;
-    int i;
-    starpu_codelet_unpack_args(task->cl_arg, &i, &y_pi);
-
-    return (i+1) * (y_pi.end - y_pi.begin);
-}
 
 ///
 /// @brief Finalizes a column reduction inside a (rend-rbegin) X (cend-cbegin)
@@ -180,74 +139,49 @@ static struct starpu_codelet finish_column_cl = {
     .nbuffers = STARPU_VARIABLE_NBUFFERS,
     .model = (struct starpu_perfmodel[]) {{
         .type = STARPU_REGRESSION_BASED,
-        .symbol = "starneig_finish_column_pm",
-        .size_base = &finish_column_size_base
+        .symbol = "starneig_finish_column_pm"
     }}
 };
 
 ////////////////////////////////////////////////////////////////////////////////
 
-#if defined STARNEIG_ENABLE_MRM && \
-(1 < STARPU_MAJOR_VERSION || 2 < STARPU_MINOR_VERSION)
-
 ///
-/// @brief Parameters function for update_trail codelet.
+/// @brief Updates a block column of the trailing matrix from right.
 ///
-static void update_trail_parameters(
-    struct starpu_task *task, double *parameters)
-{
-    struct packing_info packing_info;
-    int nb, offset;
-    starpu_codelet_unpack_args(task->cl_arg, &packing_info, &nb, &offset);
-
-    parameters[0] = packing_info.rend - packing_info.rbegin;
-    parameters[1] = packing_info.cend - packing_info.cbegin;
-    parameters[2] = nb;
-}
-
+///  Arguments:
+///   - packing_info  block column packing information
+///   - nb            panel width
+///   - roffset       first row of the of the trailing matrix that belongs to
+///                   the block row
+///   - coffset       first column of the of the trailing matrix that belongs to
+///                   the block column
 ///
-/// @brief Multiple regression performance model for update_trail
-/// codelet.
+///  Buffers:
+///   - V matrix, i.e., reflectors (STARPU_R, rend-rbegin rows, nb columns)
+///   - Y matrix (STARPU_R, rend-rbegin rows, nb columns)
+///   - scratch matrix (STARPU_SCRATCH, rend-rbegin rows, cend-cbegin columns)
+///   - matrix A tiles that correspond to the block column (STARPU_RW,
+///         in column-major order)
 ///
-static struct starpu_perfmodel update_trail_pm = {
-    .type = STARPU_MULTIPLE_REGRESSION_BASED,
-    .symbol = "starneig_update_trail_pm",
-    .parameters = &update_trail_parameters,
-    .nparameters = 3,
-    .parameters_names = (const char*[]) { "M", "N", "NB" },
-    .combinations = (unsigned*[]) { (unsigned[]) { 1, 1, 1 } },
-    .ncombinations = 1
-};
-
-#else
-
-///
-/// @brief Size base function for update_trail codelet.
-///
-static size_t update_trail_size_base(
-    struct starpu_task *task, unsigned nimpl)
-{
-    struct packing_info packing_info;
-    int nb, offset;
-    starpu_codelet_unpack_args(task->cl_arg, &packing_info, &nb, &offset);
-
-    return (size_t) nb * (packing_info.rend - packing_info.rbegin) *
-        (packing_info.cend - packing_info.cbegin);
-}
-
-///
-/// @brief Linear regression performance model for update_trail codelet.
-///
-static struct starpu_perfmodel update_trail_pm = {
-    .type = STARPU_REGRESSION_BASED,
-    .symbol = "starneig_update_trail_pm",
-    .size_base = &update_trail_size_base
-};
-
+static struct starpu_codelet update_trail_right_cl = {
+    .name = "starneig_update_trail_right",
+    .cpu_funcs = { starneig_hessenberg_cpu_update_trail_right },
+    .cpu_funcs_name = { "starneig_hessenberg_cpu_update_trail_right" },
+#ifdef STARNEIG_ENABLE_CUDA
+    .cuda_funcs = { starneig_hessenberg_cuda_update_trail_right },
+    .cuda_flags = { STARPU_CUDA_ASYNC },
 #endif
+    .nbuffers = STARPU_VARIABLE_NBUFFERS,
+    .model = (struct starpu_perfmodel[]) {{
+        .type = STARPU_REGRESSION_BASED,
+        .symbol = "starneig_update_trail_right_pm"
+    }}
+};
+
+////////////////////////////////////////////////////////////////////////////////
 
 ///
-/// @brief Updates a block column of the trailing matrix from left and right.
+/// @brief Updates a block column of the trailing matrix from left.
 ///
 ///  Arguments:
 ///   - packing_info  block column packing information
@@ -258,196 +192,118 @@ static struct starpu_perfmodel update_trail_pm = {
 ///  Buffers:
 ///   - V matrix, i.e., reflectors (STARPU_R, rend-rbegin rows, nb columns)
 ///   - T matrix (STARPU_R, nb rows/columns)
-///   - Y matrix (STARPU_R, rend-rbegin rows, nb columns)
 ///   - scratch matrix (STARPU_SCRATCH, rend-rbegin rows, cend-cbegin columns)
 ///   - scratch matrix (STARPU_SCRATCH, cend-cbegin rows, nb columns)
 ///   - matrix A tiles that correspond to the block column (STARPU_RW,
 ///         in column-major order)
 ///
-static struct starpu_codelet update_trail_cl = {
-    .name = "starneig_update_trail",
-    .cpu_funcs = { starneig_hessenberg_cpu_update_trail },
-    .cpu_funcs_name = { "starneig_hessenberg_cpu_update_trail" },
+static struct starpu_codelet update_left_a_cl = {
+    .name = "starneig_update_left_a",
+    .cpu_funcs = { starneig_hessenberg_cpu_update_left_a },
+    .cpu_funcs_name = { "starneig_hessenberg_cpu_update_left_a" },
 #ifdef STARNEIG_ENABLE_CUDA
-    .cuda_funcs = { starneig_hessenberg_cuda_update_trail },
+    .cuda_funcs = { starneig_hessenberg_cuda_update_left_a },
     .cuda_flags = { STARPU_CUDA_ASYNC },
 #endif
     .nbuffers = STARPU_VARIABLE_NBUFFERS,
-    .model = &update_trail_pm
+    .model = (struct starpu_perfmodel[]) {{
+        .type = STARPU_REGRESSION_BASED,
+        .symbol = "starneig_update_left_a_pm"
+    }}
 };
 
 ////////////////////////////////////////////////////////////////////////////////
 
-#if defined STARNEIG_ENABLE_MRM && \
-(1 < STARPU_MAJOR_VERSION || 2 < STARPU_MINOR_VERSION)
-
 ///
-/// @brief Parameters function for update_right codelet.
-///
-static void update_right_parameters(
-    struct starpu_task *task, double *parameters)
-{
-    struct packing_info packing_info;
-    int nb;
-    starpu_codelet_unpack_args(task->cl_arg, &packing_info, &nb);
-
-    parameters[0] = packing_info.rend - packing_info.rbegin;
-    parameters[1] = packing_info.cend - packing_info.cbegin;
-    parameters[2] = nb;
-}
-
-///
-/// @brief Multiple regression performance model for update_right codelet.
-///
-static struct starpu_perfmodel update_right_pm = {
-    .type = STARPU_MULTIPLE_REGRESSION_BASED,
-    .symbol = "starneig_update_right_pm",
-    .parameters = &update_right_parameters,
-    .nparameters = 3,
-    .parameters_names = (const char*[]) { "M", "N", "NB" },
-    .combinations = (unsigned*[]) { (unsigned[]) { 1, 1, 1 } },
-    .ncombinations = 1
-};
-
-#else
-
-///
-/// @brief Size base function for update_right codelet.
-///
-static size_t update_right_size_base(
-    struct starpu_task *task, unsigned nimpl)
-{
-    struct packing_info packing_info;
-    int nb;
-    starpu_codelet_unpack_args(task->cl_arg, &packing_info, &nb);
-
-    return (size_t) (packing_info.rend - packing_info.rbegin) *
-        (packing_info.cend - packing_info.cbegin - nb) * nb;
-}
-
-///
-/// @brief Linear regression performance model for update_right codelet.
-///
-static struct starpu_perfmodel update_right_pm = {
-    .type = STARPU_REGRESSION_BASED,
-    .symbol = "starneig_update_right_pm",
-    .size_base = &update_right_size_base
-};
-
-#endif
-
-///
-/// @brief Updates a section of a matrix from the right.
+/// @brief Updates a block column of the trailing matrix from left.
 ///
 ///  Arguments:
-///   - packing_info  tile packing information
+///   - packing_info  block column packing information
 ///   - nb            panel width
-///
-///  Buffers:
-///   - V matrix, i.e., reflectors (STARPU_R, rend-rbegin rows, nb columns)
-///   - T matrix (STARPU_R, nb rows/columns)
-///   - scratch matrix (STARPU_SCRATCH, rend-rbegin rows, cend-cbein columns)
-///   - scratch matrix (STARPU_SCRATCH, rend-rbegin rows, nb columns)
-///   - matrix A tiles that correspond to the trailing matrix (STARPU_RW,
-///         in column-major order)
-///
-static struct starpu_codelet update_right_cl = {
-    .name = "starneig_update_right",
-    .cpu_funcs = { starneig_hessenberg_cpu_update_right },
-    .cpu_funcs_name = { "starneig_hessenberg_cpu_update_right" },
-//#ifdef STARNEIG_ENABLE_CUDA
-//    .cuda_funcs = { starneig_hessenberg_cuda_update_right },
-//    .cuda_flags = { STARPU_CUDA_ASYNC },
-//#endif
-    .nbuffers = STARPU_VARIABLE_NBUFFERS,
-    .model = &update_right_pm
-};
-
-////////////////////////////////////////////////////////////////////////////////
-
-#if defined STARNEIG_ENABLE_MRM && \
-(1 < STARPU_MAJOR_VERSION || 2 < STARPU_MINOR_VERSION)
-
-///
-/// @brief Parameters function for update_left codelet.
-///
-static void update_left_parameters(
-    struct starpu_task *task, double *parameters)
-{
-    struct packing_info packing_info;
-    int nb;
-    starpu_codelet_unpack_args(task->cl_arg, &packing_info, &nb);
-
-    parameters[0] = packing_info.rend - packing_info.rbegin;
-    parameters[1] = packing_info.cend - packing_info.cbegin;
-    parameters[2] = nb;
-}
-
-///
-/// @brief Multiple regression performance model for update_left codelet.
-///
-static struct starpu_perfmodel update_left_pm = {
-    .type = STARPU_MULTIPLE_REGRESSION_BASED,
-    .symbol = "starneig_update_left_pm",
-    .parameters = &update_left_parameters,
-    .nparameters = 3,
-    .parameters_names = (const char*[]) { "M", "N", "NB" },
-    .combinations = (unsigned*[]) { (unsigned[]) { 1, 1, 1 } },
-    .ncombinations = 1
-};
-
-#else
-
-///
-/// @brief Size base function for update_left codelet.
-///
-static size_t update_left_size_base(
-    struct starpu_task *task, unsigned nimpl)
-{
-    struct packing_info packing_info;
-    int nb;
-    starpu_codelet_unpack_args(task->cl_arg, &packing_info, &nb);
-
-    return (size_t) nb * (packing_info.rend - packing_info.rbegin) *
-        (packing_info.cend - packing_info.cbegin);
-}
-
-///
-/// @brief Linear regression performance model for update_left codelet.
-///
-static struct starpu_perfmodel update_left_pm = {
-    .type = STARPU_REGRESSION_BASED,
-    .symbol = "starneig_update_left_pm",
-    .size_base = &update_left_size_base
-};
-
-#endif
-
-///
-/// @brief Updates a section of a matrix from the left.
-///
-///  Arguments:
-///   - packing_info  tile packing information
-///   - nb            panel width
+///   - offset        first column of the of the trailing matrix that belongs to
+///                   the block column
 ///
 ///  Buffers:
 ///   - V matrix, i.e., reflectors (STARPU_R, rend-rbegin rows, nb columns)
 ///   - T matrix (STARPU_R, nb rows/columns)
 ///   - scratch matrix (STARPU_SCRATCH, rend-rbegin rows, cend-cbegin columns)
 ///   - scratch matrix (STARPU_SCRATCH, cend-cbegin rows, nb columns)
-///   - matrix A tiles that correspond to the trailing matrix (STARPU_RW,
+///   - matrix A tiles that correspond to the block column (STARPU_RW,
 ///         in column-major order)
 ///
-static struct starpu_codelet update_left_cl = {
-    .name = "starneig_update_left",
-    .cpu_funcs = { starneig_hessenberg_cpu_update_left },
-    .cpu_funcs_name = { "starneig_hessenberg_cpu_update_left" },
-//#ifdef STARNEIG_ENABLE_CUDA
-//    .cuda_funcs = { starneig_hessenberg_cuda_update_left },
-//    .cuda_flags = { STARPU_CUDA_ASYNC },
-//#endif
+static struct starpu_codelet update_left_b_cl = {
+    .name = "starneig_update_left_b",
+    .cpu_funcs = { starneig_hessenberg_cpu_update_left_b },
+    .cpu_funcs_name = { "starneig_hessenberg_cpu_update_left_b" },
+#ifdef STARNEIG_ENABLE_CUDA
+    .cuda_funcs = { starneig_hessenberg_cuda_update_left_b },
+    .cuda_flags = { STARPU_CUDA_ASYNC },
+#endif
     .nbuffers = STARPU_VARIABLE_NBUFFERS,
-    .model = &update_left_pm
+    .model = (struct starpu_perfmodel[]) {{
+        .type = STARPU_REGRESSION_BASED,
+        .symbol = "starneig_update_left_b_pm"
+    }}
+};
+
+////////////////////////////////////////////////////////////////////////////////
+
+///
+/// @brief Updates a block column of the trailing matrix from right.
+///
+///  Arguments:
+///   - packing_info  block column packing information
+///   - nb            panel width
+///   - offset        first column of the of the trailing matrix that belongs to
+///                   the block column
+///
+///  Buffers:
+///   - V matrix, i.e., reflectors (STARPU_R, rend-rbegin rows, nb columns)
+///   - T matrix (STARPU_R, nb rows/columns)
+///   - scratch matrix (STARPU_SCRATCH, rend-rbegin rows, cend-cbegin columns)
+///   - scratch matrix (STARPU_SCRATCH, cend-cbegin rows, nb columns)
+///   - matrix A tiles that correspond to the block column (STARPU_RW,
+///         in column-major order)
+///
+static struct starpu_codelet update_right_a_cl = {
+    .name = "starneig_update_right_a",
+    .cpu_funcs = { starneig_hessenberg_cpu_update_right_a },
+    .cpu_funcs_name = { "starneig_hessenberg_cpu_update_right_a" },
+    .nbuffers = STARPU_VARIABLE_NBUFFERS,
+    .model = (struct starpu_perfmodel[]) {{
+        .type = STARPU_REGRESSION_BASED,
+        .symbol = "starneig_update_right_a_pm"
+    }}
+};
+
+////////////////////////////////////////////////////////////////////////////////
+
+///
+/// @brief Updates a block column of the trailing matrix from right.
+///
+///  Arguments:
+///   - packing_info  block column packing information
+///   - nb            panel width
+///   - offset        first column of the of the trailing matrix that belongs to
+///                   the block column
+///
+///  Buffers:
+///   - V matrix, i.e., reflectors (STARPU_R, rend-rbegin rows, nb columns)
+///   - T matrix (STARPU_R, nb rows/columns)
+///   - scratch matrix (STARPU_SCRATCH, rend-rbegin rows, cend-cbegin columns)
+///   - scratch matrix (STARPU_SCRATCH, cend-cbegin rows, nb columns)
+///   - matrix A tiles that correspond to the block column (STARPU_RW,
+///         in column-major order)
+///
+static struct starpu_codelet update_right_b_cl = {
+    .name = "starneig_update_right_b",
+    .cpu_funcs = { starneig_hessenberg_cpu_update_right_b },
+    .cpu_funcs_name = { "starneig_hessenberg_cpu_update_right_b" },
+    .nbuffers = STARPU_VARIABLE_NBUFFERS,
+    .model = (struct starpu_perfmodel[]) {{
+        .type = STARPU_REGRESSION_BASED,
+        .symbol = "starneig_update_right_b_pm"
+    }}
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -458,7 +314,7 @@ void starneig_hessenberg_insert_prepare_column(
     int prio, int i, int begin, int end,
     starpu_data_handle_t Y_h, starpu_data_handle_t V_h,
     starpu_data_handle_t T_h, starpu_data_handle_t P_h,
-    starneig_vector_descr_t v)
+    starneig_vector_t v, mpi_info_t mpi)
 {
     struct packing_helper *helper = starneig_init_packing_helper();
 
@@ -476,20 +332,33 @@ void starneig_hessenberg_insert_prepare_column(
     struct range_packing_info v_pi;
     starneig_pack_range(STARPU_W, begin+i, end, v, helper, &v_pi, 0);
 
-    starpu_task_insert(
-        &prepare_column_cl,
-        STARPU_PRIORITY, prio,
-        STARPU_VALUE, &i, sizeof(i),
-        STARPU_VALUE, &v_pi, sizeof(v_pi),
-        STARPU_DATA_MODE_ARRAY, helper->descrs, helper->count, 0);
+#ifdef STARNEIG_ENABLE_MPI
+    if (mpi != NULL)
+        starpu_mpi_task_insert(
+            starneig_mpi_get_comm(),
+            &prepare_column_cl,
+            STARPU_PRIORITY, prio,
+            STARPU_EXECUTE_ON_NODE,
+                starneig_vector_get_elem_owner(0, v),
+            STARPU_VALUE, &i, sizeof(i),
+            STARPU_VALUE, &v_pi, sizeof(v_pi),
+            STARPU_DATA_MODE_ARRAY, helper->descrs, helper->count, 0);
+    else
+#endif
+        starpu_task_insert(
+            &prepare_column_cl,
+            STARPU_PRIORITY, prio,
+            STARPU_VALUE, &i, sizeof(i),
+            STARPU_VALUE, &v_pi, sizeof(v_pi),
+            STARPU_DATA_MODE_ARRAY, helper->descrs, helper->count, 0);
 
     starneig_free_packing_helper(helper);
 }
 
 void starneig_hessenberg_insert_compute_column(
     int prio, int rbegin, int rend, int cbegin, int cend,
-    starneig_matrix_descr_t matrix_a, starneig_vector_descr_t v,
-    starneig_vector_descr_t y)
+    starneig_matrix_t matrix_a, starneig_vector_t v,
+    starneig_vector_t y, mpi_info_t mpi)
 {
     struct packing_helper *helper = starneig_init_packing_helper();
 
@@ -501,15 +370,30 @@ void starneig_hessenberg_insert_compute_column(
     starneig_pack_range(STARPU_R, cbegin, cend, v, helper, &v_pi, 0);
 
     struct range_packing_info y_pi;
-    starneig_pack_range(STARPU_W, rbegin, rend, y, helper, &y_pi, 0);
+    starneig_pack_range(
+        STARPU_RW | STARPU_COMMUTE, rbegin, rend, y, helper, &y_pi, 0);
 
-    starpu_task_insert(
-        &compute_column_cl,
-        STARPU_PRIORITY, prio,
-        STARPU_VALUE, &A_pi, sizeof(A_pi),
-        STARPU_VALUE, &v_pi, sizeof(v_pi),
-        STARPU_VALUE, &y_pi, sizeof(y_pi),
-        STARPU_DATA_MODE_ARRAY, helper->descrs, helper->count, 0);
+#ifdef STARNEIG_ENABLE_MPI
+    if (mpi != NULL)
+        starpu_mpi_task_insert(
+            starneig_mpi_get_comm(),
+            &compute_column_cl,
+            STARPU_PRIORITY, prio,
+            STARPU_EXECUTE_ON_NODE,
+                starneig_matrix_get_elem_owner(rbegin, cbegin, matrix_a),
+            STARPU_VALUE, &A_pi, sizeof(A_pi),
+            STARPU_VALUE, &v_pi, sizeof(v_pi),
+            STARPU_VALUE, &y_pi, sizeof(y_pi),
+            STARPU_DATA_MODE_ARRAY, helper->descrs, helper->count, 0);
+    else
+#endif
+        starpu_task_insert(
+            &compute_column_cl,
+            STARPU_PRIORITY, prio,
+            STARPU_VALUE, &A_pi, sizeof(A_pi),
+            STARPU_VALUE, &v_pi, sizeof(v_pi),
+            STARPU_VALUE, &y_pi, sizeof(y_pi),
+            STARPU_DATA_MODE_ARRAY, helper->descrs, helper->count, 0);
 
     starneig_free_packing_helper(helper);
 }
@@ -517,7 +401,7 @@ void starneig_hessenberg_insert_compute_column(
 void starneig_hessenberg_insert_finish_column(
     int prio, int i, int begin, int end,
     starpu_data_handle_t V_h, starpu_data_handle_t T_h,
-    starpu_data_handle_t Y_h, starneig_vector_descr_t y)
+    starpu_data_handle_t Y_h, starneig_vector_t y, mpi_info_t mpi)
 {
     struct packing_helper *helper = starneig_init_packing_helper();
 
@@ -531,20 +415,34 @@ void starneig_hessenberg_insert_finish_column(
     struct range_packing_info y_pi;
     starneig_pack_range(STARPU_R, begin, end, y, helper, &y_pi, 0);
 
-    starpu_task_insert(
-        &finish_column_cl,
-        STARPU_PRIORITY, prio,
-        STARPU_VALUE, &i, sizeof(i),
-        STARPU_VALUE, &y_pi, sizeof(y_pi),
-        STARPU_DATA_MODE_ARRAY, helper->descrs, helper->count, 0);
+#ifdef STARNEIG_ENABLE_MPI
+    if (mpi != NULL)
+        starpu_mpi_task_insert(
+            starneig_mpi_get_comm(),
+            &finish_column_cl,
+            STARPU_PRIORITY, prio,
+            STARPU_EXECUTE_ON_NODE,
+                starneig_vector_get_elem_owner(0, y),
+            STARPU_VALUE, &i, sizeof(i),
+            STARPU_VALUE, &y_pi, sizeof(y_pi),
+            STARPU_DATA_MODE_ARRAY, helper->descrs, helper->count, 0);
+    else
+#endif
+        starpu_task_insert(
+            &finish_column_cl,
+            STARPU_PRIORITY, prio,
+            STARPU_VALUE, &i, sizeof(i),
+            STARPU_VALUE, &y_pi, sizeof(y_pi),
+            STARPU_DATA_MODE_ARRAY, helper->descrs, helper->count, 0);
 
     starneig_free_packing_helper(helper);
 }
 
-void starneig_hessenberg_insert_update_trail(
+void starneig_hessenberg_insert_update_trail_right(
     int prio, int rbegin, int rend, int cbegin, int cend, int nb,
-    int offset, starpu_data_handle_t V_h, starpu_data_handle_t T_h,
-    starpu_data_handle_t Y_h, starneig_matrix_descr_t matrix_a, mpi_info_t mpi)
+    int roffset, int coffset, starpu_data_handle_t V_h,
+    starpu_data_handle_t T_h, starpu_data_handle_t Y_h,
+    starneig_matrix_t matrix_a, mpi_info_t mpi)
 {
     if (nb < 1 || rend-rbegin < 1 || cend-cbegin < 1)
         return;
@@ -552,13 +450,10 @@ void starneig_hessenberg_insert_update_trail(
     struct packing_helper *helper = starneig_init_packing_helper();
 
     starneig_pack_handle(STARPU_R, V_h, helper, 0);
-    starneig_pack_handle(STARPU_R, T_h, helper, 0);
     starneig_pack_handle(STARPU_R, Y_h, helper, 0);
 
     starneig_pack_cached_scratch_matrix(
-        rend-rbegin, MIN(1024, cend-cbegin), sizeof(double), helper);
-    starneig_pack_cached_scratch_matrix(
-        cend-cbegin, nb, sizeof(double), helper);
+        rend-rbegin, cend-cbegin, sizeof(double), helper);
 
     struct packing_info packing_info;
     starneig_pack_window(STARPU_RW, rbegin, rend, cbegin, cend,
@@ -568,20 +463,77 @@ void starneig_hessenberg_insert_update_trail(
     if (mpi != NULL)
         starpu_mpi_task_insert(
             starneig_mpi_get_comm(),
-            &update_trail_cl,
+            &update_trail_right_cl,
             STARPU_EXECUTE_ON_NODE,
-            starneig_get_elem_owner_matrix_descr(rbegin, cbegin, matrix_a),
+            starneig_matrix_get_elem_owner(rbegin, cbegin, matrix_a),
             STARPU_PRIORITY, prio,
             STARPU_VALUE, &packing_info, sizeof(packing_info),
+            STARPU_VALUE, &nb, sizeof(nb),
+            STARPU_VALUE, &roffset, sizeof(roffset),
+            STARPU_VALUE, &coffset, sizeof(coffset),
+            STARPU_DATA_MODE_ARRAY, helper->descrs, helper->count, 0);
+    else
+#endif
+        starpu_task_insert(
+            &update_trail_right_cl,
+            STARPU_PRIORITY, prio,
+            STARPU_VALUE, &packing_info, sizeof(packing_info),
+            STARPU_VALUE, &nb, sizeof(nb),
+            STARPU_VALUE, &roffset, sizeof(roffset),
+            STARPU_VALUE, &coffset, sizeof(coffset),
+            STARPU_DATA_MODE_ARRAY, helper->descrs, helper->count, 0);
+
+    starneig_free_packing_helper(helper);
+}
+
+void starneig_hessenberg_insert_update_left_a(
+    int prio, int rbegin, int rend, int cbegin, int cend, int nb, int offset,
+    starpu_data_handle_t V_h, starpu_data_handle_t T_h,
+    starneig_matrix_t A, starneig_matrix_t W, mpi_info_t mpi)
+{
+    if (nb < 1 || rend-rbegin < 1 || cend-cbegin < 1)
+        return;
+
+    struct packing_helper *helper = starneig_init_packing_helper();
+
+    starneig_pack_handle(STARPU_R, V_h, helper, 0);
+    starneig_pack_handle(STARPU_R, T_h, helper, 0);
+
+    starneig_pack_cached_scratch_matrix(
+        rend-rbegin, cend-cbegin, sizeof(double), helper);
+    starneig_pack_cached_scratch_matrix(
+        cend-cbegin, nb, sizeof(double), helper);
+    starneig_pack_cached_scratch_matrix(
+        cend-cbegin, nb, sizeof(double), helper);
+
+    struct packing_info A_pi;
+    starneig_pack_window(
+        STARPU_R, rbegin, rend, cbegin, cend, A, helper, &A_pi, 0);
+
+    struct packing_info W_pi;
+    starneig_pack_window(
+        STARPU_RW | STARPU_COMMUTE, cbegin, cend, 0, nb, W, helper, &W_pi, 0);
+
+#ifdef STARNEIG_ENABLE_MPI
+    if (mpi != NULL)
+        starpu_mpi_task_insert(
+            starneig_mpi_get_comm(),
+            &update_left_a_cl,
+            STARPU_EXECUTE_ON_NODE,
+            starneig_matrix_get_elem_owner(rbegin, cbegin, A),
+            STARPU_PRIORITY, prio,
+            STARPU_VALUE, &A_pi, sizeof(A_pi),
+            STARPU_VALUE, &W_pi, sizeof(W_pi),
             STARPU_VALUE, &nb, sizeof(nb),
             STARPU_VALUE, &offset, sizeof(offset),
             STARPU_DATA_MODE_ARRAY, helper->descrs, helper->count, 0);
     else
 #endif
         starpu_task_insert(
-            &update_trail_cl,
+            &update_left_a_cl,
             STARPU_PRIORITY, prio,
-            STARPU_VALUE, &packing_info, sizeof(packing_info),
+            STARPU_VALUE, &A_pi, sizeof(A_pi),
+            STARPU_VALUE, &W_pi, sizeof(W_pi),
             STARPU_VALUE, &nb, sizeof(nb),
             STARPU_VALUE, &offset, sizeof(offset),
             STARPU_DATA_MODE_ARRAY, helper->descrs, helper->count, 0);
@@ -589,10 +541,62 @@ void starneig_hessenberg_insert_update_trail(
     starneig_free_packing_helper(helper);
 }
 
-void starneig_hessenberg_insert_update_right(
-    int prio, int rbegin, int rend, int cbegin, int cend, int nb,
+void starneig_hessenberg_insert_update_left_b(
+    int prio, int rbegin, int rend, int cbegin, int cend, int nb, int offset,
+    starpu_data_handle_t V_h, starneig_matrix_t W,
+    starneig_matrix_t A, mpi_info_t mpi)
+{
+    if (nb < 1 || rend-rbegin < 1 || cend-cbegin < 1)
+        return;
+
+    struct packing_helper *helper = starneig_init_packing_helper();
+
+    starneig_pack_handle(STARPU_R, V_h, helper, 0);
+
+    starneig_pack_cached_scratch_matrix(
+        cend-cbegin, nb, sizeof(double), helper);
+    starneig_pack_cached_scratch_matrix(
+        rend-rbegin, cend-cbegin, sizeof(double), helper);
+
+    struct packing_info W_pi;
+    starneig_pack_window(
+        STARPU_R, cbegin, cend, 0, nb, W, helper, &W_pi, 0);
+
+    struct packing_info A_pi;
+    starneig_pack_window(
+        STARPU_RW, rbegin, rend, cbegin, cend, A, helper, &A_pi, 0);
+
+#ifdef STARNEIG_ENABLE_MPI
+    if (mpi != NULL)
+        starpu_mpi_task_insert(
+            starneig_mpi_get_comm(),
+            &update_left_b_cl,
+            STARPU_EXECUTE_ON_NODE,
+            starneig_matrix_get_elem_owner(rbegin, cbegin, A),
+            STARPU_PRIORITY, prio,
+            STARPU_VALUE, &A_pi, sizeof(A_pi),
+            STARPU_VALUE, &W_pi, sizeof(W_pi),
+            STARPU_VALUE, &nb, sizeof(nb),
+            STARPU_VALUE, &offset, sizeof(offset),
+            STARPU_DATA_MODE_ARRAY, helper->descrs, helper->count, 0);
+    else
+#endif
+        starpu_task_insert(
+            &update_left_b_cl,
+            STARPU_PRIORITY, prio,
+            STARPU_VALUE, &A_pi, sizeof(A_pi),
+            STARPU_VALUE, &W_pi, sizeof(W_pi),
+            STARPU_VALUE, &nb, sizeof(nb),
+            STARPU_VALUE, &offset, sizeof(offset),
+            STARPU_DATA_MODE_ARRAY, helper->descrs, helper->count, 0);
+
+    starneig_free_packing_helper(helper);
+}
+
+void starneig_hessenberg_insert_update_right_a(
+    int prio, int rbegin, int rend, int cbegin, int cend, int nb, int offset,
     starpu_data_handle_t V_h, starpu_data_handle_t T_h,
-    starneig_matrix_descr_t matrix_a, mpi_info_t mpi)
+    starneig_matrix_t A, starneig_matrix_t W, mpi_info_t mpi)
 {
     if (nb < 1 || rend-rbegin < 1 || cend-cbegin < 1)
         return;
@@ -606,38 +610,48 @@ void starneig_hessenberg_insert_update_right(
         rend-rbegin, cend-cbegin, sizeof(double), helper);
     starneig_pack_cached_scratch_matrix(
         rend-rbegin, nb, sizeof(double), helper);
+    starneig_pack_cached_scratch_matrix(
+        rend-rbegin, nb, sizeof(double), helper);
 
-    struct packing_info packing_info;
-    starneig_pack_window(STARPU_RW, rbegin, rend, cbegin, cend,
-        matrix_a, helper, &packing_info, 0);
+    struct packing_info A_pi;
+    starneig_pack_window(
+        STARPU_R, rbegin, rend, cbegin, cend, A, helper, &A_pi, 0);
+
+    struct packing_info W_pi;
+    starneig_pack_window(
+        STARPU_RW | STARPU_COMMUTE, rbegin, rend, 0, nb, W, helper, &W_pi, 0);
 
 #ifdef STARNEIG_ENABLE_MPI
     if (mpi != NULL)
         starpu_mpi_task_insert(
             starneig_mpi_get_comm(),
-            &update_right_cl,
+            &update_right_a_cl,
             STARPU_EXECUTE_ON_NODE,
-            starneig_get_elem_owner_matrix_descr(rbegin, cbegin, matrix_a),
+            starneig_matrix_get_elem_owner(rbegin, cbegin, A),
             STARPU_PRIORITY, prio,
-            STARPU_VALUE, &packing_info, sizeof(packing_info),
+            STARPU_VALUE, &A_pi, sizeof(A_pi),
+            STARPU_VALUE, &W_pi, sizeof(W_pi),
             STARPU_VALUE, &nb, sizeof(nb),
+            STARPU_VALUE, &offset, sizeof(offset),
             STARPU_DATA_MODE_ARRAY, helper->descrs, helper->count, 0);
     else
 #endif
         starpu_task_insert(
-            &update_right_cl,
+            &update_right_a_cl,
             STARPU_PRIORITY, prio,
-            STARPU_VALUE, &packing_info, sizeof(packing_info),
+            STARPU_VALUE, &A_pi, sizeof(A_pi),
+            STARPU_VALUE, &W_pi, sizeof(W_pi),
             STARPU_VALUE, &nb, sizeof(nb),
+            STARPU_VALUE, &offset, sizeof(offset),
             STARPU_DATA_MODE_ARRAY, helper->descrs, helper->count, 0);
 
     starneig_free_packing_helper(helper);
 }
 
-void starneig_hessenberg_insert_update_left(
-    int prio, int rbegin, int rend, int cbegin, int cend, int nb,
-    starpu_data_handle_t V_h, starpu_data_handle_t T_h,
-    starneig_matrix_descr_t matrix_a, mpi_info_t mpi)
+void starneig_hessenberg_insert_update_right_b(
+    int prio, int rbegin, int rend, int cbegin, int cend, int nb, int offset,
+    starpu_data_handle_t V_h, starneig_matrix_t W,
+    starneig_matrix_t A, mpi_info_t mpi)
 {
     if (nb < 1 || rend-rbegin < 1 || cend-cbegin < 1)
         return;
@@ -645,36 +659,43 @@ void starneig_hessenberg_insert_update_left(
     struct packing_helper *helper = starneig_init_packing_helper();
 
     starneig_pack_handle(STARPU_R, V_h, helper, 0);
-    starneig_pack_handle(STARPU_R, T_h, helper, 0);
 
+    starneig_pack_cached_scratch_matrix(
+        rend-rbegin, nb, sizeof(double), helper);
     starneig_pack_cached_scratch_matrix(
         rend-rbegin, cend-cbegin, sizeof(double), helper);
-    starneig_pack_cached_scratch_matrix(
-        cend-cbegin, nb, sizeof(double), helper);
 
-    struct packing_info packing_info;
-    starneig_pack_window(STARPU_RW, rbegin, rend, cbegin, cend,
-        matrix_a, helper, &packing_info, 0);
+    struct packing_info W_pi;
+    starneig_pack_window(
+        STARPU_R, rbegin, rend, 0, nb, W, helper, &W_pi, 0);
+
+    struct packing_info A_pi;
+    starneig_pack_window(
+        STARPU_RW, rbegin, rend, cbegin, cend, A, helper, &A_pi, 0);
 
 #ifdef STARNEIG_ENABLE_MPI
     if (mpi != NULL)
         starpu_mpi_task_insert(
             starneig_mpi_get_comm(),
-            &update_left_cl,
+            &update_right_b_cl,
             STARPU_EXECUTE_ON_NODE,
-            starneig_get_elem_owner_matrix_descr(rbegin, cbegin, matrix_a),
+            starneig_matrix_get_elem_owner(rbegin, cbegin, A),
             STARPU_PRIORITY, prio,
-            STARPU_VALUE, &packing_info, sizeof(packing_info),
+            STARPU_VALUE, &A_pi, sizeof(A_pi),
+            STARPU_VALUE, &W_pi, sizeof(W_pi),
             STARPU_VALUE, &nb, sizeof(nb),
+            STARPU_VALUE, &offset, sizeof(offset),
             STARPU_DATA_MODE_ARRAY, helper->descrs, helper->count, 0);
     else
 #endif
         starpu_task_insert(
-            &update_left_cl,
+            &update_right_b_cl,
             STARPU_PRIORITY, prio,
-            STARPU_VALUE, &packing_info, sizeof(packing_info),
+            STARPU_VALUE, &A_pi, sizeof(A_pi),
+            STARPU_VALUE, &W_pi, sizeof(W_pi),
             STARPU_VALUE, &nb, sizeof(nb),
+            STARPU_VALUE, &offset, sizeof(offset),
             STARPU_DATA_MODE_ARRAY, helper->descrs, helper->count, 0);
 
-   starneig_free_packing_helper(helper);
+    starneig_free_packing_helper(helper);
 }

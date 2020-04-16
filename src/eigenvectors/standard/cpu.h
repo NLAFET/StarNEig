@@ -49,6 +49,7 @@ void starneig_eigvec_std_unify_scaling(int num_tiles, int *first_row, int *first
 
 
 void starneig_eigvec_std_cpu_bound(void *buffers[], void *cl_args);
+void starneig_eigvec_std_cpu_bound_DM(void *buffers[], void *cl_args);
 void starneig_eigvec_std_cpu_backsolve(void *buffers[], void *cl_args);
 void starneig_eigvec_std_cpu_solve(void *buffers[], void *cl_args);
 void starneig_eigvec_std_cpu_update(void *buffers[], void *cl_args);

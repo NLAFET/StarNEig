@@ -96,351 +96,7 @@ enum starneig_matrix_type {
 ///
 /// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ///
-struct starneig_matrix_descr {
-    int rbegin;                           ///< first row
-    int rend;                             ///< last row + 1
-    int cbegin;                           ///< first column
-    int cend;                             ///< last column + 1
-    int bm;                               ///< tile height (row count)
-    int bn;                               ///< tile width (column count)
-    int sbm;                              ///< section height (tile row count)
-    int sbn;                              ///< section width (tile column count)
-    int elemsize;                         ///< element size
-    int tm_count;                         ///< number of tile rows
-    int tn_count;                         ///< number of tile columns
-#ifdef STARNEIG_ENABLE_MPI
-    int tag_offset;                       ///< tag offset
-    int **owners;                         ///< section owners (MPI ranks)
-#endif
-    starpu_data_handle_t **tiles;         ///< tiles
-    struct starneig_matrix_descr *parent; ///< parent matrix
-    enum {
-        STARNEIG_MATRIX_ROOT = 0,         ///< the matrix is a root matrix
-        STARNEIG_MATRIX_SUB_MATRIX,       ///< the matrix is a submatrix
-    } mode;                               ///< matrix descriptor mode
-#ifdef STARNEIG_ENABLE_EVENTS
-    char event_label;
-    int event_enabled;
-    int event_roffset;
-    int event_coffset;
-#endif
-};
-
-///
-/// @brief Matrix descriptor data type.
-///
-typedef struct starneig_matrix_descr * starneig_matrix_descr_t;
-
-///
-/// @brief Returns the first row that belongs to the (sub)matrix.
-///
-/// @param[in] descr
-///         Matrix Descriptor
-///
-/// @return First row that belongs to the (sub)matrix.
-///
-static inline int STARNEIG_MATRIX_RBEGIN(const starneig_matrix_descr_t descr)
-{
-    return descr->rbegin;
-}
-
-///
-/// @brief Returns the last row that belongs to the (sub)matrix + 1.
-///
-/// @param[in] descr
-///         Matrix descriptor.
-///
-/// @return Last row that belongs to the (sub)matrix + 1.
-///
-static inline int STARNEIG_MATRIX_REND(const starneig_matrix_descr_t descr)
-{
-    return descr->rend;
-}
-
-///
-/// @brief Returns the first column that belongs to the (sub)matrix.
-///
-/// @param[in] descr
-///         Matrix descriptor.
-///
-/// @return First column that belongs to the (sub)matrix.
-///
-static inline int STARNEIG_MATRIX_CBEGIN(const starneig_matrix_descr_t descr)
-{
-    return descr->cbegin;
-}
-
-///
-/// @brief Returns the last column that belongs to the (sub)matrix + 1.
-///
-/// @param[in] descr
-///         Matrix descriptor.
-///
-/// @return Last column that belongs to the (sub)matrix + 1.
-///
-static inline int STARNEIG_MATRIX_CEND(const starneig_matrix_descr_t descr)
-{
-    return descr->cend;
-}
-
-///
-/// @brief Returns the height of the (sub)matrix.
-///
-/// @param[in] descr
-///         Matrix descriptor.
-///
-/// @return (Sub)matrix height.
-///
-static inline int STARNEIG_MATRIX_M(const starneig_matrix_descr_t descr)
-{
-    return descr->rend - descr->rbegin;
-}
-
-///
-/// @brief Returns the width of the (sub)matrix.
-///
-/// @param[in] descr
-///         Matrix descriptor.
-///
-/// @return (Sub)matrix width.
-///
-static inline int STARNEIG_MATRIX_N(const starneig_matrix_descr_t descr)
-{
-    return descr->cend - descr->cbegin;
-}
-
-///
-/// @brief Returns the tile height.
-///
-/// @param[in] descr
-///         Matrix descriptor.
-///
-/// @return Tile height.
-///
-static inline int STARNEIG_MATRIX_BM(const starneig_matrix_descr_t descr)
-{
-    return descr->bm;
-}
-
-/// @brief Returns the tile width.
-///
-/// @param[in] descr
-///         Matrix descriptor.
-///
-/// @return Tile width.
-///
-static inline int STARNEIG_MATRIX_BN(const starneig_matrix_descr_t descr)
-{
-    return descr->bn;
-}
-
-///
-/// @brief Returns the section height in tiles.
-///
-/// @param[in] descr
-///         Matrix descriptor.
-///
-/// @return Section height in tiles.
-///
-static inline int STARNEIG_MATRIX_SBM(const starneig_matrix_descr_t descr)
-{
-    return descr->sbm;
-}
-
-///
-/// @brief Returns the section width in tiles.
-///
-/// @param[in] descr
-///         Matrix descriptor.
-///
-/// @return Section width in tiles.
-///
-static inline int STARNEIG_MATRIX_SBN(const starneig_matrix_descr_t descr)
-{
-    return descr->sbn;
-}
-
-///
-/// @brief Returns the section height.
-///
-/// @param[in] descr
-///         Matrix descriptor.
-///
-/// @return Section height.
-///
-static inline int STARNEIG_MATRIX_SM(const starneig_matrix_descr_t descr)
-{
-    return descr->sbm*descr->bm;
-}
-
-///
-/// @brief Returns the section width.
-///
-/// @param[in] descr
-///         Matrix descriptor.
-///
-/// @return Section width.
-///
-static inline int STARNEIG_MATRIX_SN(const starneig_matrix_descr_t descr)
-{
-    return descr->sbn*descr->bn;
-}
-
-///
-/// @brief Returns the element size.
-///
-/// @param[in] descr
-///         Matrix descriptor.
-///
-/// @return element size.
-///
-static inline size_t STARNEIG_MATRIX_ELEMSIZE(
-    const starneig_matrix_descr_t descr)
-{
-    return descr->elemsize;
-}
-
-///
-/// @brief Checks whether the matrix is distributed.
-///
-/// @param[in] descr
-///         Matrix descriptor.
-///
-/// @return Non-zero is the matrix is distributed, zero otherwise.
-///
-static inline int STARNEIG_MATRIX_DISTRIBUTED(
-    const starneig_matrix_descr_t descr)
-{
-#ifdef STARNEIG_ENABLE_MPI
-    return 0 <= descr->tag_offset;
-#else
-    return 0;
-#endif
-}
-
-///
-/// @brief Returns the tile row index that matches a given row.
-///
-/// @param[in] row
-///         Row.
-///
-/// @param[in] descr
-///         Matrix descriptor.
-///
-/// @return Tile row index that matches a given row.
-///
-static inline int STARNEIG_MATRIX_TILE_IDX(
-    int row, const starneig_matrix_descr_t descr)
-{
-    return (STARNEIG_MATRIX_RBEGIN(descr) + row) / STARNEIG_MATRIX_BM(descr);
-}
-
-///
-/// @brief Returns the tile column index that matches a given column.
-///
-/// @param[in] column
-///         Column.
-///
-/// @param[in] descr
-///         Matrix descriptor.
-///
-/// @return Tile column index that matches a given column.
-///
-static inline int STARNEIG_MATRIX_TILE_IDY(
-    int column, const starneig_matrix_descr_t descr)
-{
-    return (STARNEIG_MATRIX_CBEGIN(descr) + column) / STARNEIG_MATRIX_BN(descr);
-}
-
-///
-/// @brief Cuts the matrix vertically from the nearest tile boundary (rounded
-/// upwards).
-///
-/// @param[in] row
-///         Cutting point candidate.
-///
-/// @param[in] descr
-///         Matrix descriptor.
-///
-/// @return Vertical cutting point that follows the underlying tile boundaries.
-///
-static inline int starneig_matrix_cut_vectically_up(
-    int row, const starneig_matrix_descr_t descr)
-{
-    int rbegin = STARNEIG_MATRIX_RBEGIN(descr);
-    int bm = STARNEIG_MATRIX_BM(descr);
-    int m = STARNEIG_MATRIX_M(descr);
-
-    return MAX(0, MIN(m, ((rbegin + row) / bm) * bm - rbegin));
-}
-
-///
-/// @brief Cuts the matrix vertically from the nearest tile boundary (rounded
-/// downwards).
-///
-/// @param[in] row
-///         Cutting point candidate.
-///
-/// @param[in] descr
-///         Matrix descriptor.
-///
-/// @return Vertical cutting point that follows the underlying tile boundaries.
-///
-static inline int starneig_matrix_cut_vectically_down(
-    int row, const starneig_matrix_descr_t descr)
-{
-    int rbegin = STARNEIG_MATRIX_RBEGIN(descr);
-    int bm = STARNEIG_MATRIX_BM(descr);
-    int m = STARNEIG_MATRIX_M(descr);
-
-    return MAX(0, MIN(m, divceil(rbegin + row, bm) * bm - rbegin));
-}
-
-///
-/// @brief Cuts the matrix horizontally from the nearest tile boundary (rounded
-/// left).
-///
-/// @param[in] column
-///         Cutting point candidate.
-///
-/// @param[in] descr
-///         Matrix descriptor.
-///
-/// @return Horizontally cutting point that follows the underlying tile
-/// boundaries.
-///
-static inline int starneig_matrix_cut_horizontally_left(
-    int column, const starneig_matrix_descr_t descr)
-{
-    int cbegin = STARNEIG_MATRIX_CBEGIN(descr);
-    int bn = STARNEIG_MATRIX_BN(descr);
-    int n = STARNEIG_MATRIX_N(descr);
-
-    return MAX(0, MIN(n, ((cbegin + column) / bn) * bn - cbegin));
-}
-
-///
-/// @brief Cuts the matrix horizontally from the nearest tile boundary (rounded
-/// right).
-///
-/// @param[in] column
-///         Cutting point candidate.
-///
-/// @param[in] descr
-///         Matrix descriptor.
-///
-/// @return Horizontally cutting point that follows the underlying tile
-/// boundaries.
-///
-static inline int starneig_matrix_cut_horizontally_right(
-    int column, const starneig_matrix_descr_t descr)
-{
-    int cbegin = STARNEIG_MATRIX_CBEGIN(descr);
-    int bn = STARNEIG_MATRIX_BN(descr);
-    int n = STARNEIG_MATRIX_N(descr);
-
-    return MAX(0, MIN(n, divceil(cbegin + column, bn) * bn - cbegin));
-}
+typedef struct starneig_matrix_descr * starneig_matrix_t;
 
 ///
 /// @brief Matrix distribution function for a matrix that has a single owner.
@@ -456,11 +112,7 @@ static inline int starneig_matrix_cut_horizontally_right(
 ///
 /// @return Section owner.
 ///
-static inline int starneig_single_owner_matrix_descr(
-    int i, int j, void const *ptr)
-{
-    return *((int *) ptr);
-}
+int starneig_single_owner_matrix_descr(int i, int j, void const *ptr);
 
 ///
 /// @brief Creates an empty matrix descriptor.
@@ -497,7 +149,7 @@ static inline int starneig_single_owner_matrix_descr(
 ///
 /// @return New matrix descriptor.
 ///
-starneig_matrix_descr_t starneig_init_matrix_descr(
+starneig_matrix_t starneig_matrix_init(
     int m, int n, int bm, int bn, int sbm, int sbn, size_t elemsize,
     int (*distrib)(int, int, void const *), void const *distarg,
     mpi_info_t mpi);
@@ -546,33 +198,10 @@ starneig_matrix_descr_t starneig_init_matrix_descr(
 ///
 /// @return New matrix descriptor.
 ///
-starneig_matrix_descr_t starneig_register_matrix_descr(
+starneig_matrix_t starneig_matrix_register(
     enum starneig_matrix_type type, int m, int n, int bm, int bn, int sbm,
     int sbn, int ld, size_t elemsize, int (*distrib)(int, int, void const *),
     void const *distarg, void *mat, mpi_info_t mpi);
-
-///
-/// @brief Creates a matrix descriptor that encapsulates a sub-matrix.
-///
-/// @param[in] rbegin
-///         First row that belongs to the sub-matrix.
-///
-/// @param[in] rend
-///         Last row that belong to the sub-matrix + 1.
-///
-/// @param[in] cbegin
-///         First column that belongs to the sub-matrix.
-///
-/// @param[in] cend
-///         Last column that belongs to the sub-matrix + 1.
-///
-/// @param[in,out] descr
-///         Parent matrix descriptor.
-///
-/// @return New matrix descriptor.
-///
-starneig_matrix_descr_t starneig_create_sub_matrix_descr(
-    int rbegin, int rend, int cbegin, int cend, starneig_matrix_descr_t descr);
 
 ///
 /// @brief Takes a previously initialized matrix descriptor and acquires all
@@ -581,7 +210,7 @@ starneig_matrix_descr_t starneig_create_sub_matrix_descr(
 /// @param[in,out] descr
 ///         Matrix descriptor.
 ///
-void starneig_acquire_matrix_descr(starneig_matrix_descr_t descr);
+void starneig_matrix_acquire(starneig_matrix_t descr);
 
 ///
 /// @brief Takes a previously initialized matrix descriptor and releases all
@@ -590,7 +219,7 @@ void starneig_acquire_matrix_descr(starneig_matrix_descr_t descr);
 /// @param[in,out] descr
 ///         Matrix descriptor.
 ///
-void starneig_release_matrix_descr(starneig_matrix_descr_t descr);
+void starneig_matrix_release(starneig_matrix_t descr);
 
 ///
 /// @brief Takes a previously initialized matrix descriptor and unregister all
@@ -599,7 +228,7 @@ void starneig_release_matrix_descr(starneig_matrix_descr_t descr);
 /// @param[in,out] descr
 ///         Matrix descriptor.
 ///
-void starneig_unregister_matrix_descr(starneig_matrix_descr_t descr);
+void starneig_matrix_unregister(starneig_matrix_t descr);
 
 ///
 /// @brief Frees a previously initialized matrix descriptor.
@@ -607,7 +236,7 @@ void starneig_unregister_matrix_descr(starneig_matrix_descr_t descr);
 /// @param[in,out] descr
 ///         Matrix descriptor.
 ///
-void starneig_free_matrix_descr(starneig_matrix_descr_t descr);
+void starneig_matrix_free(starneig_matrix_t descr);
 
 ///
 /// @brief Registers a tile with a matrix descriptor
@@ -624,8 +253,8 @@ void starneig_free_matrix_descr(starneig_matrix_descr_t descr);
 /// @param[in,out] descr
 ///         Matrix descriptor.
 ///
-void starneig_register_tile_with_matrix_descr(int i, int j,
-    starpu_data_handle_t handle, starneig_matrix_descr_t descr);
+void starneig_matrix_set_tile(int i, int j,
+    starpu_data_handle_t handle, starneig_matrix_t descr);
 
 ///
 /// @brief Returns a tile from a matrix descriptor.
@@ -641,8 +270,8 @@ void starneig_register_tile_with_matrix_descr(int i, int j,
 ///
 /// @return The tile handle.
 ///
-starpu_data_handle_t starneig_get_tile_from_matrix_descr(
-    int i, int j, starneig_matrix_descr_t descr);
+starpu_data_handle_t starneig_matrix_get_tile(
+    int i, int j, starneig_matrix_t descr);
 
 ///
 /// @brief Returns an element from a matrix descriptor.
@@ -661,8 +290,8 @@ starpu_data_handle_t starneig_get_tile_from_matrix_descr(
 ///
 /// @return The tile handle.
 ///
-starpu_data_handle_t starneig_get_elem_from_matrix_descr(
-    int i, int j, starneig_matrix_descr_t descr, mpi_info_t mpi);
+starpu_data_handle_t starneig_matrix_get_elem(
+    int i, int j, starneig_matrix_t descr, mpi_info_t mpi);
 
 ///
 /// @brief Registers a section with a matrix descriptor.
@@ -685,9 +314,9 @@ starpu_data_handle_t starneig_get_elem_from_matrix_descr(
 /// @param[in,out] descr
 ///         Matrix descriptor.
 ///
-void starneig_register_section_with_matrix_descr(
+void starneig_matrix_register_section(
     enum starneig_matrix_type type, int i, int j, int ld, void *mat,
-    starneig_matrix_descr_t descr);
+    starneig_matrix_t descr);
 
 ///
 /// @brief Returns the owner of a given tile.
@@ -703,8 +332,8 @@ void starneig_register_section_with_matrix_descr(
 ///
 /// @return Owner's MPI rank.
 ///
-int starneig_get_tile_owner_matrix_descr(
-    int i, int j, const starneig_matrix_descr_t descr);
+int starneig_matrix_get_tile_owner(
+    int i, int j, const starneig_matrix_t descr);
 
 ///
 /// @brief Returns the owner of a given matrix element.
@@ -720,8 +349,8 @@ int starneig_get_tile_owner_matrix_descr(
 ///
 /// @return Owner's MPI rank.
 ///
-int starneig_get_elem_owner_matrix_descr(
-    int i, int j, const starneig_matrix_descr_t descr);
+int starneig_matrix_get_elem_owner(
+    int i, int j, const starneig_matrix_t descr);
 
 ///
 /// @brief Checks whether the current MPI rank is involved with a section of a
@@ -744,9 +373,9 @@ int starneig_get_elem_owner_matrix_descr(
 ///
 /// @return 1 if the MPI rank is involved, 0 otherwise.
 ///
-int starneig_involved_with_part_of_matrix_descr(
+int starneig_matrix_involved_with_section(
     int rbegin, int rend, int cbegin, int cend,
-    const starneig_matrix_descr_t descr);
+    const starneig_matrix_t descr);
 
 ///
 /// @brief Flushes a section of a distributed matrix.
@@ -766,8 +395,8 @@ int starneig_involved_with_part_of_matrix_descr(
 /// @param[in,out] descr
 ///         Matrix descriptor.
 ///
-void starneig_flush_section_matrix_descr(
-    int rbegin, int rend, int cbegin, int cend, starneig_matrix_descr_t descr);
+void starneig_matrix_flush_section(
+    int rbegin, int rend, int cbegin, int cend, starneig_matrix_t descr);
 
 ///
 /// @brief Prefetches a section of a distributed matrix.
@@ -793,8 +422,230 @@ void starneig_flush_section_matrix_descr(
 /// @param[in,out] descr
 ///         Matrix descriptor.
 ///
-void starneig_prefetch_section_matrix_descr(
+void starneig_matrix_prefetch_section(
     int rbegin, int rend, int cbegin, int cend, int node, int async,
-    const starneig_matrix_descr_t descr);
+    const starneig_matrix_t descr);
+
+///
+/// @brief Returns the first row that belongs to the (sub)matrix.
+///
+/// @param[in] descr
+///         Matrix Descriptor
+///
+/// @return First row that belongs to the (sub)matrix.
+///
+int STARNEIG_MATRIX_RBEGIN(const starneig_matrix_t descr);
+
+///
+/// @brief Returns the last row that belongs to the (sub)matrix + 1.
+///
+/// @param[in] descr
+///         Matrix descriptor.
+///
+/// @return Last row that belongs to the (sub)matrix + 1.
+///
+int STARNEIG_MATRIX_REND(const starneig_matrix_t descr);
+
+///
+/// @brief Returns the first column that belongs to the (sub)matrix.
+///
+/// @param[in] descr
+///         Matrix descriptor.
+///
+/// @return First column that belongs to the (sub)matrix.
+///
+int STARNEIG_MATRIX_CBEGIN(const starneig_matrix_t descr);
+
+///
+/// @brief Returns the last column that belongs to the (sub)matrix + 1.
+///
+/// @param[in] descr
+///         Matrix descriptor.
+///
+/// @return Last column that belongs to the (sub)matrix + 1.
+///
+int STARNEIG_MATRIX_CEND(const starneig_matrix_t descr);
+
+///
+/// @brief Returns the height of the (sub)matrix.
+///
+/// @param[in] descr
+///         Matrix descriptor.
+///
+/// @return (Sub)matrix height.
+///
+int STARNEIG_MATRIX_M(const starneig_matrix_t descr);
+
+///
+/// @brief Returns the width of the (sub)matrix.
+///
+/// @param[in] descr
+///         Matrix descriptor.
+///
+/// @return (Sub)matrix width.
+///
+int STARNEIG_MATRIX_N(const starneig_matrix_t descr);
+
+///
+/// @brief Returns the tile height.
+///
+/// @param[in] descr
+///         Matrix descriptor.
+///
+/// @return Tile height.
+///
+int STARNEIG_MATRIX_BM(const starneig_matrix_t descr);
+
+/// @brief Returns the tile width.
+///
+/// @param[in] descr
+///         Matrix descriptor.
+///
+/// @return Tile width.
+///
+int STARNEIG_MATRIX_BN(const starneig_matrix_t descr);
+
+///
+/// @brief Returns the section height in tiles.
+///
+/// @param[in] descr
+///         Matrix descriptor.
+///
+/// @return Section height in tiles.
+///
+int STARNEIG_MATRIX_SBM(const starneig_matrix_t descr);
+///
+/// @brief Returns the section width in tiles.
+///
+/// @param[in] descr
+///         Matrix descriptor.
+///
+/// @return Section width in tiles.
+///
+int STARNEIG_MATRIX_SBN(const starneig_matrix_t descr);
+
+///
+/// @brief Returns the section height.
+///
+/// @param[in] descr
+///         Matrix descriptor.
+///
+/// @return Section height.
+///
+int STARNEIG_MATRIX_SM(const starneig_matrix_t descr);
+
+///
+/// @brief Returns the section width.
+///
+/// @param[in] descr
+///         Matrix descriptor.
+///
+/// @return Section width.
+///
+int STARNEIG_MATRIX_SN(const starneig_matrix_t descr);
+
+///
+/// @brief Returns the element size.
+///
+/// @param[in] descr
+///         Matrix descriptor.
+///
+/// @return element size.
+///
+size_t STARNEIG_MATRIX_ELEMSIZE(const starneig_matrix_t descr);
+
+///
+/// @brief Checks whether the matrix is distributed.
+///
+/// @param[in] descr
+///         Matrix descriptor.
+///
+/// @return Non-zero is the matrix is distributed, zero otherwise.
+///
+int STARNEIG_MATRIX_DISTRIBUTED(const starneig_matrix_t descr);
+
+///
+/// @brief Returns the tile row index that matches a given row.
+///
+/// @param[in] row
+///         Row.
+///
+/// @param[in] descr
+///         Matrix descriptor.
+///
+/// @return Tile row index that matches a given row.
+///
+int STARNEIG_MATRIX_TILE_IDX(int row, const starneig_matrix_t descr);
+
+///
+/// @brief Returns the tile column index that matches a given column.
+///
+/// @param[in] column
+///         Column.
+///
+/// @param[in] descr
+///         Matrix descriptor.
+///
+/// @return Tile column index that matches a given column.
+///
+int STARNEIG_MATRIX_TILE_IDY(int column, const starneig_matrix_t descr);
+
+///
+/// @brief Cuts the matrix vertically from the nearest tile boundary (rounded
+/// upwards).
+///
+/// @param[in] row
+///         Cutting point candidate.
+///
+/// @param[in] descr
+///         Matrix descriptor.
+///
+/// @return Vertical cutting point that follows the underlying tile boundaries.
+///
+int starneig_matrix_cut_ver_up(int row, const starneig_matrix_t descr);
+
+///
+/// @brief Cuts the matrix vertically from the nearest tile boundary (rounded
+/// downwards).
+///
+/// @param[in] row
+///         Cutting point candidate.
+///
+/// @param[in] descr
+///         Matrix descriptor.
+///
+/// @return Vertical cutting point that follows the underlying tile boundaries.
+///
+int starneig_matrix_cut_ver_down(int row, const starneig_matrix_t descr);
+
+///
+/// @brief Cuts the matrix horizontally from the nearest tile boundary (rounded
+/// left).
+///
+/// @param[in] column
+///         Cutting point candidate.
+///
+/// @param[in] descr
+///         Matrix descriptor.
+///
+/// @return Horizontally cutting point that follows the underlying tile
+/// boundaries.
+///
+int starneig_matrix_cut_hor_left(int column, const starneig_matrix_t descr);
+
+///
+/// @brief Cuts the matrix horizontally from the nearest tile boundary (rounded
+/// right).
+///
+/// @param[in] column
+///         Cutting point candidate.
+///
+/// @param[in] descr
+///         Matrix descriptor.
+///
+/// @return Horizontally cutting point that follows the underlying tile
+/// boundaries.
+///
+int starneig_matrix_cut_hor_right(int column, const starneig_matrix_t descr);
 
 #endif

@@ -441,7 +441,7 @@ static struct starpu_codelet compute_norm_b_cl = {
 
 void starneig_schur_insert_push_inf_top(
     int begin, int end, int top, int bottom, int prio, double thres_inf,
-    starneig_matrix_descr_t matrix_a, starneig_matrix_descr_t matrix_b,
+    starneig_matrix_t matrix_a, starneig_matrix_t matrix_b,
     starpu_data_handle_t *lQ_h, starpu_data_handle_t *lZ_h, mpi_info_t mpi)
 {
     *lQ_h = *lZ_h = NULL;
@@ -455,7 +455,7 @@ void starneig_schur_insert_push_inf_top(
 #ifdef STARNEIG_ENABLE_MPI
     int owner = 0;
     if (mpi != NULL)
-        owner = starneig_get_elem_owner_matrix_descr(begin, begin, matrix_a);
+        owner = starneig_matrix_get_elem_owner(begin, begin, matrix_a);
 #endif
 
     struct packing_helper *helper = starneig_init_packing_helper();
@@ -545,9 +545,9 @@ void starneig_schur_insert_push_bulges(
     int begin, int end, int shifts_begin, int shifts_end,
     bulge_chasing_mode_t mode, int prio,
     double thres_a, double thres_b, double thres_inf,
-    starneig_vector_descr_t shifts_real, starneig_vector_descr_t shifts_imag,
-    starneig_vector_descr_t aftermath,
-    starneig_matrix_descr_t matrix_a, starneig_matrix_descr_t matrix_b,
+    starneig_vector_t shifts_real, starneig_vector_t shifts_imag,
+    starneig_vector_t aftermath,
+    starneig_matrix_t matrix_a, starneig_matrix_t matrix_b,
     starpu_data_handle_t *lQ_h, starpu_data_handle_t *lZ_h, mpi_info_t mpi)
 {
     *lQ_h = *lZ_h = NULL;
@@ -561,7 +561,7 @@ void starneig_schur_insert_push_bulges(
 #ifdef STARNEIG_ENABLE_MPI
     int owner = 0;
     if (mpi != NULL)
-        owner = starneig_get_elem_owner_matrix_descr(begin, begin, matrix_a);
+        owner = starneig_matrix_get_elem_owner(begin, begin, matrix_a);
 #endif
 
     struct packing_helper *helper = starneig_init_packing_helper();
@@ -728,8 +728,8 @@ double starneig_predict_aggressively_deflate(int generalized, int window_size)
 void starneig_schur_insert_aggressively_deflate(
     int begin, int end, int prio,
     double thres_a, double thres_b, double thres_inf,
-    starneig_matrix_descr_t matrix_a, starneig_matrix_descr_t matrix_b,
-    starneig_vector_descr_t shifts_real, starneig_vector_descr_t shifts_imag,
+    starneig_matrix_t matrix_a, starneig_matrix_t matrix_b,
+    starneig_vector_t shifts_real, starneig_vector_t shifts_imag,
     starpu_data_handle_t *status_h, starpu_data_handle_t *lQ_h,
     starpu_data_handle_t *lZ_h, mpi_info_t mpi)
 {
@@ -745,7 +745,7 @@ void starneig_schur_insert_aggressively_deflate(
 #ifdef STARNEIG_ENABLE_MPI
     int owner = 0;
     if (mpi != NULL)
-        owner = starneig_get_elem_owner_matrix_descr(begin, begin, matrix_a);
+        owner = starneig_matrix_get_elem_owner(begin, begin, matrix_a);
 #endif
 
     struct packing_helper *helper = starneig_init_packing_helper();
@@ -871,7 +871,7 @@ void starneig_schur_insert_aggressively_deflate(
 void starneig_schur_insert_small_schur(
     int begin, int end, int prio,
     double thres_a, double thres_b, double thres_inf,
-    starneig_matrix_descr_t matrix_a, starneig_matrix_descr_t matrix_b,
+    starneig_matrix_t matrix_a, starneig_matrix_t matrix_b,
     starpu_data_handle_t *status_h, starpu_data_handle_t *lQ_h,
     starpu_data_handle_t *lZ_h, mpi_info_t mpi)
 {
@@ -887,7 +887,7 @@ void starneig_schur_insert_small_schur(
 #ifdef STARNEIG_ENABLE_MPI
     int owner = 0;
     if (mpi != NULL)
-        owner = starneig_get_elem_owner_matrix_descr(begin, begin, matrix_a);
+        owner = starneig_matrix_get_elem_owner(begin, begin, matrix_a);
 #endif
 
     struct packing_helper *helper = starneig_init_packing_helper();
@@ -988,8 +988,8 @@ void starneig_schur_insert_small_schur(
 }
 
 void starneig_schur_insert_small_hessenberg(
-    int begin, int end, int prio, starneig_matrix_descr_t matrix_a,
-    starneig_matrix_descr_t matrix_b, starpu_data_handle_t *lQ_h,
+    int begin, int end, int prio, starneig_matrix_t matrix_a,
+    starneig_matrix_t matrix_b, starpu_data_handle_t *lQ_h,
     starpu_data_handle_t *lZ_h, mpi_info_t mpi)
 {
     *lQ_h = *lZ_h = NULL;
@@ -1003,7 +1003,7 @@ void starneig_schur_insert_small_hessenberg(
 #ifdef STARNEIG_ENABLE_MPI
     int owner = 0;
     if (mpi != NULL)
-        owner = starneig_get_elem_owner_matrix_descr(begin, begin, matrix_a);
+        owner = starneig_matrix_get_elem_owner(begin, begin, matrix_a);
 #endif
 
     struct packing_helper *helper = starneig_init_packing_helper();
@@ -1087,7 +1087,7 @@ void starneig_schur_insert_small_hessenberg(
 }
 
 void starneig_schur_insert_form_spike(
-    int prio, starneig_matrix_descr_t matrix_q, starneig_vector_descr_t *spike)
+    int prio, starneig_matrix_t matrix_q, starneig_vector_t *spike)
 {
     *spike = starneig_init_matching_vector_descr(
         matrix_q, sizeof(double), NULL, NULL);
@@ -1107,7 +1107,7 @@ void starneig_schur_insert_form_spike(
     // spike base
     struct range_packing_info packing_info_spike;
     starneig_pack_range(STARPU_W,
-        1, STARNEIG_VECTOR_M(*spike), *spike, helper, &packing_info_spike, 0);
+        1, starneig_vector_get_rows(*spike), *spike, helper, &packing_info_spike, 0);
 
     // insert task
     starpu_task_insert(
@@ -1121,8 +1121,8 @@ void starneig_schur_insert_form_spike(
 }
 
 void starneig_schur_insert_embed_spike(
-    int end, int prio, starneig_vector_descr_t spike,
-    starneig_matrix_descr_t matrix_a)
+    int end, int prio, starneig_vector_t spike,
+    starneig_matrix_t matrix_a)
 {
     if (STARNEIG_MATRIX_M(matrix_a) < 2)
         return;
@@ -1153,8 +1153,8 @@ void starneig_schur_insert_embed_spike(
 void starneig_schur_insert_deflate(
     int begin, int end, int deflate, int prio,
     double thres_a, starpu_data_handle_t inducer_h,
-    starpu_data_handle_t status_h, starneig_vector_descr_t base,
-    starneig_matrix_descr_t matrix_a, starneig_matrix_descr_t matrix_b,
+    starpu_data_handle_t status_h, starneig_vector_t base,
+    starneig_matrix_t matrix_a, starneig_matrix_t matrix_b,
     starpu_data_handle_t *lQ_h, starpu_data_handle_t *lZ_h)
 {
     *lQ_h = *lZ_h = NULL;
@@ -1228,9 +1228,9 @@ void starneig_schur_insert_deflate(
 }
 
 void starneig_schur_insert_extract_shifts(
-    int begin, int end, int prio, starneig_matrix_descr_t matrix_a,
-    starneig_matrix_descr_t matrix_b, starneig_vector_descr_t real,
-    starneig_vector_descr_t imag, mpi_info_t mpi)
+    int begin, int end, int prio, starneig_matrix_t matrix_a,
+    starneig_matrix_t matrix_b, starneig_vector_t real,
+    starneig_vector_t imag, mpi_info_t mpi)
 {
     struct packing_helper *helper = starneig_init_packing_helper();
 
@@ -1258,7 +1258,7 @@ void starneig_schur_insert_extract_shifts(
             starneig_mpi_get_comm(),
             &extract_shifts_cl,
             STARPU_EXECUTE_ON_NODE,
-            starneig_get_elem_owner_vector_descr(begin, real),
+            starneig_vector_get_elem_owner(begin, real),
             STARPU_PRIORITY, prio,
             STARPU_VALUE, &packing_info_A, sizeof(packing_info_A),
             STARPU_VALUE, &packing_info_B, sizeof(packing_info_B),
@@ -1280,7 +1280,7 @@ void starneig_schur_insert_extract_shifts(
 }
 
 starpu_data_handle_t starneig_schur_insert_compute_norm(
-    int prio, starneig_matrix_descr_t matrix, mpi_info_t mpi)
+    int prio, starneig_matrix_t matrix, mpi_info_t mpi)
 {
 #ifdef STARNEIG_ENABLE_MPI
     int my_rank = starneig_mpi_get_comm_rank();
@@ -1306,7 +1306,7 @@ starpu_data_handle_t starneig_schur_insert_compute_norm(
         for (int i = rbbegin; i < rbend; i++) {
 
             starpu_data_handle_t tile =
-                starneig_get_tile_from_matrix_descr(i, j, matrix);
+                starneig_matrix_get_tile(i, j, matrix);
 
             starpu_data_handle_t handle;
             starpu_variable_data_register(&handle, -1, 0, sizeof(double));

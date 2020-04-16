@@ -108,40 +108,40 @@ static starneig_error_t schur_mpi(
     // register, partition and pack
     //
 
-    starneig_matrix_descr_t A_d =
+    starneig_matrix_t A_d =
         starneig_mpi_cache_convert_and_release(
             conf->tile_size, conf->tile_size,
             MATRIX_TYPE_FULL, A, mpi);
 
-    starneig_matrix_descr_t B_d = NULL;
+    starneig_matrix_t B_d = NULL;
     if (B != NULL)
         B_d = starneig_mpi_cache_convert_and_release(
             conf->tile_size, conf->tile_size,
             MATRIX_TYPE_FULL, B, mpi);
 
-    starneig_matrix_descr_t Q_d = NULL;
+    starneig_matrix_t Q_d = NULL;
     if (Q != NULL)
         Q_d = starneig_mpi_cache_convert_and_release(
             conf->tile_size, conf->tile_size,
             MATRIX_TYPE_FULL, Q, mpi);
 
-    starneig_matrix_descr_t Z_d = NULL;
+    starneig_matrix_t Z_d = NULL;
     if (Z != NULL)
         Z_d = starneig_mpi_cache_convert_and_release(
             conf->tile_size, conf->tile_size,
             MATRIX_TYPE_FULL, Z, mpi);
 
-    starneig_vector_descr_t real_d = NULL;
+    starneig_vector_t real_d = NULL;
     if (real != NULL)
         real_d = starneig_init_matching_vector_descr(
             A_d, sizeof(double), real, mpi);
 
-    starneig_vector_descr_t imag_d = NULL;
+    starneig_vector_t imag_d = NULL;
     if (imag != NULL)
         imag_d = starneig_init_matching_vector_descr(
             A_d, sizeof(double), imag, mpi);
 
-    starneig_vector_descr_t beta_d = NULL;
+    starneig_vector_t beta_d = NULL;
     if (beta != NULL)
         beta_d = starneig_init_matching_vector_descr(
             A_d, sizeof(double), beta, mpi);
@@ -158,26 +158,26 @@ static starneig_error_t schur_mpi(
     //
 
     for (int i = 0; real_d != NULL && i < world_size; i++)
-        starneig_gather_vector_descr(i, real_d);
+        starneig_vector_gather(i, real_d);
 
     for (int i = 0; imag_d != NULL && i < world_size; i++)
-        starneig_gather_vector_descr(i, imag_d);
+        starneig_vector_gather(i, imag_d);
 
     for (int i = 0; beta_d != NULL && i < world_size; i++)
-        starneig_gather_vector_descr(i, beta_d);
+        starneig_vector_gather(i, beta_d);
 
-    starneig_acquire_matrix_descr(A_d);
-    starneig_acquire_matrix_descr(B_d);
-    starneig_acquire_matrix_descr(Q_d);
-    starneig_acquire_matrix_descr(Z_d);
+    starneig_matrix_acquire(A_d);
+    starneig_matrix_acquire(B_d);
+    starneig_matrix_acquire(Q_d);
+    starneig_matrix_acquire(Z_d);
 
-    starneig_unregister_vector_descr(real_d);
-    starneig_unregister_vector_descr(imag_d);
-    starneig_unregister_vector_descr(beta_d);
+    starneig_vector_unregister(real_d);
+    starneig_vector_unregister(imag_d);
+    starneig_vector_unregister(beta_d);
 
-    starneig_free_vector_descr(real_d);
-    starneig_free_vector_descr(imag_d);
-    starneig_free_vector_descr(beta_d);
+    starneig_vector_free(real_d);
+    starneig_vector_free(imag_d);
+    starneig_vector_free(beta_d);
 
     return err;
 }

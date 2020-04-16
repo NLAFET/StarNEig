@@ -167,7 +167,7 @@ void starneig_hessenberg_cpu_compute_column(
     struct range_packing_info v_pi, y_pi;
     starpu_codelet_unpack_args(cl_args, &A_pi, &v_pi, &y_pi);
 
-    //STARNEIG_EVENT_BEGIN(&A_pi, starneig_event_red);
+    STARNEIG_EVENT_BEGIN(&A_pi, starneig_event_red);
 
     int k = 0;
 
@@ -200,9 +200,6 @@ void starneig_hessenberg_cpu_compute_column(
         int rbegin = MAX(     0,  A_pi.rbegin - i * A_pi.bm);
         int rend =   MIN(A_pi.bm, A_pi.rend   - i * A_pi.bm);
 
-        for (int l = rbegin; l < rend; l++)
-            y[l] = 0.0;
-
         //
         // loop over tile columns
         //
@@ -223,7 +220,7 @@ void starneig_hessenberg_cpu_compute_column(
         }
     }
 
-    //STARNEIG_EVENT_END();
+    STARNEIG_EVENT_END();
 }
 
 void starneig_hessenberg_cpu_finish_column(
@@ -287,219 +284,277 @@ void starneig_hessenberg_cpu_finish_column(
     T[i*ldT+i] = tau;
 }
 
-void starneig_hessenberg_cpu_update_trail(
+void starneig_hessenberg_cpu_update_trail_right(
     void *buffers[], void *cl_args)
 {
-    struct packing_info packing_info;
-    int nb, offset;
-    starpu_codelet_unpack_args(cl_args, &packing_info, &nb, &offset);
+    struct packing_info A_pi;
+    int nb, roffset, coffset;
+    starpu_codelet_unpack_args(cl_args, &A_pi, &nb, &roffset, &coffset);
 
-    STARNEIG_EVENT_BEGIN(&packing_info, starneig_event_red);
+    STARNEIG_EVENT_BEGIN(&A_pi, starneig_event_blue);
 
-    int m = packing_info.rend - packing_info.rbegin;
-    int n = packing_info.cend - packing_info.cbegin;
+    int m = A_pi.rend - A_pi.rbegin;
+    int n = A_pi.cend - A_pi.cbegin;
 
     double *V = (double *) STARPU_MATRIX_GET_PTR(buffers[0]);
     int ldV = STARPU_MATRIX_GET_LD(buffers[0]);
 
-    double *T = (double *) STARPU_MATRIX_GET_PTR(buffers[1]);
-    int ldT = STARPU_MATRIX_GET_LD(buffers[1]);
+    double *Y = (double *) STARPU_MATRIX_GET_PTR(buffers[1]);
+    int ldY = STARPU_MATRIX_GET_LD(buffers[1]);
 
-    double *Y = (double *) STARPU_MATRIX_GET_PTR(buffers[2]);
-    int ldY = STARPU_MATRIX_GET_LD(buffers[2]);
-
-    double *A = (double *) STARPU_MATRIX_GET_PTR(buffers[3]);
-    int nA = STARPU_MATRIX_GET_NY(buffers[3]);
-    int ldA = STARPU_MATRIX_GET_LD(buffers[3]);
-
-    double *W = (double *) STARPU_MATRIX_GET_PTR(buffers[4]);
-    int mW = STARPU_MATRIX_GET_NX(buffers[4]);
-    int ldW = STARPU_MATRIX_GET_LD(buffers[4]);
+    double *A = (double *) STARPU_MATRIX_GET_PTR(buffers[2]);
+    int ldA = STARPU_MATRIX_GET_LD(buffers[2]);
 
     struct starpu_matrix_interface **A_i =
-        (struct starpu_matrix_interface **)buffers + 5;
+        (struct starpu_matrix_interface **)buffers + 3;
 
-    int max_width = MIN(nA, mW);
+    // join tiles
+    starneig_join_window(&A_pi, ldA, A_i, A, 0);
 
+    // A <- Y V^T
+    cblas_dgemm(CblasColMajor, CblasNoTrans, CblasTrans,
+        m, n, nb, -1.0, Y+roffset, ldY, V+coffset+nb-1, ldV, 1.0, A, ldA);
 
-    for (int i = 0; i < n; i += max_width) {
-
-        //
-        // join tiles and update from the right
-        //
-
-        starneig_join_sub_window(
-            0, m, i, MIN(n, i+max_width), &packing_info, ldA, A_i, A, 0);
-
-        cblas_dgemm(CblasColMajor, CblasNoTrans, CblasTrans,
-            m, MIN(max_width, n-i), nb, -1.0,
-            Y, ldY, V+offset+i+nb-1, ldV, 1.0, A, ldA);
-
-        //
-        // update from the left
-        //
-
-        int width = MIN(max_width, n-i);
-        if (0 < width) {
-            for (int k = 0; k < nb; k++)
-                cblas_dcopy(width, A+k, ldA, W+k*ldW, 1);
-
-            cblas_dtrmm(
-                CblasColMajor, CblasRight, CblasLower, CblasNoTrans,
-                CblasUnit, width, nb, 1.0, V, ldV, W, ldW);
-
-            if (nb < m)
-                cblas_dgemm(
-                    CblasColMajor, CblasTrans, CblasNoTrans, width, nb,
-                    m-nb, 1.0, A+nb, ldA, V+nb, ldV, 1.0, W, ldW);
-
-            cblas_dtrmm(
-                CblasColMajor, CblasRight, CblasUpper, CblasNoTrans,
-                CblasNonUnit, width, nb, 1.0, T, ldT, W, ldW);
-
-            if (nb < m)
-                cblas_dgemm(
-                    CblasColMajor, CblasNoTrans, CblasTrans, m-nb, width,
-                    nb, -1.0, V+nb, ldV, W, ldW, 1.0, A+nb, ldA);
-
-            cblas_dtrmm(
-                CblasColMajor, CblasRight, CblasLower, CblasTrans,
-                CblasUnit, width, nb, 1.0, V, ldV, W, ldW);
-
-            for (int k = 0; k < nb; k++)
-                cblas_daxpy(width, -1.0, W+k*ldW, 1, A+k, ldA);
-        }
-
-        //
-        // copy tiles back
-        //
-
-        starneig_join_sub_window(
-            0, m, i, MIN(n, i+max_width), &packing_info, ldA, A_i, A, 1);
-    }
+    // split tiles
+    starneig_join_window(&A_pi, ldA, A_i, A, 1);
 
     STARNEIG_EVENT_END();
 }
 
-
-void starneig_hessenberg_cpu_update_right(void *buffers[], void *cl_args)
+void starneig_hessenberg_cpu_update_left_a(
+    void *buffers[], void *cl_args)
 {
-    struct packing_info packing_info;
-    int nb;
-    starpu_codelet_unpack_args(cl_args, &packing_info, &nb);
+    struct packing_info A_pi, W_pi;
+    int nb, offset;
+    starpu_codelet_unpack_args(cl_args, &A_pi, &W_pi, &nb, &offset);
 
-    STARNEIG_EVENT_BEGIN(&packing_info, starneig_event_blue);
+    STARNEIG_EVENT_BEGIN(&A_pi, starneig_event_green);
 
-    int m = packing_info.rend - packing_info.rbegin;
-    int n = packing_info.cend - packing_info.cbegin;
+    int m = A_pi.rend - A_pi.rbegin;
+    int n = A_pi.cend - A_pi.cbegin;
 
-    double *V = (double *) STARPU_MATRIX_GET_PTR(buffers[0]);
-    int ldV = STARPU_MATRIX_GET_LD(buffers[0]);
+    int k = 0;
 
-    double *T = (double *) STARPU_MATRIX_GET_PTR(buffers[1]);
-    int ldT = STARPU_MATRIX_GET_LD(buffers[1]);
+    double *V = (double *) STARPU_MATRIX_GET_PTR(buffers[k]);
+    int ldV = STARPU_MATRIX_GET_LD(buffers[k]);
+    k++;
 
-    double *X = (double *) STARPU_MATRIX_GET_PTR(buffers[2]);
-    int ldX = STARPU_MATRIX_GET_LD(buffers[2]);
+    double *T = (double *) STARPU_MATRIX_GET_PTR(buffers[k]);
+    int ldT = STARPU_MATRIX_GET_LD(buffers[k]);
+    k++;
 
-    double *W = (double *) STARPU_MATRIX_GET_PTR(buffers[3]);
-    int ldW = STARPU_MATRIX_GET_LD(buffers[3]);
+    double *A = (double *) STARPU_MATRIX_GET_PTR(buffers[k]);
+    int ldA = STARPU_MATRIX_GET_LD(buffers[k]);
+    k++;
 
-    struct starpu_matrix_interface **X_i =
-        (struct starpu_matrix_interface **)buffers + 4;
+    double *W = (double *) STARPU_MATRIX_GET_PTR(buffers[k]);
+    int ldW = STARPU_MATRIX_GET_LD(buffers[k]);
+    k++;
 
-    starneig_join_window(&packing_info, ldX, X_i, X, 0);
+    double *P = (double *) STARPU_MATRIX_GET_PTR(buffers[k]);
+    int ldP = STARPU_MATRIX_GET_LD(buffers[k]);
+    k++;
 
+    struct starpu_matrix_interface **A_i =
+        (struct starpu_matrix_interface **)buffers + k;
+    k += A_pi.handles;
+
+    struct starpu_matrix_interface **W_i =
+        (struct starpu_matrix_interface **)buffers + k;
+    k += W_pi.handles;
+
+    // join A tiles
+    starneig_join_window(&A_pi, ldA, A_i, A, 0);
+
+    // join W tiles
+    starneig_join_window(&W_pi, ldW, W_i, W, 0);
+
+    // P <- A^T * V
+    cblas_dgemm(
+        CblasColMajor, CblasTrans, CblasNoTrans, n, nb, m,
+        1.0, A, ldA, V+offset, ldV, 0.0, P, ldP);
+
+    // P <- P * T
+    cblas_dtrmm(
+        CblasColMajor, CblasRight, CblasUpper, CblasNoTrans,
+        CblasNonUnit, n, nb, 1.0, T, ldT, P, ldP);
+
+    // W <- W + P
     for (int j = 0; j < nb; j++)
-        cblas_dcopy(m, X+j*ldX, 1, W+j*ldW, 1);
+        cblas_daxpy(n, 1.0, P+j*ldP, 1, W+j*ldW, 1);
 
-    cblas_dtrmm(
-        CblasColMajor, CblasRight, CblasLower, CblasNoTrans, CblasUnit,
-        m, nb, 1.0, V, ldV, W, ldW);
-
-    if (nb < n)
-        cblas_dgemm(
-            CblasColMajor, CblasNoTrans, CblasNoTrans, m, nb, n-nb,
-            1.0, X+nb*ldX, ldX, V+nb, ldV, 1.0, W, ldW);
-
-    cblas_dtrmm(
-        CblasColMajor, CblasRight, CblasUpper, CblasNoTrans, CblasNonUnit,
-        m, nb, 1.0, T, ldT, W, ldW);
-
-    if (nb < n)
-        cblas_dgemm(
-            CblasColMajor, CblasNoTrans, CblasTrans, m, n-nb, nb,
-            -1.0, W, ldW, V+nb, ldV, 1.0, X+nb*ldX, ldX);
-
-    cblas_dtrmm(
-        CblasColMajor, CblasRight, CblasLower, CblasTrans, CblasUnit,
-        m, nb, 1.0, V, ldV, W, ldW);
-
-    for (int j = 0; j < nb; j++)
-        cblas_daxpy(m, -1.0, W+j*ldW, 1, X+j*ldX, 1);
-
-    starneig_join_window(&packing_info, ldX, X_i, X, 1);
+    // split W tiles
+    starneig_join_window(&W_pi, ldW, W_i, W, 1);
 
     STARNEIG_EVENT_END();
 }
 
-void starneig_hessenberg_cpu_update_left(void *buffers[], void *cl_args)
+void starneig_hessenberg_cpu_update_left_b(
+    void *buffers[], void *cl_args)
 {
-    struct packing_info packing_info;
-    int nb;
-    starpu_codelet_unpack_args(cl_args, &packing_info, &nb);
+    struct packing_info A_pi, W_pi;
+    int nb, offset;
+    starpu_codelet_unpack_args(cl_args, &A_pi, &W_pi, &nb, &offset);
 
     STARNEIG_EVENT_BEGIN(&packing_info, starneig_event_green);
 
-    int m = packing_info.rend - packing_info.rbegin;
-    int n = packing_info.cend - packing_info.cbegin;
+    int m = A_pi.rend - A_pi.rbegin;
+    int n = A_pi.cend - A_pi.cbegin;
 
-    double *V = (double *) STARPU_MATRIX_GET_PTR(buffers[0]);
-    int ldV = STARPU_MATRIX_GET_LD(buffers[0]);
+    int k = 0;
 
-    double *T = (double *) STARPU_MATRIX_GET_PTR(buffers[1]);
-    int ldT = STARPU_MATRIX_GET_LD(buffers[1]);
+    double *V = (double *) STARPU_MATRIX_GET_PTR(buffers[k]);
+    int ldV = STARPU_MATRIX_GET_LD(buffers[k]);
+    k++;
 
-    double *X = (double *) STARPU_MATRIX_GET_PTR(buffers[2]);
-    int ldX = STARPU_MATRIX_GET_LD(buffers[2]);
+    double *W = (double *) STARPU_MATRIX_GET_PTR(buffers[k]);
+    int ldW = STARPU_MATRIX_GET_LD(buffers[k]);
+    k++;
 
-    double *W = (double *) STARPU_MATRIX_GET_PTR(buffers[3]);
-    int ldW = STARPU_MATRIX_GET_LD(buffers[3]);
+    double *A = (double *) STARPU_MATRIX_GET_PTR(buffers[k]);
+    int ldA = STARPU_MATRIX_GET_LD(buffers[k]);
+    k++;
 
-    struct starpu_matrix_interface **X_i =
-        (struct starpu_matrix_interface **)buffers + 4;
+    struct starpu_matrix_interface **W_i =
+        (struct starpu_matrix_interface **)buffers + k;
+    k += W_pi.handles;
 
-    starneig_join_window(&packing_info, ldX, X_i, X, 0);
+    struct starpu_matrix_interface **A_i =
+        (struct starpu_matrix_interface **)buffers + k;
+    k += A_pi.handles;
 
+    // join A tiles
+    starneig_join_window(&A_pi, ldA, A_i, A, 0);
+
+    // join W tiles
+    starneig_join_window(&W_pi, ldW, W_i, W, 0);
+
+    //  A <- A - V * W^T
+    cblas_dgemm(
+        CblasColMajor, CblasNoTrans, CblasTrans, m, n,
+        nb, -1.0, V+offset, ldV, W, ldW, 1.0, A, ldA);
+
+    // split A tiles
+    starneig_join_window(&A_pi, ldA, A_i, A, 1);
+
+    STARNEIG_EVENT_END();
+}
+
+void starneig_hessenberg_cpu_update_right_a(
+    void *buffers[], void *cl_args)
+{
+    struct packing_info A_pi, W_pi;
+    int nb, offset;
+    starpu_codelet_unpack_args(cl_args, &A_pi, &W_pi, &nb, &offset);
+
+    STARNEIG_EVENT_BEGIN(&packing_info, starneig_event_blue);
+
+    int m = A_pi.rend - A_pi.rbegin;
+    int n = A_pi.cend - A_pi.cbegin;
+
+    int k = 0;
+
+    double *V = (double *) STARPU_MATRIX_GET_PTR(buffers[k]);
+    int ldV = STARPU_MATRIX_GET_LD(buffers[k]);
+    k++;
+
+    double *T = (double *) STARPU_MATRIX_GET_PTR(buffers[k]);
+    int ldT = STARPU_MATRIX_GET_LD(buffers[k]);
+    k++;
+
+    double *A = (double *) STARPU_MATRIX_GET_PTR(buffers[k]);
+    int ldA = STARPU_MATRIX_GET_LD(buffers[k]);
+    k++;
+
+    double *W = (double *) STARPU_MATRIX_GET_PTR(buffers[k]);
+    int ldW = STARPU_MATRIX_GET_LD(buffers[k]);
+    k++;
+
+    double *P = (double *) STARPU_MATRIX_GET_PTR(buffers[k]);
+    int ldP = STARPU_MATRIX_GET_LD(buffers[k]);
+    k++;
+
+    struct starpu_matrix_interface **A_i =
+        (struct starpu_matrix_interface **)buffers + k;
+    k += A_pi.handles;
+
+    struct starpu_matrix_interface **W_i =
+        (struct starpu_matrix_interface **)buffers + k;
+    k += W_pi.handles;
+
+    // join A tiles
+    starneig_join_window(&A_pi, ldA, A_i, A, 0);
+
+    // join W tiles
+    starneig_join_window(&W_pi, ldW, W_i, W, 0);
+
+    // P <- A * V
+    cblas_dgemm(
+        CblasColMajor, CblasNoTrans, CblasNoTrans, m, nb, n,
+        1.0, A, ldA, V+offset, ldV, 0.0, P, ldP);
+
+    // P <- P * T
+    cblas_dtrmm(
+        CblasColMajor, CblasRight, CblasUpper, CblasNoTrans,
+        CblasNonUnit, m, nb, 1.0, T, ldT, P, ldP);
+
+    // W <- W + P
     for (int j = 0; j < nb; j++)
-        cblas_dcopy(n, X+j, ldX, W+j*ldW, 1);
+        cblas_daxpy(m, 1.0, P+j*ldP, 1, W+j*ldW, 1);
 
-    cblas_dtrmm(
-        CblasColMajor, CblasRight, CblasLower, CblasNoTrans, CblasUnit,
-        n, nb, 1.0, V, ldV, W, ldW);
+    // split W tiles
+    starneig_join_window(&W_pi, ldW, W_i, W, 1);
 
-    if (nb < m)
-        cblas_dgemm(
-            CblasColMajor, CblasTrans, CblasNoTrans, n, nb, m-nb,
-            1.0, X+nb, ldX, V+nb, ldV, 1.0, W, ldW);
+    STARNEIG_EVENT_END();
+}
 
-    cblas_dtrmm(
-        CblasColMajor, CblasRight, CblasUpper, CblasNoTrans, CblasNonUnit,
-        n, nb, 1.0, T, ldT, W, ldW);
+void starneig_hessenberg_cpu_update_right_b(
+    void *buffers[], void *cl_args)
+{
+    struct packing_info A_pi, W_pi;
+    int nb, offset;
+    starpu_codelet_unpack_args(cl_args, &A_pi, &W_pi, &nb, &offset);
 
-    if (nb < m)
-        cblas_dgemm(
-            CblasColMajor, CblasNoTrans, CblasTrans, m-nb, n, nb,
-            -1.0, V+nb, ldV, W, ldW, 1.0, X+nb, ldX);
+    STARNEIG_EVENT_BEGIN(&packing_info, starneig_event_blue);
 
-    cblas_dtrmm(
-        CblasColMajor, CblasRight, CblasLower, CblasTrans, CblasUnit,
-        n, nb, 1.0, V, ldV, W, ldW);
+    int m = A_pi.rend - A_pi.rbegin;
+    int n = A_pi.cend - A_pi.cbegin;
 
-    for (int j = 0; j < nb; j++)
-        cblas_daxpy(n, -1.0, W+j*ldW, 1, X+j, ldX);
+    int k = 0;
 
-    starneig_join_window(&packing_info, ldX, X_i, X, 1);
+    double *V = (double *) STARPU_MATRIX_GET_PTR(buffers[k]);
+    int ldV = STARPU_MATRIX_GET_LD(buffers[k]);
+    k++;
+
+    double *W = (double *) STARPU_MATRIX_GET_PTR(buffers[k]);
+    int ldW = STARPU_MATRIX_GET_LD(buffers[k]);
+    k++;
+
+    double *A = (double *) STARPU_MATRIX_GET_PTR(buffers[k]);
+    int ldA = STARPU_MATRIX_GET_LD(buffers[k]);
+    k++;
+
+    struct starpu_matrix_interface **W_i =
+        (struct starpu_matrix_interface **)buffers + k;
+    k += W_pi.handles;
+
+    struct starpu_matrix_interface **A_i =
+        (struct starpu_matrix_interface **)buffers + k;
+    k += A_pi.handles;
+
+    // join A tiles
+    starneig_join_window(&A_pi, ldA, A_i, A, 0);
+
+    // join W tiles
+    starneig_join_window(&W_pi, ldW, W_i, W, 0);
+
+    //  A <- A - W * V
+    cblas_dgemm(
+        CblasColMajor, CblasNoTrans, CblasTrans, m, n,
+        nb, -1.0, W, ldW, V+offset, ldV, 1.0, A, ldA);
+
+    // split A tiles
+    starneig_join_window(&A_pi, ldA, A_i, A, 1);
 
     STARNEIG_EVENT_END();
 }

@@ -47,27 +47,17 @@
 extern "C" {
 #endif
 
-///
-/// @prief left_gemm_update codelet / CUDA implementation.
-///
-/// @param[in,out] buffers
-///         StarPU buffers.
-///
-/// @param[in] cl_arg
-///         StarPU arguments.
-///
 void starneig_cuda_left_gemm_update(void *buffers[], void *cl_args);
 
-///
-/// @prief right_gemm_update codelet / CUDA implementation.
-///
-/// @param[in,out] buffers
-///         StarPU buffers.
-///
-/// @param[in] cl_arg
-///         StarPU arguments.
-///
 void starneig_cuda_right_gemm_update(void *buffers[], void *cl_args);
+
+void starneig_cuda_set_vector_to_zero(void *buffers[], void *cl_args);
+
+void starneig_cuda_add_vectors(void *buffers[], void *cl_args);
+
+void starneig_cuda_set_matrix_to_zero(void *buffers[], void *cl_args);
+
+void starneig_cuda_add_matrices(void *buffers[], void *cl_args);
 
 #ifdef __cplusplus
 }  // extern "C"

@@ -46,10 +46,14 @@ void starneig_hessenberg_cpu_compute_column(void *buffers[], void *cl_args);
 
 void starneig_hessenberg_cpu_finish_column(void *buffers[], void *cl_args);
 
-void starneig_hessenberg_cpu_update_trail(void *buffers[], void *cl_args);
+void starneig_hessenberg_cpu_update_trail_right(void *buffers[], void *cl_args);
 
-void starneig_hessenberg_cpu_update_right(void *buffers[], void *cl_args);
+void starneig_hessenberg_cpu_update_left_a(void *buffers[], void *cl_args);
 
-void starneig_hessenberg_cpu_update_left(void *buffers[], void *cl_args);
+void starneig_hessenberg_cpu_update_left_b(void *buffers[], void *cl_args);
+
+void starneig_hessenberg_cpu_update_right_a(void *buffers[], void *cl_args);
+
+void starneig_hessenberg_cpu_update_right_b(void *buffers[], void *cl_args);
 
 #endif

@@ -56,7 +56,7 @@
 
 struct descr_cache_entry {
     int in_use;
-    starneig_matrix_descr_t descr;
+    starneig_matrix_t descr;
 };
 
 static struct descr_cache_entry descr_cache[DESCR_CACHE_SIZE] = { 0 };
@@ -83,18 +83,18 @@ static int single_owner_func(int i, int j, void *arg)
     return * (int *) arg;
 }
 
-starneig_matrix_descr_t starneig_mpi_cache_convert(
+starneig_matrix_t starneig_mpi_cache_convert(
     int bm, int bn, enum starneig_matrix_type fill,
     starneig_distr_matrix_t matrix, mpi_info_t mpi)
 {
-    starneig_matrix_descr_t descr =
+    starneig_matrix_t descr =
         starneig_mpi_cache_convert_and_release(bm, bn, fill, matrix, mpi);
-    starneig_acquire_matrix_descr(descr);
+    starneig_matrix_acquire(descr);
 
     return descr;
 }
 
-starneig_matrix_descr_t starneig_mpi_cache_convert_and_release(
+starneig_matrix_t starneig_mpi_cache_convert_and_release(
     int bm, int bn, enum starneig_matrix_type fill,
     starneig_distr_matrix_t matrix, mpi_info_t mpi)
 {
@@ -104,13 +104,13 @@ starneig_matrix_descr_t starneig_mpi_cache_convert_and_release(
         int _bm = STARNEIG_MATRIX_BM(entry->descr);
         int _bn = STARNEIG_MATRIX_BN(entry->descr);
         if (bm == _bm && bn == _bn) {
-            starneig_release_matrix_descr(entry->descr);
+            starneig_matrix_release(entry->descr);
             return entry->descr;
         }
         starneig_mpi_cache_remove(matrix);
     }
 
-    starneig_matrix_descr_t descr = starneig_init_matrix_descr(
+    starneig_matrix_t descr = starneig_matrix_init(
         matrix->rows, matrix->cols, bm, bn,
         matrix->row_blksz / bm, matrix->col_blksz / bn,
         starneig_distr_matrix_get_elemsize(matrix),
@@ -118,7 +118,7 @@ starneig_matrix_descr_t starneig_mpi_cache_convert_and_release(
         matrix->distr->arg, mpi);
 
     for (int i = 0; i < matrix->block_count; i++)
-        starneig_register_section_with_matrix_descr(
+        starneig_matrix_register_section(
             fill,
             matrix->blocks[i].glo_row / matrix->row_blksz,
             matrix->blocks[i].glo_col / matrix->col_blksz,
@@ -150,9 +150,9 @@ void starneig_mpi_cache_remove(starneig_distr_matrix_t matrix)
         return;
 
     if (descr_cache[matrix->descr].descr != NULL) {
-        starneig_release_matrix_descr(descr_cache[matrix->descr].descr);
-        starneig_unregister_matrix_descr(descr_cache[matrix->descr].descr);
-        starneig_free_matrix_descr(descr_cache[matrix->descr].descr);
+        starneig_matrix_release(descr_cache[matrix->descr].descr);
+        starneig_matrix_unregister(descr_cache[matrix->descr].descr);
+        starneig_matrix_free(descr_cache[matrix->descr].descr);
     }
     descr_cache[matrix->descr].in_use = 0;
     descr_cache[matrix->descr].descr = NULL;
@@ -164,9 +164,9 @@ void starneig_mpi_cache_clear()
 {
     for (int i = 0; i < DESCR_CACHE_SIZE; i++) {
         if (descr_cache[i].in_use && descr_cache[i].descr != NULL) {
-            starneig_release_matrix_descr(descr_cache[i].descr);
-            starneig_unregister_matrix_descr(descr_cache[i].descr);
-            starneig_free_matrix_descr(descr_cache[i].descr);
+            starneig_matrix_release(descr_cache[i].descr);
+            starneig_matrix_unregister(descr_cache[i].descr);
+            starneig_matrix_free(descr_cache[i].descr);
         }
         descr_cache[i].descr = NULL;
     }
@@ -479,11 +479,11 @@ void starneig_distr_matrix_copy_region(
 
     mpi_info_t mpi = starneig_mpi_get_info();
 
-    starneig_matrix_descr_t dest_descr =
+    starneig_matrix_t dest_descr =
         starneig_mpi_cache_convert_and_release(
             dest_tile_size, dest_tile_size, MATRIX_TYPE_FULL,
             dest, mpi);
-    starneig_matrix_descr_t source_descr =
+    starneig_matrix_t source_descr =
         starneig_mpi_cache_convert_and_release(
             source_tile_size, source_tile_size, MATRIX_TYPE_FULL,
             source, mpi);
@@ -503,8 +503,8 @@ void starneig_distr_matrix_copy_region(
         starpu_mpi_barrier(starneig_mpi_get_comm());
     }
 
-    starneig_acquire_matrix_descr(dest_descr);
-    starneig_acquire_matrix_descr(source_descr);
+    starneig_matrix_acquire(dest_descr);
+    starneig_matrix_acquire(source_descr);
 
     starpu_task_wait_for_all();
     starpu_mpi_cache_flush_all_data(starneig_mpi_get_comm());

@@ -76,50 +76,50 @@ static starneig_error_t schur(
     // register, partition and pack
     //
 
-    starneig_matrix_descr_t A_d = starneig_register_matrix_descr(
+    starneig_matrix_t A_d = starneig_matrix_register(
         MATRIX_TYPE_FULL, n, n,
         conf->tile_size, conf->tile_size, -1, -1, ldA, sizeof(double),
         NULL, NULL, A, NULL);
     STARNEIG_EVENT_SET_LABEL(A_d, 'A');
 
-    starneig_matrix_descr_t B_d = NULL;
+    starneig_matrix_t B_d = NULL;
     if (B != NULL) {
-        B_d = starneig_register_matrix_descr(
+        B_d = starneig_matrix_register(
             MATRIX_TYPE_FULL, n, n,
             conf->tile_size, conf->tile_size, -1, -1, ldB, sizeof(double),
             NULL, NULL, B, NULL);
         STARNEIG_EVENT_SET_LABEL(B_d, 'B');
     }
 
-    starneig_matrix_descr_t Q_d = NULL;
+    starneig_matrix_t Q_d = NULL;
     if (Q != NULL) {
-        Q_d = starneig_register_matrix_descr(
+        Q_d = starneig_matrix_register(
             MATRIX_TYPE_FULL, n, n,
             conf->tile_size, conf->tile_size, -1, -1, ldQ, sizeof(double),
             NULL, NULL, Q, NULL);
         STARNEIG_EVENT_SET_LABEL(Q_d, 'Q');
     }
 
-    starneig_matrix_descr_t Z_d = NULL;
+    starneig_matrix_t Z_d = NULL;
     if (Z != NULL) {
-        Z_d = starneig_register_matrix_descr(
+        Z_d = starneig_matrix_register(
             MATRIX_TYPE_FULL, n, n,
             conf->tile_size, conf->tile_size, -1, -1, ldZ, sizeof(double),
             NULL, NULL, Z, NULL);
         STARNEIG_EVENT_SET_LABEL(Z_d, 'Z');
     }
 
-    starneig_vector_descr_t real_d = NULL;
+    starneig_vector_t real_d = NULL;
     if (real != NULL)
         real_d = starneig_init_matching_vector_descr(
             A_d, sizeof(double), real, NULL);
 
-    starneig_vector_descr_t imag_d = NULL;
+    starneig_vector_t imag_d = NULL;
     if (imag != NULL)
         imag_d = starneig_init_matching_vector_descr(
             A_d, sizeof(double), imag, NULL);
 
-    starneig_vector_descr_t beta_d = NULL;
+    starneig_vector_t beta_d = NULL;
     if (beta != NULL)
         beta_d = starneig_init_matching_vector_descr(
             A_d, sizeof(double), beta, NULL);
@@ -137,21 +137,21 @@ static starneig_error_t schur(
     // finalize
     //
 
-    starneig_unregister_matrix_descr(A_d);
-    starneig_unregister_matrix_descr(B_d);
-    starneig_unregister_matrix_descr(Q_d);
-    starneig_unregister_matrix_descr(Z_d);
-    starneig_unregister_vector_descr(real_d);
-    starneig_unregister_vector_descr(imag_d);
-    starneig_unregister_vector_descr(beta_d);
+    starneig_matrix_unregister(A_d);
+    starneig_matrix_unregister(B_d);
+    starneig_matrix_unregister(Q_d);
+    starneig_matrix_unregister(Z_d);
+    starneig_vector_unregister(real_d);
+    starneig_vector_unregister(imag_d);
+    starneig_vector_unregister(beta_d);
 
-    starneig_free_matrix_descr(A_d);
-    starneig_free_matrix_descr(B_d);
-    starneig_free_matrix_descr(Q_d);
-    starneig_free_matrix_descr(Z_d);
-    starneig_free_vector_descr(real_d);
-    starneig_free_vector_descr(imag_d);
-    starneig_free_vector_descr(beta_d);
+    starneig_matrix_free(A_d);
+    starneig_matrix_free(B_d);
+    starneig_matrix_free(Q_d);
+    starneig_matrix_free(Z_d);
+    starneig_vector_free(real_d);
+    starneig_vector_free(imag_d);
+    starneig_vector_free(beta_d);
 
     STARNEIG_EVENT_STORE(n, "trace.dat");
     STARNEIG_EVENT_FREE();

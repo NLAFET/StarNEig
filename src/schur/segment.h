@@ -136,7 +136,7 @@ struct segment {
     /// when the segment is in the state SEGMENT_AED_DEFLATE, this handle
     /// encapsulates the spike base (the first row from AED
     /// transformation  matrix)
-    starneig_vector_descr_t aed_deflate_base;
+    starneig_vector_t aed_deflate_base;
 
     /// when the segment is in the state SEGMENT_BULGES, this variable
     /// stores the number of computed shifts
@@ -144,14 +144,14 @@ struct segment {
 
     /// when the segment is in the state SEGMENT_BULGES, this vectors
     /// stores the real parts of the computed shifts
-    starneig_vector_descr_t shifts_real;
+    starneig_vector_t shifts_real;
 
     /// when the segment is in the state SEGMENT_BULGES, this vectors
     /// stores the imaginary parts of the computed shifts
-    starneig_vector_descr_t shifts_imag;
+    starneig_vector_t shifts_imag;
 
     /// bulge chasing aftermath vector
-    starneig_vector_descr_t bulges_aftermath;
+    starneig_vector_t bulges_aftermath;
 
     /// peaks submitted task count (recorded just after the bulges have
     /// been inserted)

@@ -192,7 +192,7 @@ void starneig_pack_cached_scratch_matrix(
 ///
 void starneig_pack_range(
     enum starpu_data_access_mode mode, int begin, int end,
-    starneig_vector_descr_t vector, struct packing_helper *helper,
+    starneig_vector_t vector, struct packing_helper *helper,
     struct range_packing_info *info, packing_mode_flag_t flag);
 
 ///
@@ -211,7 +211,7 @@ void starneig_pack_range(
 void starneig_pack_window(
     enum starpu_data_access_mode mode,
     int rbegin, int rend, int cbegin, int cend,
-    starneig_matrix_descr_t matrix, struct packing_helper *helper,
+    starneig_matrix_t matrix, struct packing_helper *helper,
     struct packing_info *info, packing_mode_flag_t flag);
 
 ///
@@ -227,7 +227,7 @@ void starneig_pack_window(
 ///
 void starneig_pack_diag_window(
     enum starpu_data_access_mode mode, int begin, int end,
-    starneig_matrix_descr_t matrix, struct packing_helper *helper,
+    starneig_matrix_t matrix, struct packing_helper *helper,
     struct packing_info *info, packing_mode_flag_t flag);
 
 ////////////////////////////////////////////////////////////////////////////////

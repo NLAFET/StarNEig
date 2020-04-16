@@ -45,9 +45,10 @@ extern "C" {
 #endif
 
 void starneig_hessenberg_cuda_compute_column(void *buffers[], void *cl_args);
-void starneig_hessenberg_cuda_update_trail(void *buffers[], void *cl_args);
-void starneig_hessenberg_cuda_update_right(void *buffers[], void *cl_args);
-void starneig_hessenberg_cuda_update_left(void *buffers[], void *cl_args);
+void starneig_hessenberg_cuda_update_trail_right(
+    void *buffers[], void *cl_args);
+void starneig_hessenberg_cuda_update_left_a(void *buffers[], void *cl_args);
+void starneig_hessenberg_cuda_update_left_b(void *buffers[], void *cl_args);
 
 #ifdef __cplusplus
 }  // extern "C"

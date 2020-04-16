@@ -49,7 +49,7 @@
 #include <stddef.h>
 
 int starneig_is_valid_matrix(
-    int n, int tile_size, const starneig_matrix_descr_t descr)
+    int n, int tile_size, const starneig_matrix_t descr)
 {
     return descr == NULL || (
         STARNEIG_MATRIX_N(descr) == n &&
@@ -80,21 +80,21 @@ int starneig_calc_update_size(
 #ifdef STARNEIG_ENABLE_MPI
 
 struct matrix_to_vector_distr_arg {
-    const starneig_matrix_descr_t descr;
+    const starneig_matrix_t descr;
     int tile_size;
 };
 
 static int matrix_to_vector_distr(int i, void const *ptr)
 {
     struct matrix_to_vector_distr_arg const *arg = ptr;
-    return starneig_get_elem_owner_matrix_descr(
+    return starneig_matrix_get_elem_owner(
         i*arg->tile_size, i*arg->tile_size, arg->descr);
 }
 
 #endif
 
-starneig_vector_descr_t starneig_init_matching_vector_descr(
-    const starneig_matrix_descr_t descr, size_t elemsize, void *vec,
+starneig_vector_t starneig_init_matching_vector_descr(
+    const starneig_matrix_t descr, size_t elemsize, void *vec,
     mpi_info_t mpi)
 {
     int tile_size = starneig_largers_factor(
@@ -117,7 +117,7 @@ starneig_vector_descr_t starneig_init_matching_vector_descr(
     }
 #endif
 
-    return starneig_register_vector_descr(
+    return starneig_vector_register(
         STARNEIG_MATRIX_M(descr), tile_size, elemsize, distrib, distarg,
         vec, mpi);
 }
@@ -136,10 +136,10 @@ static void extract_subdiagonals_func(
         mask[i] = A[(cbegin+i-1)*ldA+rbegin+i] != 0.0;
 }
 
-starneig_vector_descr_t starneig_extract_subdiagonals(
-    starneig_matrix_descr_t descr, mpi_info_t mpi)
+starneig_vector_t starneig_extract_subdiagonals(
+    starneig_matrix_t descr, mpi_info_t mpi)
 {
-    starneig_vector_descr_t ret = starneig_init_matching_vector_descr(
+    starneig_vector_t ret = starneig_init_matching_vector_descr(
         descr, sizeof(int), NULL, mpi);
 
     starneig_insert_scan_diagonal(
@@ -149,32 +149,34 @@ starneig_vector_descr_t starneig_extract_subdiagonals(
     return ret;
 }
 
-void * starneig_acquire_vector_descr(starneig_vector_descr_t descr)
+void * starneig_acquire_vector_descr(starneig_vector_t descr)
 {
 #ifdef STARNEIG_ENABLE_MPI
-    if (STARNEIG_VECTOR_DISTRIBUTED(descr)) {
+    if (starneig_vector_is_distributed(descr)) {
         int world_size = starneig_mpi_get_comm_size();
         for (int i = 0; i < world_size; i++)
-            starneig_gather_vector_descr(i, descr);
+            starneig_vector_gather(i, descr);
     }
 #endif
 
-    void *ret =
-        malloc(STARNEIG_VECTOR_M(descr)*STARNEIG_VECTOR_ELEMSIZE(descr));
+    void *ret = malloc(
+        starneig_vector_get_rows(descr)*starneig_vector_get_elemsize(descr));
 
-    int tiles = divceil(STARNEIG_VECTOR_M(descr), STARNEIG_VECTOR_BM(descr));
+    int tiles = divceil(
+        starneig_vector_get_rows(descr), starneig_vector_get_tile_size(descr));
     for (int i = 0; i < tiles; i++) {
         starpu_data_handle_t handle =
-            starneig_get_tile_from_vector_descr(i, descr);
+            starneig_vector_get_tile(i, descr);
         starpu_data_acquire(handle, STARPU_R);
         memcpy(
-            ret + (size_t)i * STARNEIG_VECTOR_BM(descr) *
-                STARNEIG_VECTOR_ELEMSIZE(descr),
+            ret + (size_t)i * starneig_vector_get_tile_size(descr) *
+                starneig_vector_get_elemsize(descr),
             starpu_data_get_local_ptr(handle),
             MIN(
-                STARNEIG_VECTOR_BM(descr),
-                STARNEIG_VECTOR_M(descr) - i * STARNEIG_VECTOR_BM(descr)) *
-                    STARNEIG_VECTOR_ELEMSIZE(descr));
+                starneig_vector_get_tile_size(descr),
+                starneig_vector_get_rows(descr)
+                    - i * starneig_vector_get_tile_size(descr)) *
+                        starneig_vector_get_elemsize(descr));
 
         starpu_data_release(handle);
     }

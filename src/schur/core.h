@@ -82,13 +82,13 @@
 ///
 starneig_error_t starneig_schur_insert_tasks(
     struct starneig_schur_conf const *conf,
-    starneig_matrix_descr_t matrix_q,
-    starneig_matrix_descr_t matrix_z,
-    starneig_matrix_descr_t matrix_a,
-    starneig_matrix_descr_t matrix_b,
-    starneig_vector_descr_t eigen_real,
-    starneig_vector_descr_t eigen_imag,
-    starneig_vector_descr_t eigen_beta,
+    starneig_matrix_t matrix_q,
+    starneig_matrix_t matrix_z,
+    starneig_matrix_t matrix_a,
+    starneig_matrix_t matrix_b,
+    starneig_vector_t eigen_real,
+    starneig_vector_t eigen_imag,
+    starneig_vector_t eigen_beta,
     mpi_info_t mpi);
 
 #endif
