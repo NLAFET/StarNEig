@@ -115,6 +115,7 @@ List of StarNEig library specific configuration options:
  - `STARNEIG_ENABLE_FULL_TESTS`: Enables additional tests (`OFF` by default).
  - `STARNEIG_ENABLE_REFERENCE`: : Enables reference MPI implementations (`OFF`
    by default).
+    - A user must initialize and update the included GIT submodules.
 
  - `STARNEIG_DISABLE_MPI`: Explicitly disables the MPI support even when the
    system would support it (`OFF` by default).
@@ -128,9 +129,10 @@ List of StarNEig library specific configuration options:
    default).
  - `STARNEIG_ENABLE_EVENTS`: Enable event traces (`OFF` by default).
  - `STARNEIG_ENABLE_EVENT_PARSER`: Enable event parser (`OFF` by default).
- - `STARNEIG_ENABLE_SANITY_CHECKS`: Enables additional satiny checks. These
-   checks are very expensive and should not be enabled unless absolutely
-   necessary (`OFF` by default).
+ - `STARNEIG_ENABLE_SANITY_CHECKS`: Enables additional satiny checks. (`OFF` by
+   default).
+    - These checks are very expensive and should not be enabled unless
+      absolutely necessary.
 
  - `STARNEIG_ENABLE_PRUNING`: Enable task graph pruning (`ON` by default).
  - `STARNEIG_ENABLE_MRM`: Enable multiple linear regression performance models
