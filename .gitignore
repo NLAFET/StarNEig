@@ -1,5 +1,4 @@
 /*
-!/.github/
 !/docs/
 !/examples/
 !/misc/
@@ -10,6 +9,7 @@
 !/AUTHORS.md
 !/CHANGELOG.md
 !/CMakeLists.txt
+!/CONTRIBUTING.md
 !/LICENSE.md
 !/README.md
 !/version.txt
