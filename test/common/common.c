@@ -46,6 +46,7 @@
 #endif
 
 static unsigned long seed = 2019;
+static int pinning = 1;
 
 void init_prand(unsigned int _seed)
 {
@@ -87,13 +88,21 @@ void compare_print_matrix(
     printf("\n");
 }
 
+void set_pinning(int value)
+{
+    pinning = value;
+}
+
 void * alloc_matrix(
     int m, int n, size_t elemsize, size_t *ld)
 {
     *ld = divceil(m, 64/elemsize)*(64/elemsize);
     void *ptr;
 #ifdef STARNEIG_ENABLE_CUDA
-    cudaHostAlloc(&ptr, n*(*ld)*elemsize, cudaHostRegisterPortable);
+    if (pinning)
+        cudaHostAlloc(&ptr, n*(*ld)*elemsize, cudaHostRegisterPortable);
+    else
+        ptr = aligned_alloc(64, n*(*ld)*elemsize);
 #else
     ptr = aligned_alloc(64, n*(*ld)*elemsize);
 #endif
@@ -103,7 +112,10 @@ void * alloc_matrix(
 void free_matrix(void *matrix)
 {
 #ifdef STARNEIG_ENABLE_CUDA
-    cudaFree(matrix);
+    if (pinning)
+        cudaFree(matrix);
+    else
+        free(matrix);
 #else
     free(matrix);
 #endif

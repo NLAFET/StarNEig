@@ -138,25 +138,21 @@ static READ_FROM_ARGV(read_experiment, struct experiment_descr const,
 ///
 static void print_usage(int argc, char * const *argv)
 {
-#ifdef STARNEIG_ENABLE_MPI
     printf(
         "Usage: %s (options)\n"
         "\n"
         "Global options:\n"
+#ifdef STARNEIG_ENABLE_MPI
         "  --mpi -- Enable MPI\n"
         "  --mpi-mode [serialized,multiple] -- MPI mode\n"
-        "  --seed (num) -- Random number generator seed\n"
-        "  --experiment (experiment) -- Experiment module\n",
-        argv[0]);
-#else
-    printf(
-        "Usage: %s (options)\n"
-        "\n"
-        "Global options:\n"
-        "  --seed (num) -- Random number generator seed\n"
-        "  --experiment (experiment) -- Experiment module\n",
-        argv[0]);
 #endif
+#ifdef STARNEIG_ENABLE_CUDA
+        "  --no-pinning -- Disable memory pinning\n"
+#endif
+        "  --seed (num) -- Random number generator seed\n"
+        "  --experiment (experiment) -- Experiment module\n",
+        argv[0]);
+
     thread_print_usage(argc, argv);
 
     print_avail_experiments();
@@ -277,6 +273,20 @@ int main(int argc, char * const *argv)
     }
 #endif
 
+#ifdef STARNEIG_ENABLE_CUDA
+
+    int disable_pinning = read_opt("--no-pinning", argc, argv, argr);
+    if (disable_pinning) {
+        set_pinning(0);
+        starneig_node_disable_pinning();
+    }
+    else {
+        set_pinning(1);
+        starneig_node_enable_pinning();
+    }
+
+#endif
+
     //
     // read/generate random seed
     //
@@ -340,6 +350,10 @@ int main(int argc, char * const *argv)
         print_multiarg(
             "--mpi-mode", argc, argv, "serialized", "multiple", NULL);
     }
+#endif
+#ifdef STARNEIG_ENABLE_CUDA
+    if (disable_pinning)
+        printf(" --disable-pinning");
 #endif
     printf(" --seed %d --experiment %s", seed, experiment->name);
 
