@@ -69,6 +69,9 @@ extern "C" {
 ///
 /// @brief Defined if the starneig_SEP_DM_Hessenberg() function exists.
 ///
+/// @deprecated The STARNEIG_SEP_DM_HESSENBERG precompiler define is deprecated
+/// and will be removed in the next release of the library.
+///
 #cmakedefine STARNEIG_SEP_DM_HESSENBERG
 
 ///
@@ -79,6 +82,9 @@ extern "C" {
 
 ///
 /// @brief Defined if the starneig_SEP_DM_Reduce() function exists.
+///
+/// @deprecated The STARNEIG_SEP_DM_REDUCE precompiler define is deprecated and
+/// will be removed in the next release of the library.
 ///
 #cmakedefine STARNEIG_SEP_DM_REDUCE
 
