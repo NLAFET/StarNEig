@@ -121,7 +121,7 @@ Library dependencies:
 - LAPACK
 - MPI (optional)
 - CUDA (optional)
-- ScaLAPACK (optional)
+- ScaLAPACK + BLACS (optional)
 
 Test program and example code dependencies:
 
