@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Get the hash
-        run: echo ::set-env name=HASH::${GITHUB_SHA:0:10}
+        run: echo ::set-env name=SHORT_HASH::${GITHUB_SHA:0:10}
 
       - name: Checkout
         uses: actions/checkout@v2
@@ -22,7 +22,7 @@ jobs:
 
       - name: Built manual
         run: |
-          echo "${{ env.HASH }}" > version.txt
+          echo "latest (${{ env.SHORT_HASH }})" > version.txt
           cmake docs/ && make
           mkdir latest && cp -r html starneig_manual.pdf latest/
 
@@ -34,4 +34,4 @@ jobs:
           BRANCH: gh-pages
           FOLDER: latest
           TARGET_FOLDER: latest
-          COMMIT_MESSAGE: "Upload ${{ env.HASH }} documentation"
+          COMMIT_MESSAGE: "Upload ${{ env.SHORT_HASH }} documentation"
