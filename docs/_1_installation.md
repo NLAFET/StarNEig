@@ -2,7 +2,7 @@
 
 ## Documentation
 
-The user manual can be generated independently from the rest of the library.
+This user manual can be generated independently from the rest of the library.
 
 Documentation dependencies:
 
@@ -13,21 +13,21 @@ Documentation dependencies:
 It is recommended that a user builds the documentation in a separate build
 directory:
 ```
-$ cd path_to_the_root_directory/
+$ cd path_to_the_top_directory/
 $ mkdir build_doc
 $ cd build_doc/
 $ cmake ../doc/
 $ make
 ```
 
-The PDF documentation is copied to `build_doc/starneig_manual.pdf`. The HTML
+The PDF documentation is copied to `build_doc/starneig_manual.pdf` and the HTML
 documentation is available at `build_doc/html` directory.
 
 ## Dependencies
 
 Library dependencies:
 
- - Linux (not tested in Window or Mac OS X)
+ - Linux
  - CMake 3.3 or newer
  - Portable Hardware Locality (hwloc)
  - Starpu 1.2 or 1.3
@@ -45,10 +45,10 @@ Test program and example code dependencies:
  - GNU Scientific Library (optional)
  - MAGMA (optional)
 
-### StarPU 1.2.8 installation
+### StarPU 1.3.3 installation
 
- 1. Download StarPU 1.2.8 (or newer) from http://starpu.gforge.inria.fr/files/
- 2. Unzip the package and create/enter directory `starpu-1.2.8/build`
+ 1. Download StarPU 1.3.3 (or newer) from http://starpu.gforge.inria.fr/files/
+ 2. Unzip the package and create/enter directory `starpu-1.3.3/build`
  3. Configure: `$ ../configure`
  4. Compile: `$ make`
  5. Install: `$ sudo make install`
@@ -70,7 +70,7 @@ http://starpu.gforge.inria.fr/doc/html/BuildingAndInstallingStarPU.html
 
 It is recommended that a user builds the library in a separate build directory:
 ```
-$ cd path_to_the_root_directory/
+$ cd path_to_the_top_directory/
 $ mkdir build
 $ cd build
 ```
@@ -91,7 +91,7 @@ example codes and documentation generation can be enabled by setting the
 ```
 $ cmake -DSTARNEIG_ENABLE_EXAMPLES=ON -DSTARNEIG_ENABLE_DOCS=ON ../
 ```
-The installation path can be changed during the configuration phase:
+The *installation path* can be changed during the configuration phase:
 ```
 $ cmake -DCMAKE_INSTALL_PREFIX=/path/to/somewhere/ ../
 ```
@@ -99,7 +99,7 @@ $ cmake -DCMAKE_INSTALL_PREFIX=/path/to/somewhere/ ../
 @remark It may sometimes be necessary to compile CUDA source files with a
 different compiler than what `cmake` uses by default. For example, some CUDA
 version do not support GCC compilers that are newer than GCC 5 release series.
-In that case `cmake` can be configured to use GCC 5:
+In that case `cmake` can be configured to use a GCC 5 release series compiler:
 ```
 $ cmake -DCUDA_HOST_COMPILER=/usr/bin/gcc-5 -DCUDA_PROPAGATE_HOST_FLAGS=OFF ../
 ```
@@ -119,10 +119,13 @@ List of StarNEig library specific configuration options:
 
  - `STARNEIG_DISABLE_MPI`: Explicitly disables the MPI support even when the
    system would support it (`OFF` by default).
+    - Must be set before `cmake` is run for the first time.
  - `STARNEIG_DISABLE_CUDA`: Explicitly disables the CUDA support even when the
    system would support it (`OFF` by default).
+    - Must be set before `cmake` is run for the first time.
  - `STARNEIG_DISABLE_BLACS`: Explicitly disables the ScaLAPACK/BLACS support
    even when the system would support it (`OFF` by default).
+    - Must be set before `cmake` is run for the first time.
 
  - `STARNEIG_ENABLE_MESSAGES`: Enable basic verbose messages (`ON` by default).
  - `STARNEIG_ENABLE_VERBOSE`: Enable additional verbose messages (`OFF` by
@@ -181,10 +184,10 @@ the used libraries:
 The library (and other components) are compiled with the `make` command:
 ```
 $ make
-Scanning dependencies of target starneig
-[  1%] Building C object src/CMakeFiles/starneig.dir/common/combined.c.o
-[  2%] Building C object src/CMakeFiles/starneig.dir/common/common.c.o
 ...
+[ 99%] Building C object test/CMakeFiles/starneig-test.dir/3rdparty/matrixmarket/mmio.c.o
+[100%] Linking C executable ../starneig-test
+[100%] Built target starneig-test
 ```
 
 ## Test
@@ -218,4 +221,4 @@ The library and the related header files are installed by executing:
 ```
 $ sudo make install
 ```
-This also installs `starneig.pc` configuration file.
+This also installs the `starneig.pc` configuration file.

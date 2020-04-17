@@ -102,7 +102,7 @@ $ cmake ../docs/
 $ make
 ```
 
-The PDF documentation is copied to `build_doc/starneig_manual.pdf`. The HTML
+The PDF documentation is copied to `build_doc/starneig_manual.pdf` and the HTML
 documentation is available at `build_doc/html` directory.
 
 ## Quickstart guide
