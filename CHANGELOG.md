@@ -1,4 +1,6 @@
 ### v0.2.0-beta.1:
+ - New experimental Hessenberg reduction code with distributed memory and
+   multi-GPU support.
 
 ### v0.1.0:
  - First stable release of the library.

@@ -182,13 +182,8 @@ CHECK_SYMBOL_EXISTS (
 CHECK_SYMBOL_EXISTS (
     STARNEIG_ENABLE_CUDA starneig/configuration.h STARNEIG_ENABLE_CUDA)
 CHECK_SYMBOL_EXISTS (
-    STARNEIG_SEP_DM_HESSENBERG starneig/configuration.h
-    STARNEIG_SEP_DM_HESSENBERG)
-CHECK_SYMBOL_EXISTS (
     STARNEIG_GEP_DM_HESSENBERGTRIANGULAR starneig/configuration.h
     STARNEIG_GEP_DM_HESSENBERGTRIANGULAR)
-CHECK_SYMBOL_EXISTS (
-    STARNEIG_SEP_DM_REDUCE starneig/configuration.h STARNEIG_SEP_DM_REDUCE)
 CHECK_SYMBOL_EXISTS (
     STARNEIG_GEP_DM_REDUCE starneig/configuration.h STARNEIG_GEP_DM_REDUCE)
 
@@ -319,9 +314,7 @@ foreach (alg hessenberg schur reorder eigenvectors full-chain)
         COMMAND ${EXECUTABLE_OUTPUT_PATH}/starneig-test --experiment ${alg}
             --n 5000 --solver starneig-simple --keep-going ${extra_args})
 
-    if (STARNEIG_ENABLE_MPI AND NOT alg STREQUAL "eigenvectors" AND
-    NOT (NOT STARNEIG_SEP_DM_HESSENBERG AND alg STREQUAL "hessenberg") AND
-    NOT (NOT STARNEIG_SEP_DM_REDUCE AND alg STREQUAL "full-chain"))
+    if (STARNEIG_ENABLE_MPI AND NOT alg STREQUAL "eigenvectors")
         add_test(
             NAME simple-${alg}-mpi
             COMMAND mpirun -n 4 ${EXECUTABLE_OUTPUT_PATH}/starneig-test --mpi

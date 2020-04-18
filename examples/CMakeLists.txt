@@ -69,18 +69,13 @@ set (CMAKE_REQUIRED_INCLUDES
 CHECK_SYMBOL_EXISTS (
     STARNEIG_ENABLE_MPI starneig/configuration.h STARNEIG_ENABLE_MPI)
 
-CHECK_SYMBOL_EXISTS (STARNEIG_SEP_DM_HESSENBERG
-    starneig/configuration.h STARNEIG_SEP_DM_HESSENBERG)
-
 CHECK_SYMBOL_EXISTS (STARNEIG_GEP_DM_HESSENBERGTRIANGULAR
     starneig/configuration.h STARNEIG_GEP_DM_HESSENBERGTRIANGULAR)
 
 if (STARNEIG_ENABLE_MPI)
 
-    if (STARNEIG_SEP_DM_HESSENBERG)
-        add_executable (sep-dm-full-chain sep_dm_full_chain.c validate.c)
-        target_link_libraries (sep-dm-full-chain ${STARNEIG_LIBRARIES})
-    endif ()
+    add_executable (sep-dm-full-chain sep_dm_full_chain.c validate.c)
+    target_link_libraries (sep-dm-full-chain ${STARNEIG_LIBRARIES})
 
     if (STARNEIG_GEP_DM_HESSENBERGTRIANGULAR)
         add_executable (gep-dm-full-chain gep_dm_full_chain.c validate.c)

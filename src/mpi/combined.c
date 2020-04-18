@@ -1,8 +1,6 @@
 ///
 /// @file
 ///
-/// @brief This file contains StarNEig library configuration.
-///
 /// @author Mirko Myllykoski (mirkom@cs.umu.se), Umeå University
 ///
 /// @section LICENSE
@@ -36,69 +34,53 @@
 /// POSSIBILITY OF SUCH DAMAGE.
 ///
 
-#ifndef STARNEIG_CONFIGURATION_H
-#define STARNEIG_CONFIGURATION_H
+#include <starneig_config.h>
+#include <starneig/configuration.h>
+#include <starneig/sep_dm.h>
+#include "../common/node_internal.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+__attribute__ ((visibility ("default")))
+starneig_error_t starneig_SEP_DM_Reduce(
+    starneig_distr_matrix_t A,
+    starneig_distr_matrix_t Q,
+    double real[], double imag[],
+    int (*predicate)(double real, double imag, void *arg),
+    void *arg,
+    int selected[],
+    int *num_selected)
+{
+    if (A == NULL)  return -1;
+    if (Q == NULL)  return -2;
 
-///
-/// @defgroup starneig_conf Library configuration
-///
-/// @brief Configuration of the installed library.
-///
-/// @{
-///
+    if (!starneig_node_initialized())
+        return STARNEIG_NOT_INITIALIZED;
 
-///
-/// @brief Defined if the library was compiled with MPI support.
-///
-#cmakedefine STARNEIG_ENABLE_MPI
+    int ret = STARNEIG_SUCCESS;
+    int *_selected = NULL;
 
-///
-/// @brief Defined if the library was compiled with CUDA support.
-///
-#cmakedefine STARNEIG_ENABLE_CUDA
+    ret = starneig_SEP_DM_Hessenberg(A, Q);
+    if (ret)
+        goto cleanup;
 
-///
-/// @brief Defined if the library was compiled with BLACS support.
-///
-#cmakedefine STARNEIG_ENABLE_BLACS
+    ret = starneig_SEP_DM_Schur(A, Q, real, imag);
+    if (ret)
+        goto cleanup;
 
-///
-/// @brief Defined if the starneig_SEP_DM_Hessenberg() function exists.
-///
-/// @deprecated The STARNEIG_SEP_DM_HESSENBERG precompiler define is deprecated
-/// and will be removed in the next release of the library.
-///
-#define STARNEIG_SEP_DM_HESSENBERG
+    if (predicate) {
+        if (selected == NULL)
+            selected = _selected =
+                malloc(starneig_distr_matrix_get_rows(A)*sizeof(int));
 
-///
-/// @brief Defined if the starneig_GEP_DM_HessenbergTriangular() function
-/// exists.
-///
-#cmakedefine STARNEIG_GEP_DM_HESSENBERGTRIANGULAR
+        ret = starneig_SEP_DM_Select(A, predicate, arg, selected, num_selected);
+        if (ret)
+            goto cleanup;
 
-///
-/// @brief Defined if the starneig_SEP_DM_Reduce() function exists.
-///
-/// @deprecated The STARNEIG_SEP_DM_REDUCE precompiler define is deprecated and
-/// will be removed in the next release of the library.
-///
-#define STARNEIG_SEP_DM_REDUCE
+        ret = starneig_SEP_DM_ReorderSchur(selected, A, Q, real, imag);
+        if (ret)
+            goto cleanup;
+    }
 
-///
-/// @brief Defined if the starneig_GEP_DM_Reduce() function exists.
-///
-#cmakedefine STARNEIG_GEP_DM_REDUCE
-
-///
-/// @}
-///
-
-#ifdef __cplusplus
+cleanup:
+    free(_selected);
+    return ret;
 }
-#endif
-
-#endif // STARNEIG_CONFIGURATION_H

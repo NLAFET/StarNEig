@@ -2058,9 +2058,7 @@ PREDEFINED             = STARPU_USE_MPI \
                          STARNEIG_ENABLE_MPI \
                          STARNEIG_ENABLE_CUDA \
                          STARNEIG_ENABLE_BLACS \
-                         STARNEIG_SEP_DM_HESSENBERG \
                          STARNEIG_GEP_DM_HESSENBERGTRIANGULAR \
-                         STARNEIG_SEP_DM_REDUCE \
                          STARNEIG_GEP_DM_REDUCE
 
 # If the MACRO_EXPANSION and EXPAND_ONLY_PREDEF tags are set to YES then this
