@@ -22,9 +22,14 @@ jobs:
 
       - name: Built manual
         run: |
-          echo "${{ env.HASH }}" > version.txt
-          cmake docs/ && make
-          mkdir latest && cp -r html starneig_manual.pdf latest/
+          echo "latest (${{ env.SHORT_HASH }})" > version.txt
+          mkdir build_docs
+          cd build_docs/
+            cmake ../docs/
+            make
+          cd ../
+          mkdir latest
+          cp -r build_docs/html build_docs/starneig_manual.pdf latest/
 
       - name: Deploy manual
         uses: JamesIves/github-pages-deploy-action@releases/v3

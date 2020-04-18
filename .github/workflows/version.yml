@@ -28,8 +28,13 @@ jobs:
       - name: Built manual
         run: |
           echo ${{ env.RELEASE_VERSION }} > version.txt
-          cmake docs/ && make
-          mkdir manual && cp -r html starneig_manual.pdf manual/
+          mkdir build_docs
+          cd build_docs/
+            cmake ../docs/
+            make
+          cd ../
+          mkdir manual
+          cp -r build_docs/html build_docs/starneig_manual.pdf manual/
 
       - name: Deploy manual to GitHub pages
         uses: JamesIves/github-pages-deploy-action@releases/v3
@@ -45,7 +50,7 @@ jobs:
         uses: svenstaro/upload-release-action@v1-release
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: starneig_manual.pdf
+          file: manual/starneig_manual.pdf
           asset_name: StarNEig-${{ env.RELEASE_VERSION }}.pdf
           tag: ${{ github.ref }}
           overwrite: true
