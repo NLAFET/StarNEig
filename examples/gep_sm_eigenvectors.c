@@ -107,7 +107,7 @@ int main()
 
     starneig_node_init(-1, -1, STARNEIG_HINT_SM);
 
-    // reduce the dense-dense matrix pencil (A,B) to generalized Schur form
+    // reduce the dense-dense matrix pair (A,B) to generalized Schur form
     // (skip reordering)
 
     printf("Reduce...\n");

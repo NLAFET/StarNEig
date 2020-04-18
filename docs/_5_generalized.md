@@ -4,8 +4,9 @@ The library provides 12 interface functions for the generalized case:
 
 ## Hessenberg-triangular reduction
 
-Given a general matrix \f$(A,B)\f$, the starneig_GEP_SM_HessenbergTriangular()
-and starneig_GEP_DM_HessenbergTriangular() interface functions compute a
+Given a general matrix pair \f$(A,B)\f$, the
+starneig_GEP_SM_HessenbergTriangular() and
+starneig_GEP_DM_HessenbergTriangular() interface functions compute a
 Hessenberg-triangular decomposition
 \f[
     (A,B) = U_1 * (H,T) * U_2^T,
@@ -24,7 +25,7 @@ Given a Hessenberg-triangular decomposition
 \f[
     (A,B) = Q * (H,T) * Z^T
 \f]
-of a general matrix pencil \f$(A,B)\f$, the starneig_GEP_SM_Schur() and
+of a general matrix pair \f$(A,B)\f$, the starneig_GEP_SM_Schur() and
 starneig_GEP_DM_Schur() interface functions function compute a generalized
 Schur decomposition
 \f[
@@ -50,7 +51,7 @@ Given a generalized Schur decomposition
 \f[
     (A,B) = Q * (S,T) * Z^T
 \f]
-of a general matrix pencil \f$(A,B)\f$ and a selection of generalized
+of a general matrix pair \f$(A,B)\f$ and a selection of generalized
 eigenvalues, the starneig_GEP_SM_ReorderSchur() and
 starneig_GEP_DM_ReorderSchur() interface functions attempt to reorder the
 selected generalized eigenvalues to the top left corner of an updated
@@ -77,7 +78,7 @@ that \f$\alpha/\beta\f$ gives the actual generalized eigenvalue. The quantity
 
 ## Combined reduction to generalized Schur form and eigenvalue reordering
 
-Given a general matrix pencil \f$(A,B)\f$, the starneig_GEP_SM_Reduce() and
+Given a general matrix pair \f$(A,B)\f$, the starneig_GEP_SM_Reduce() and
 starneig_GEP_DM_Reduce() interface functions compute a (reordered) generalized
 Schur decomposition
 \f[
@@ -111,7 +112,7 @@ Given a generalized Schur decomposition
 \f[
     (A,B) = Q * (S,T) * Z^T
 \f]
-of a general matrix pencil \f$(A,B)\f$ and a selection of generalized
+of a general matrix pair \f$(A,B)\f$ and a selection of generalized
 eigenvalues, the starneig_GEP_SM_Eigenvectors() and
 starneig_GEP_DM_Eigenvectors() interface functions compute and return a
 generalized eigenvector for each of the selected generalized eigenvalues.
@@ -130,7 +131,7 @@ generalized eigenvalues is equal to the number of columns of \f$X\f$.
 
 ## Eigenvalue selection helper
 
-Given a Schur-triangular matrix pencil \f$(S,T)\f$ and a predicate function,
+Given a Schur-triangular matrix pair \f$(S,T)\f$ and a predicate function,
 the starneig_GEP_SM_Select() and starneig_GEP_DM_Select() interface functions
 conveniently generate a correct selection array and count the
 number of selected generalized eigenvalues. The count is useful when
