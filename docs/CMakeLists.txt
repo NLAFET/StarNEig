@@ -73,23 +73,25 @@ configure_file (
     "${CMAKE_CURRENT_BINARY_DIR}/Doxyfile" @ONLY)
 
 file (WRITE
-    "${CMAKE_CURRENT_BINARY_DIR}/_8_license.md"
-    "# License and authors\n\n")
-join_files (
-    "${CMAKE_CURRENT_SOURCE_DIR}/../LICENSE.md"
-    "${CMAKE_CURRENT_BINARY_DIR}/_8_license.md")
-file (APPEND
-    "${CMAKE_CURRENT_BINARY_DIR}/_8_license.md" "\n")
+    "${CMAKE_CURRENT_BINARY_DIR}/docs_generated/_0_authors.md"
+    "# Authors\n\n")
 join_files (
     "${CMAKE_CURRENT_SOURCE_DIR}/../AUTHORS.md"
-    "${CMAKE_CURRENT_BINARY_DIR}/_8_license.md")
+    "${CMAKE_CURRENT_BINARY_DIR}/docs_generated/_0_authors.md")
 
 file (WRITE
-    "${CMAKE_CURRENT_BINARY_DIR}/_9_changelog.md"
+    "${CMAKE_CURRENT_BINARY_DIR}/docs_generated/_1_license.md"
+    "# License\n\n")
+join_files (
+    "${CMAKE_CURRENT_SOURCE_DIR}/../LICENSE.md"
+    "${CMAKE_CURRENT_BINARY_DIR}/docs_generated/_1_license.md")
+
+file (WRITE
+    "${CMAKE_CURRENT_BINARY_DIR}/docs_generated/_2_changelog.md"
     "# Changelog\n\n")
 join_files (
     "${CMAKE_CURRENT_SOURCE_DIR}/../CHANGELOG.md"
-    "${CMAKE_CURRENT_BINARY_DIR}/_9_changelog.md")
+    "${CMAKE_CURRENT_BINARY_DIR}/docs_generated/_2_changelog.md")
 
 add_custom_target (doc_doxygen ALL
     COMMAND ${DOXYGEN_EXECUTABLE} "${CMAKE_CURRENT_BINARY_DIR}/Doxyfile"
