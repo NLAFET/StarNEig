@@ -107,12 +107,12 @@ int main()
 
     starneig_node_init(-1, -1, STARNEIG_HINT_SM | STARNEIG_AWAKE_WORKERS);
 
-    // reduce the dense-dense matrix pencil (A,B) to Hessenberg-triangular form
+    // reduce the dense-dense matrix pair (A,B) to Hessenberg-triangular form
 
     printf("Hessenberg-triangular reduction...\n");
     starneig_GEP_SM_HessenbergTriangular(n, A, ldA, B, ldB, Q, ldQ, Z, ldZ);
 
-    // reduce the Hessenberg-triangular matrix pencil (A,B) to generalized Schur
+    // reduce the Hessenberg-triangular matrix pair (A,B) to generalized Schur
     // form
 
     printf("Schur reduction...\n");

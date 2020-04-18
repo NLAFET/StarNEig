@@ -171,12 +171,12 @@ int main(int argc, char **argv)
         starneig_distr_matrix_create(n, n, -1, -1, STARNEIG_REAL_DOUBLE, distr);
     starneig_distr_matrix_copy(lZ, dZ);
 
-    // reduce the dense-dense matrix pencil (A,B) to Hessenberg-triangular form
+    // reduce the dense-dense matrix pair (A,B) to Hessenberg-triangular form
 
     printf("Hessenberg-triangular reduction...\n");
     starneig_GEP_DM_HessenbergTriangular(dA, dB, dQ, dZ);
 
-    // reduce the Hessenberg-triangular matrix pencil (A,B) to generalized Schur
+    // reduce the Hessenberg-triangular matrix pair (A,B) to generalized Schur
     // form
 
     printf("Schur reduction...\n");
