@@ -127,11 +127,13 @@ static struct starpu_codelet push_bulges_cl = {
 static size_t aggressively_deflate_size_base(
     struct starpu_task *task, unsigned nimpl)
 {
+    double thres_a, thres_b, thres_inf;
     struct range_packing_info packing_info_shifts_real;
     struct range_packing_info packing_info_shifts_imag;
     struct packing_info packing_info_A, packing_info_B;
-    starpu_codelet_unpack_args(task->cl_arg, &packing_info_shifts_real,
-        &packing_info_shifts_imag, &packing_info_A, &packing_info_B);
+    starpu_codelet_unpack_args(task->cl_arg, &thres_a, &thres_b, &thres_inf,
+        &packing_info_shifts_real, &packing_info_shifts_imag,
+        &packing_info_A, &packing_info_B);
 
     return packing_info_A.rend - packing_info_A.rbegin;
 }
@@ -689,6 +691,7 @@ double starneig_predict_aggressively_deflate(int generalized, int window_size)
 
     // build a "fake" task
 
+    double thres_a, thres_b, thres_inf;
     struct range_packing_info packing_info_shifts_real;
     struct range_packing_info packing_info_shifts_imag;
     struct packing_info packing_info_A = {
@@ -705,6 +708,9 @@ double starneig_predict_aggressively_deflate(int generalized, int window_size)
 
     struct starpu_task *task = starpu_task_build(
         codelet,
+        STARPU_VALUE, &thres_a, sizeof(thres_a),
+        STARPU_VALUE, &thres_b, sizeof(thres_b),
+        STARPU_VALUE, &thres_inf, sizeof(thres_inf),
         STARPU_VALUE, &packing_info_shifts_real,
             sizeof(packing_info_shifts_real),
         STARPU_VALUE, &packing_info_shifts_imag,
