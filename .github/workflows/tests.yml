@@ -23,7 +23,10 @@ jobs:
             libscalapack-openmpi-dev libstarpu-dev libgsl-dev
 
       - name: Configure
-        run: cmake .
+        run: |
+          mkdir build
+          cd build/
+          cmake ../
 
       - name: Build
         run: make
