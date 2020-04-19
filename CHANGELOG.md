@@ -1,6 +1,8 @@
 ### v0.2.0-beta.1:
  - New experimental Hessenberg reduction code with distributed memory and
    multi-GPU support.
+ - Fix a bug that may cause the code to hang in distributed memory  Schur
+   reduction.
 
 ### v0.1.0:
  - First stable release of the library.
