@@ -37,9 +37,10 @@ Please cite the following article when refering to StarNEig:
 
 ## Current status
 
-The library is currently in a beta state and only real arithmetic is supported.
-In addition, some interface functions are implemented as LAPACK and ScaLAPACK
-wrappers.
+The library currently supports only real arithmetic (real input and output
+matrices but real and/or complex eigenvalues and eigenvectors). In addition,
+some interface functions are implemented as LAPACK and ScaLAPACK wrapper
+functions.
 
 Standard eigenvalue problems:
 | Component             |  Shared memory  | Distributed memory |      CUDA      |
