@@ -54,7 +54,7 @@ Standard eigenvalue problems:
 Generalized eigenvalue problems:
 | Component             |  Shared memory  | Distributed memory |      CUDA      |
 |-----------------------|:---------------:|:------------------:|:--------------:|
-| HT reduction          |     LAPACK      |      ScaLAPACK     |      ---       |
+| HT reduction          |     LAPACK      |     3rd party      |      ---       |
 | Schur reduction       |  **Complete**   |    **Complete**    | *Experimental* |
 | Eigenvalue reordering |  **Complete**   |    **Complete**    | *Experimental* |
 | Eigenvectors          |  **Complete**   |        ---         |      ---       |
