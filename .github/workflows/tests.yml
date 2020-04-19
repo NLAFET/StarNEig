@@ -29,7 +29,11 @@ jobs:
           cmake ../
 
       - name: Build
-        run: make
+        run: |
+          cd build/
+          make
 
       - name: Test
-        run: make test
+        run: |
+          cd build/
+          make test
