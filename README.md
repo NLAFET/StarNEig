@@ -43,18 +43,21 @@ The library is currently in a beta state and only real arithmetic is supported.
 In addition, some interface functions are implemented as LAPACK and ScaLAPACK
 wrappers.
 
-Current status:
+Standard eigenvalue problems:
+| Component             |  Shared memory  | Distributed memory |      CUDA      |
+|-----------------------|:---------------:|:------------------:|:--------------:|
+| Hessenberg reduction  |  **Complete**   |  ScaLAPACK wrapper | **Single GPU** |
+| Schur reduction       |  **Complete**   |    **Complete**    | *Experimental* |
+| Eigenvalue reordering |  **Complete**   |    **Complete**    | *Experimental* |
+| Eigenvectors          |  **Complete**   |        ---         |      ---       |
 
-| Component                         |      Shared memory     | Distributed memory | Accelerators (GPUs)  |
-|-----------------------------------|:----------------------:|:------------------:|:--------------------:|
-| Hessenberg reduction              |      **Complete**      | ScaLAPACK wrapper  |     **Single GPU**   |
-| Schur reduction                   |      **Complete**      |    **Complete**    |     *Experimental*   |
-| Eigenvalue reordering             |      **Complete**      |    **Complete**    |     *Experimental*   |
-| Eigenvectors                      |      **Complete**      |Waiting integration |      Not planned     |
-| Hessenberg-triangular reduction   |LAPACK wrapper / Planned| ScaLAPACK wrapper  |      Not planned     |
-| Generalized Schur reduction       |      **Complete**      |    **Complete**    |     *Experimental*   |
-| Generalized eigenvalue reordering |      **Complete**      |    **Complete**    |     *Experimental*   |
-| Generalized eigenvectors          |      **Complete**      |Waiting integration |      Not planned     |
+Generalized eigenvalue problems:
+| Component             |  Shared memory  | Distributed memory |      CUDA      |
+|-----------------------|:---------------:|:------------------:|:--------------:|
+| HT reduction          |     LAPACK      |      ScaLAPACK     |      ---       |
+| Schur reduction       |  **Complete**   |    **Complete**    | *Experimental* |
+| Eigenvalue reordering |  **Complete**   |    **Complete**    | *Experimental* |
+| Eigenvectors          |  **Complete**   |        ---         |      ---       |
 
 Please see the *Known problems* section in the StarNEig manual.
 
