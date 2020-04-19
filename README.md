@@ -111,17 +111,17 @@ documentation is available at `build_doc/html` directory.
 
 Library dependencies:
 
-- Linux
-- CMake 3.3 or newer
-- Portable Hardware Locality (hwloc)
-- Starpu 1.2 or 1.3
-   - Newer versions require minor changes to `src/CMakeLists.txt`;
-     `SUPPORTED_STARPU`)
-- OpenBLAS, MKL, GotoBLAS or single-threaded BLAS library
-- LAPACK
-- MPI (optional)
-- CUDA (optional)
-- ScaLAPACK + BLACS (optional)
+ - Linux
+ - CMake 3.3 or newer
+ - Portable Hardware Locality (hwloc)
+ - Starpu 1.2 or 1.3
+    - Newer versions require minor changes to `src/CMakeLists.txt`;
+      `SUPPORTED_STARPU`)
+ - OpenBLAS, MKL, GotoBLAS or single-threaded BLAS library
+ - LAPACK
+ - MPI (optional)
+ - CUDA + cuBLAS (optional)
+ - ScaLAPACK + BLACS (optional)
 
 Test program and example code dependencies:
 

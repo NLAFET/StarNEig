@@ -36,7 +36,7 @@ Library dependencies:
  - OpenBLAS, MKL, GotoBLAS or single-threaded BLAS library
  - LAPACK
  - MPI (optional)
- - CUDA (optional)
+ - CUDA + cuBLAS (optional)
  - ScaLAPACK + BLACS (optional)
 
 Test program and example code dependencies:
