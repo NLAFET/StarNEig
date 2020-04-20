@@ -26,7 +26,7 @@ jobs:
 
       - name: Built manual
         run: |
-          echo "${{ env.BRANCH_NAME }}/(${{ env.SHORT_HASH }})" > version.txt
+          echo "${{ env.BRANCH_NAME }} (${{ env.SHORT_HASH }})" > version.txt
           mkdir build_docs
           cd build_docs/
             cmake ../docs/
