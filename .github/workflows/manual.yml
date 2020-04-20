@@ -4,12 +4,16 @@ on:
   push:
     branches:
       - 'master'
+      - 'v*'
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Get the hash
+      - name: Get the branch name
+        run: echo ::set-env name=BRANCH_NAME::${GITHUB_REF#refs/*/}
+
+      - name: Get the short hash
         run: echo ::set-env name=SHORT_HASH::${GITHUB_SHA:0:10}
 
       - name: Checkout
@@ -22,7 +26,7 @@ jobs:
 
       - name: Built manual
         run: |
-          echo "latest (${{ env.SHORT_HASH }})" > version.txt
+          echo "${{ env.BRANCH_NAME }} (${{ env.SHORT_HASH }})" > version.txt
           mkdir build_docs
           cd build_docs/
             cmake ../docs/
@@ -38,5 +42,5 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           BRANCH: gh-pages
           FOLDER: latest
-          TARGET_FOLDER: latest
+          TARGET_FOLDER: ${{ env.BRANCH_NAME }}
           COMMIT_MESSAGE: "Upload ${{ env.SHORT_HASH }} documentation"
