@@ -3,7 +3,7 @@
 ///
 /// @author Carl Christian K. Mikkelsen (spock@cs.umu.se), Umeå University
 ///
-/// @section LICENSE
+/// @internal LICENSE
 ///
 /// Copyright (c) 2019-2020, Umeå Universitet
 ///
