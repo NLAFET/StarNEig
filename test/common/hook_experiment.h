@@ -36,7 +36,7 @@
 ///  | hook_handle_t |
 ///  +---------------+
 ///
-/// @section LICENSE
+/// @internal LICENSE
 ///
 /// Copyright (c) 2019-2020, Umeå Universitet
 ///
