@@ -81,7 +81,7 @@ extern "C" {
 ///
 /// @param[in,out] B
 ///         On entry, the general matrix \f$B\f$.
-///         On exit, the upper triangular matrix \f$T\f$.
+///         On exit, the upper triangular matrix \f$R\f$.
 ///
 /// @param[in] ldB
 ///         The leading dimension of \f$B\f$.
@@ -124,12 +124,12 @@ starneig_error_t starneig_GEP_SM_HessenbergTriangular(
 /// @param[in] ldH
 ///         The leading dimension of \f$H\f$.
 ///
-/// @param[in,out] T
-///         On entry, the upper triangular matrix \f$T\f$.
-///         On exit, the upper triangular matrix \f$\hat{T}\f$.
+/// @param[in,out] R
+///         On entry, the upper triangular matrix \f$R\f$.
+///         On exit, the upper triangular matrix \f$T\f$.
 ///
-/// @param[in] ldT
-///         The leading dimension of \f$T\f$.
+/// @param[in] ldR
+///         The leading dimension of \f$R\f$.
 ///
 /// @param[in,out] Q
 ///         On entry, the orthogonal matrix \f$Q\f$.
@@ -164,7 +164,7 @@ starneig_error_t starneig_GEP_SM_HessenbergTriangular(
 starneig_error_t starneig_GEP_SM_Schur(
     int n,
     double H[], int ldH,
-    double T[], int ldT,
+    double R[], int ldR,
     double Q[], int ldQ,
     double Z[], int ldZ,
     double real[], double imag[], double beta[]);
@@ -460,12 +460,12 @@ starneig_error_t starneig_GEP_SM_Select(
 /// @param[in] ldH
 ///         The leading dimension of \f$H\f$.
 ///
-/// @param[in,out] T
-///         On entry, the upper triangular matrix \f$T\f$.
-///         On exit, the upper triangular matrix \f$\hat{T}\f$.
+/// @param[in,out] R
+///         On entry, the upper triangular matrix \f$R\f$.
+///         On exit, the upper triangular matrix \f$T\f$.
 ///
-/// @param[in] ldT
-///         The leading dimension of \f$T\f$.
+/// @param[in] ldR
+///         The leading dimension of \f$R\f$.
 ///
 /// @param[in,out] Q
 ///         On entry, the orthogonal matrix \f$Q\f$.
@@ -504,7 +504,7 @@ starneig_error_t starneig_GEP_SM_Schur_expert(
     struct starneig_schur_conf *conf,
     int n,
     double H[], int ldH,
-    double T[], int ldT,
+    double R[], int ldR,
     double Q[], int ldQ,
     double Z[], int ldZ,
     double real[], double imag[], double beta[]);

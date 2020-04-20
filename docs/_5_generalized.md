@@ -9,11 +9,11 @@ starneig_GEP_SM_HessenbergTriangular() and
 starneig_GEP_DM_HessenbergTriangular() interface functions compute a
 Hessenberg-triangular decomposition
 \f[
-    (A,B) = U_1 * (H,T) * U_2^T,
+    (A,B) = U_1 * (H,R) * U_2^T,
 \f]
-where \f$H\f$ is upper Hessenberg, \f$T\f$ is upper triangular, and
+where \f$H\f$ is upper Hessenberg, \f$R\f$ is upper triangular, and
 \f$U_1\f$ and \f$U_2\f$ are orthogonal. On exit, \f$A\f$ is overwritten by
-\f$H\f$, \f$B\f$ is overwritten by \f$T\f$, and \f$Q\f$ and \f$Z\f$ (which are
+\f$H\f$, \f$B\f$ is overwritten by \f$R\f$, and \f$Q\f$ and \f$Z\f$ (which are
 orthogonal matrices on entry) are overwritten by
 \f[
     Q \gets Q * U_1 \text{ and } Z \gets Z * U_2.
@@ -23,20 +23,20 @@ orthogonal matrices on entry) are overwritten by
 
 Given a Hessenberg-triangular decomposition
 \f[
-    (A,B) = Q * (H,T) * Z^T
+    (A,B) = Q * (H,R) * Z^T
 \f]
 of a general matrix pair \f$(A,B)\f$, the starneig_GEP_SM_Schur() and
 starneig_GEP_DM_Schur() interface functions function compute a generalized
 Schur decomposition
 \f[
-    (A,B) = Q * ( U_1 * (S,\hat{T}) * U_2^T ) * Z^T,
+    (A,B) = Q * ( U_1 * (S,T) * U_2^T ) * Z^T,
 \f]
 where \f$S\f$ is upper quasi-triangular with \f$1 \times 1\f$ and
-\f$2 \times 2\f$ blocks on the diagonal, \f$\hat{T}\f$ is a upper triangular
+\f$2 \times 2\f$ blocks on the diagonal, \f$T\f$ is a upper triangular
 matrix, and \f$U_1\f$ and \f$U_2\f$ are orthogonal.
 
-On exit, \f$H\f$ is overwritten by \f$S\f$, \f$T\f$ is overwritten by
-\f$\hat{T}\f$, and \f$Q\f$ and \f$Z\f$ are overwritten by
+On exit, \f$H\f$ is overwritten by \f$S\f$, \f$R\f$ is overwritten by
+\f$T\f$, and \f$Q\f$ and \f$Z\f$ are overwritten by
 \f[
     Q \gets Q * U_1 \text{ and } Z \gets Z * U_2.
 \f]

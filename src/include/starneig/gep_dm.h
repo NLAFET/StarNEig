@@ -84,7 +84,7 @@ extern "C" {
 ///
 /// @param[in,out] B
 ///         On entry, the general matrix \f$B\f$.
-///         On exit, the upper triangular matrix \f$T\f$.
+///         On exit, the upper triangular matrix \f$R\f$.
 ///
 /// @param[in,out] Q
 ///         On entry, the orthogonal matrix \f$Q\f$.
@@ -113,9 +113,9 @@ starneig_error_t starneig_GEP_DM_HessenbergTriangular(
 ///         On entry, the upper Hessenberg matrix \f$H\f$.
 ///         On exit, the Schur matrix \f$S\f$.
 ///
-/// @param[in,out] T
-///         On entry, the upper triangular matrix \f$T\f$.
-///         On exit, the upper triangular matrix \f$\hat{T}\f$.
+/// @param[in,out] R
+///         On entry, the upper triangular matrix \f$R\f$.
+///         On exit, the upper triangular matrix \f$T\f$.
 ///
 /// @param[in,out] Q
 ///         On entry, the orthogonal matrix \f$Q\f$.
@@ -143,7 +143,7 @@ starneig_error_t starneig_GEP_DM_HessenbergTriangular(
 ///
 starneig_error_t starneig_GEP_DM_Schur(
     starneig_distr_matrix_t H,
-    starneig_distr_matrix_t T,
+    starneig_distr_matrix_t R,
     starneig_distr_matrix_t Q,
     starneig_distr_matrix_t Z,
     double real[], double imag[], double beta[]);
@@ -384,9 +384,9 @@ starneig_error_t starneig_GEP_DM_Select(
 ///         On entry, the upper Hessenberg matrix \f$H\f$.
 ///         On exit, the Schur matrix \f$S\f$.
 ///
-/// @param[in,out] T
-///         On entry, the upper triangular matrix \f$T\f$.
-///         On exit, the upper triangular matrix \f$\hat{T}\f$.
+/// @param[in,out] R
+///         On entry, the upper triangular matrix \f$R\f$.
+///         On exit, the upper triangular matrix \f$T\f$.
 ///
 /// @param[in,out] Q
 ///         On entry, the orthogonal matrix \f$Q\f$.
@@ -418,7 +418,7 @@ starneig_error_t starneig_GEP_DM_Select(
 starneig_error_t starneig_GEP_DM_Schur_expert(
     struct starneig_schur_conf *conf,
     starneig_distr_matrix_t H,
-    starneig_distr_matrix_t T,
+    starneig_distr_matrix_t R,
     starneig_distr_matrix_t Q,
     starneig_distr_matrix_t Z,
     double real[], double imag[], double beta[]);

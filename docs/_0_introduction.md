@@ -224,20 +224,20 @@ by computing a *Hessenberg-triangular decomposition*
 \f[
   A = Q_{1} H Z_{1}^{H},
   \quad
-  B = Q_{1} Y Z_{1}^{H},
+  B = Q_{1} R Z_{1}^{H},
 \f]
-where \f$Q_{1}, Z_{1}\f$ are unitary, \f$H\f$ is upper Hessenberg, and \f$Y\f$
+where \f$Q_{1}, Z_{1}\f$ are unitary, \f$H\f$ is upper Hessenberg, and \f$R\f$
 is upper triangular. This is done in order to greatly accelerate the subsequent
 computation of a generalized Schur decomposition.
 
 ### Reduction to generalized Schur form
 
-Starting from the Hessenberg-triangular pencil \f$H - \lambda Y\f$ we compute a
+Starting from the Hessenberg-triangular pencil \f$H - \lambda R\f$ we compute a
 *generalized Schur decomposition*
 \f[
   H = Q_{2} S Z_{2}^H,
   \quad
-  Y = Q_{2} T Z_{2}^{H},
+  R = Q_{2} T Z_{2}^{H},
 \f]
 where \f$Q_{2}, Z_{2}\f$ are unitary and \f$S, T\f$ are upper triangular. The
 eigenvalues of \f$A - \lambda B\f$ can now be determined from the diagonal
@@ -251,7 +251,7 @@ known as the *real generalized Schur decomposition*
 \f[
   H = Q_{2} S Z_{2}^T,
   \quad
-  Y = Q_{2} T Z_{2}^{T},
+  R = Q_{2} T Z_{2}^{T},
 \f]
 where \f$Q_{2}, Z_{2}\f$ are orthogonal, \f$S\f$ is upper quasi-triangular with
 \f$1 \times 1\f$ and \f$2 \times 2\f$ blocks on the diagonal, and \f$T\f$ is
