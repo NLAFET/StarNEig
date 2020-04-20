@@ -1,6 +1,6 @@
 # Introduction
 
-![StarNEig tests](https://github.com/NLAFET/StarNEig/workflows/StarNEig%20tests/badge.svg) ![StarNEig manual](https://github.com/NLAFET/StarNEig/workflows/StarNEig%20manual/badge.svg) ![StarNEig version](https://github.com/NLAFET/StarNEig/workflows/StarNEig%20version/badge.svg)
+![StarNEig tests](https://github.com/NLAFET/StarNEig/workflows/StarNEig%20tests/badge.svg?branch=v0.1) ![StarNEig manual](https://github.com/NLAFET/StarNEig/workflows/StarNEig%20manual/badge.svg?branch=v0.1) ![StarNEig version](https://github.com/NLAFET/StarNEig/workflows/StarNEig%20version/badge.svg)
 
 StarNEig library aims to provide a complete task-based software stack for
 solving **dense** **nonsymmetric** (generalized) eigenvalue problems. The
@@ -47,7 +47,7 @@ functions.
 Standard eigenvalue problems:
 | Component             |  Shared memory  | Distributed memory |      CUDA      |
 |-----------------------|:---------------:|:------------------:|:--------------:|
-| Hessenberg reduction  |  **Complete**   |  ScaLAPACK wrapper | **Single GPU** |
+| Hessenberg reduction  |  **Complete**   |      ScaLAPACK     | **Single GPU** |
 | Schur reduction       |  **Complete**   |    **Complete**    | *Experimental* |
 | Eigenvalue reordering |  **Complete**   |    **Complete**    | *Experimental* |
 | Eigenvectors          |  **Complete**   |        ---         |      ---       |

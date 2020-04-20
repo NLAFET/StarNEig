@@ -45,7 +45,7 @@ functions.
 Standard eigenvalue problems:
 | Component             |  Shared memory  | Distributed memory |      CUDA      |
 |-----------------------|:---------------:|:------------------:|:--------------:|
-| Hessenberg reduction  |  **Complete**   |  ScaLAPACK wrapper | **Single GPU** |
+| Hessenberg reduction  |  **Complete**   |      ScaLAPACK     | **Single GPU** |
 | Schur reduction       |  **Complete**   |    **Complete**    | *Experimental* |
 | Eigenvalue reordering |  **Complete**   |    **Complete**    | *Experimental* |
 | Eigenvectors          |  **Complete**   |        ---         |      ---       |
