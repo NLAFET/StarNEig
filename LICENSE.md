@@ -1,3 +1,5 @@
+## License
+
 Copyright (c) 2019-2020, Umeå Universitet
 
 Redistribution and use in source and binary forms, with or without modification,

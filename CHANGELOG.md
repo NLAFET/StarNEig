@@ -1,3 +1,5 @@
+## Changelog
+
 ### v0.2.0-beta.1:
  - New experimental Hessenberg reduction code with distributed memory and
    multi-GPU support.

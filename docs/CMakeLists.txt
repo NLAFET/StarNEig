@@ -32,15 +32,32 @@
 project (StarNEig)
 cmake_minimum_required (VERSION 3.3)
 
+#
+# file appending function
+#
+
 function (join_files input output)
     file (READ ${input} LICENSE)
     file (APPEND ${output} ${LICENSE})
+    file (APPEND ${output} "\n")
 endfunction ()
+
+#
+# setup Doxygen
+#
 
 find_package (Doxygen REQUIRED)
 find_package (LATEX COMPONENTS PDFLATEX MAKEINDEX REQUIRED)
 
+#
+# library version
+#
+
 file (STRINGS "${CMAKE_CURRENT_SOURCE_DIR}/../version.txt" STARNEIG_VERSION)
+
+#
+# prepare header files
+#
 
 file (GLOB_RECURSE HEADERS
     "${CMAKE_CURRENT_SOURCE_DIR}/../src/include/starneig/*.h")
@@ -66,30 +83,44 @@ configure_file (
     "${CMAKE_CURRENT_SOURCE_DIR}/../src/include/starneig/starneig.h.in"
     "${CMAKE_CURRENT_BINARY_DIR}/include/starneig/starneig.h" @ONLY)
 
+#
+# prepare dynamic documentation
+#
+
+file (WRITE
+    "${CMAKE_CURRENT_BINARY_DIR}/docs_generated/_0_changelog.md"
+    "# Known problems and changelog\n\n")
+join_files (
+    "${CMAKE_CURRENT_SOURCE_DIR}/../KNOWN_PROBLEMS.md"
+    "${CMAKE_CURRENT_BINARY_DIR}/docs_generated/_0_changelog.md")
+join_files (
+    "${CMAKE_CURRENT_SOURCE_DIR}/../CHANGELOG.md"
+    "${CMAKE_CURRENT_BINARY_DIR}/docs_generated/_0_changelog.md")
+
+file (WRITE
+    "${CMAKE_CURRENT_BINARY_DIR}/docs_generated/_1_authors.md"
+    "# License, authors and literature\n\n")
+join_files (
+    "${CMAKE_CURRENT_SOURCE_DIR}/../LICENSE.md"
+    "${CMAKE_CURRENT_BINARY_DIR}/docs_generated/_1_authors.md")
+join_files (
+    "${CMAKE_CURRENT_SOURCE_DIR}/../AUTHORS.md"
+    "${CMAKE_CURRENT_BINARY_DIR}/docs_generated/_1_authors.md")
+join_files (
+    "${CMAKE_CURRENT_SOURCE_DIR}/publications.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/docs_generated/_1_authors.md")
+
+#
+# prepare Doxygen file
+#
+
 configure_file (
     "${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in"
     "${CMAKE_CURRENT_BINARY_DIR}/Doxyfile" @ONLY)
 
-file (WRITE
-    "${CMAKE_CURRENT_BINARY_DIR}/docs_generated/_0_authors.md"
-    "# Authors\n\n")
-join_files (
-    "${CMAKE_CURRENT_SOURCE_DIR}/../AUTHORS.md"
-    "${CMAKE_CURRENT_BINARY_DIR}/docs_generated/_0_authors.md")
-
-file (WRITE
-    "${CMAKE_CURRENT_BINARY_DIR}/docs_generated/_1_license.md"
-    "# License\n\n")
-join_files (
-    "${CMAKE_CURRENT_SOURCE_DIR}/../LICENSE.md"
-    "${CMAKE_CURRENT_BINARY_DIR}/docs_generated/_1_license.md")
-
-file (WRITE
-    "${CMAKE_CURRENT_BINARY_DIR}/docs_generated/_2_changelog.md"
-    "# Changelog\n\n")
-join_files (
-    "${CMAKE_CURRENT_SOURCE_DIR}/../CHANGELOG.md"
-    "${CMAKE_CURRENT_BINARY_DIR}/docs_generated/_2_changelog.md")
+#
+# prepare targets
+#
 
 add_custom_target (doc_doxygen ALL
     COMMAND ${DOXYGEN_EXECUTABLE} "${CMAKE_CURRENT_BINARY_DIR}/Doxyfile"
@@ -103,6 +134,10 @@ add_custom_target (doc_latex ALL
     DEPENDS doc_doxygen
     COMMENT "Generating Latex documentation"
     VERBATIM)
+
+#
+# copy output files
+#
 
 add_custom_command (TARGET doc_latex POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy
