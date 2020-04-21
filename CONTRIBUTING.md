@@ -1,3 +1,5 @@
+## Contributing 
+
 Please execute the test suite before submitting code:
 ```
 $ mkdir build
