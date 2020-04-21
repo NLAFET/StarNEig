@@ -59,53 +59,70 @@ extern "C" {
 typedef int starneig_error_t;
 
 ///
-/// @brief The interface function was executed successfully.
+/// @brief Success.
+///
+/// The interface function was executed successfully.
 ///
 #define STARNEIG_SUCCESS                            0
 
 ///
-/// @brief The interface function encountered a generic error.
+/// @brief Reneric error.
+///
+///The interface function encountered a generic error.
 ///
 #define STARNEIG_GENERIC_ERROR                      1
 
 ///
-/// @brief The library was not initialized when the interface function was
-/// called.
+/// @brief Not initialized.
+///
+/// The library was not initialized when the interface function was called.
 ///
 #define STARNEIG_NOT_INITIALIZED                    2
 
 ///
-/// @brief The interface function encountered an invalid configuration argument.
+/// @brief Invalid configuration.
+///
+/// The interface function encountered an invalid configuration argument.
 ///
 #define STARNEIG_INVALID_CONFIGURATION              3
 
 ///
-/// @brief The interface function encountered an invalid argument.
+/// @brief Invalid argument.
+///
+/// The interface function encountered an invalid argument.
 ///
 #define STARNEIG_INVALID_ARGUMENTS                  4
 
 ///
-/// @brief One or more of the involved distributed matrices have an invalid
+/// @brief Invalid distributed matrix.
+///
+/// One or more of the involved distributed matrices have an invalid
 /// distribution, invalid dimensions and/or an invalid distributed block size.
 ///
 #define STARNEIG_INVALID_DISTR_MATRIX               5
 
 ///
-/// @brief The interface function encountered a situation where the QR/QZ
-/// algorithm did not converge. The matrix (pencil) may be partially in Schur
+/// @brief Did not converge.
+///
+/// The interface function encountered a situation where the QR/QZ algorithm did
+/// not converge. The matrix (pair) may be partially in (generalized) Schur
 /// form.
 ///
 #define STARNEIG_DID_NOT_CONVERGE                   6
 
 ///
-/// @brief The interface function failed to reorder the (generalized) Schur
-/// form. The (generalized) Schur form may be partially reordered.
+/// @brief Partial reordering.
+///
+/// The interface function failed to reorder the (generalized) Schur form. The
+/// (generalized) Schur form may be partially reordered.
 ///
 #define STARNEIG_PARTIAL_REORDERING                 7
 
 ///
-/// @brief The interface function encountered a situation where two selected
-/// eigenvalues were close to each other.
+/// @brief Close eigenvalues.
+///
+/// The interface function encountered a situation where two selected
+/// eigenvalues were close to each other. The computed result may be inaccurate.
 ///
 #define STARNEIG_CLOSE_EIGENVALUES                  8
 
