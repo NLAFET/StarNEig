@@ -52,22 +52,30 @@ extern "C" {
 ///
 
 ///
-/// @brief Defined if the library was compiled with MPI support.
+/// @brief MPI support enabled.
+///
+/// Defined if the library was compiled with MPI support.
 ///
 #cmakedefine STARNEIG_ENABLE_MPI
 
 ///
-/// @brief Defined if the library was compiled with CUDA support.
+/// @brief CUDA support enabled.
+///
+/// Defined if the library was compiled with CUDA support.
 ///
 #cmakedefine STARNEIG_ENABLE_CUDA
 
 ///
-/// @brief Defined if the library was compiled with BLACS support.
+/// @brief BLACS support enabled.
+///
+/// Defined if the library was compiled with ScaLAPACK compatibility layer.
 ///
 #cmakedefine STARNEIG_ENABLE_BLACS
 
 ///
-/// @brief Defined if the starneig_SEP_DM_Hessenberg() function exists.
+/// @brief Distributed memory Hessenberg reduction enabled.
+///
+/// Defined if the starneig_SEP_DM_Hessenberg() function exists.
 ///
 /// @deprecated The STARNEIG_SEP_DM_HESSENBERG precompiler define is deprecated
 /// and will be removed in the next release of the library.
@@ -75,13 +83,17 @@ extern "C" {
 #define STARNEIG_SEP_DM_HESSENBERG
 
 ///
-/// @brief Defined if the starneig_GEP_DM_HessenbergTriangular() function
+/// @brief Distributed memory Hessenberg-triangular reduction enabled.
+///
+/// Defined if the starneig_GEP_DM_HessenbergTriangular() function
 /// exists.
 ///
 #cmakedefine STARNEIG_GEP_DM_HESSENBERGTRIANGULAR
 
 ///
-/// @brief Defined if the starneig_SEP_DM_Reduce() function exists.
+/// @brief Full distributed memory reduction enabled.
+///
+/// Defined if the starneig_SEP_DM_Reduce() function exists.
 ///
 /// @deprecated The STARNEIG_SEP_DM_REDUCE precompiler define is deprecated and
 /// will be removed in the next release of the library.
@@ -89,7 +101,9 @@ extern "C" {
 #define STARNEIG_SEP_DM_REDUCE
 
 ///
-/// @brief Defined if the starneig_GEP_DM_Reduce() function exists.
+/// @brief Full distributed memory generalized reduction enabled.
+///
+/// Defined if the starneig_GEP_DM_Reduce() function exists.
 ///
 #cmakedefine STARNEIG_GEP_DM_REDUCE
 
