@@ -1,4 +1,7 @@
+## Changelog
+
 ### v0.1.1:
+
  - Fix a bug that may cause the code to hang in distributed memory  Schur
    reduction.
 
