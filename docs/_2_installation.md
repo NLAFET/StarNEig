@@ -96,6 +96,16 @@ The *installation path* can be changed during the configuration phase:
 $ cmake -DCMAKE_INSTALL_PREFIX=/path/to/somewhere/ ../
 ```
 
+@remark The library can be compiled separately from the other software
+components:
+```
+$ cd path_to_the_top_directory/
+$ mkdir build_doc
+$ cd build/
+$ cmake ../src/
+$ make
+```
+
 @remark It may sometimes be necessary to compile CUDA source files with a
 different compiler than what `cmake` uses by default. For example, some CUDA
 version do not support GCC compilers that are newer than GCC 5 release series.
