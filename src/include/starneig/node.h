@@ -70,69 +70,77 @@ extern "C" {
 typedef unsigned starneig_flag_t;
 
 ///
-/// @brief Default initialization flag.
+/// @brief Default mode.
 ///
-/// The library defaults to the shared memory mode.
+/// As a default, the library configures itself to shared memory mode.
 ///
 #define STARNEIG_DEFAULT                0x0
 
 ///
-/// @brief Initializes the library for shared memory computation.
+/// @brief Shared memory mode.
 ///
-/// The library will automatically reconfigure itself for distributed memory
-/// computation.
+/// Initializes the library for shared memory computation. The library will
+/// automatically reconfigure itself for distributed memory computation if
+/// necessary
 ///
 #define STARNEIG_HINT_SM                0x0
 
 ///
-/// @brief Initializes the library for distributed memory computation.
+/// @brief Distributed memory mode.
 ///
-/// The library will automatically reconfigure itself for shared memory
-/// computation.
+/// Initializes the library for distributed memory computation. The library will
+/// automatically reconfigure itself for shared memory computation if
+/// necessary
 ///
 #define STARNEIG_HINT_DM                0x1
 
 ///
-/// @brief Disables FXT traces.
+/// @brief No FxT traces mode.
 ///
-/// This flag does not work reliably with all StarPU versions.
+/// Disables FXT traces.
+///
+/// @attention This flag does not work reliably with all StarPU versions.
 ///
 #define STARNEIG_FXT_DISABLE            0x2
 
 ///
-/// @brief Keeps worker threads awake.
+/// @brief Awake worker mode.
 ///
 /// Keeps the StarPU worker threads awake between interface function calls.
+/// Improves the performance in certain situations but can interfere with other
+/// software.
 ///
 #define STARNEIG_AWAKE_WORKERS          0x4
 
 ///
-/// @brief Keeps StarPU-MPI communication thread awake.
+/// @brief Awake MPI worker mode.
 ///
 /// Keeps the StarPU-MPI communication thread awake between interface function
-/// calls.
+/// calls. Improves the performance in certain situations but can interfere with
+/// other software.
 ///
 #define STARNEIG_AWAKE_MPI_WORKER       0x8
 
 ///
-/// @brief Enables fast StarPU-MPI mode.
+/// @brief Fast distributed memory mode.
 ///
 /// Keeps the worker threads and StarPU-MPI communication thread awake between
-/// interface function calls.
+/// interface function calls. Improves the performance in certain situations but
+/// can interfere with other software.
 ///
 #define STARNEIG_FAST_DM (STARNEIG_HINT_DM | STARNEIG_AWAKE_WORKERS | STARNEIG_AWAKE_MPI_WORKER)
 
 ///
-/// @brief Disables verbose messages.
+/// @brief No verbose mode.
 ///
 /// Disables all additional verbose messages.
 ///
 #define STARNEIG_NO_VERBOSE             0x10
 
 ///
-/// @brief Disables messages.
+/// @brief No messages mode.
 ///
-/// Disables all messages (including verbose).
+/// Disables all messages (including verbose messages).
 ///
 #define STARNEIG_NO_MESSAGES            (STARNEIG_NO_VERBOSE | 0x20)
 
