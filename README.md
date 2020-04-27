@@ -93,10 +93,13 @@ Please see the *Known problems* section in the StarNEig manual.
    Wyrzykowski R., Deelman E., Dongarra J., Karczewski K. (eds), Springer
    International Publishing, pp. 58-69, 2020, doi:
    [10.1007/978-3-030-43229-4_6](https://doi.org/10.1007/978-3-030-43229-4_6)
- - Carl Christian Kjelgaard Mikkelsen, Angelika Schwarz, and Lars Karlsson:
+ - Carl Christian Kjelgaard Mikkelsen, Angelika Schwarz, Lars Karlsson:
    *Parallel Robust Solution of Triangular Linear Systems*, Concurrency and
    Computation: Practice and Experience, 31 (19), 2019, doi:
-   [10.1016/j.parco.2019.04.001](https://doi.org/10.1016/j.parco.2019.04.001)
+   [10.1002/cpe.5064](https://doi.org/10.1002/cpe.5064)
+ - Angelika Schwarz, Lars Karlsson: *Scalable eigenvector computation for the
+   non-symmetric eigenvalue problem*, Parallel Computing, 85, 131-140, 2019,
+   doi: [10.1016/j.parco.2019.04.001](https://doi.org/10.1016/j.parco.2019.04.001) 
  - Mirko Myllykoski: *A Task-Based Algorithm for Reordering the Eigenvalues of a
    Matrix in Real Schur Form*, In Parallel Processing and Applied Mathematics,
    12th International Conference, PPAM 2017, Lublin, Poland, September 10-13,
