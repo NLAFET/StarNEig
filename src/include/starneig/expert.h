@@ -72,6 +72,11 @@ extern "C" {
 #define STARNEIG_HESSENBERG_DEFAULT_PANEL_WIDTH          -1
 
 ///
+/// @brief Default parallel worker size.
+///
+#define STARNEIG_HESSENBERG_DEFAULT_PARALLEL_WORKER_SIZE -1
+
+///
 /// @brief Hessenberg reduction configuration structure.
 ///
 struct starneig_hessenberg_conf {
@@ -87,6 +92,13 @@ struct starneig_hessenberg_conf {
     /// @ref STARNEIG_HESSENBERG_DEFAULT_PANEL_WIDTH, then the implementation
     /// will determine a suitable panel width automatically.
     int panel_width;
+
+    /// The CPU variants of the panel reduction and trailing matrix update tasks
+    /// are multithreaded. This parameter defines the number of cores allocated
+    /// to these tasks. If the parameter is set to
+    /// @ref STARNEIG_HESSENBERG_DEFAULT_PARALLEL_WORKER_SIZE, then the
+    /// implementation will determine a suitable CPU core count automatically.
+    int parallel_worker_size;
 };
 
 ///
