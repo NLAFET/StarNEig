@@ -31,10 +31,10 @@ STARPU_MINIMUM_AVAILABLE_MEM=10 STARPU_TARGET_AVAILABLE_MEM=15 ...
   are also effected by this problem.
 - The library has an unsolved memory leak problem with OpenMPI. Only large
   problem sizes are effected. It is not known whether this problem is related
-  to StarNEig, StarPU, OpenMPI or something else. A memory leak is sometimes
-  accompanied by the following warning:
+  to StarNEig, StarPU, OpenMPI or something else. The problem is known to occur
+  with PMIx 2.2.1, UCX 1.5.0, OpenMPI 3.1.3, and StarPU 1.2.8. The memory leak
+  is sometimes accompanied by the following warning:
 ```
 mpool.c:38   UCX  WARN  object 0x2652000 was not returned to mpool ucp_requests
 ```
-  The problem is known to occur with PMIx 2.2.1, UCX 1.5.0, OpenMPI 3.1.3, and
-  StarPU 1.2.8.
+  
