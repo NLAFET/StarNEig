@@ -419,18 +419,19 @@ void starneig_schur_init_conf(struct starneig_schur_conf *conf);
 ///  A *plan* consists from one or more chain lists that are intended to be
 ///  processed in a particular order.
 ///
-///  @ref **STARNEIG_REORDER_ONE_PART_PLAN:**
+///  @ref STARNEIG_REORDER_ONE_PART_PLAN :
 ///
 ///  The first chain is placed in the upper left corner of the matrix and its
 ///  size is chosen such that it contains a desired number of selected
-///  eigenvalues (@ref values_per_chain parameter). The next chain is places
-///  such that its upper left corner is located one entry after the location
-///  where the last selected eigenvalue, that falls within the first chain,
-///  would be after the reordering. The chain is sized such that the part of the
-///  chain, that does not intersect the first chain, contain the desired number
-///  of selected eigenvalues. This same procedure is repeated until all selected
-///  eigenvalues have been accounted for. All chains belong to the same chain
-///  lists and are intended to be processed sequentially.
+///  eigenvalues (@ref starneig_reorder_conf::values_per_chain parameter). The
+///  next chain is places such that its upper left corner is located one entry
+///  after the location where the last selected eigenvalue, that falls within
+///  the first chain, would be after the reordering. The chain is sized such
+///  that the part of the chain, that does not intersect the first chain,
+///  contain the desired number of selected eigenvalues. This same procedure is
+///  repeated until all selected eigenvalues have been accounted for. All chains
+///  belong to the same chain lists and are intended to be processed
+///  sequentially.
 ///
 ///  An example showing the placement of the chains in a case where each chain
 ///  wields two selected eigenvalues:
@@ -506,7 +507,7 @@ void starneig_schur_init_conf(struct starneig_schur_conf *conf);
 ///  If necessary, each window is re-sized to avoid splitting any
 ///  \f$2 \times 2\f$ tiles.
 ///
-///  @ref **STARNEIG_REORDER_MULTI_PART_PLAN:**
+///  @ref STARNEIG_REORDER_MULTI_PART_PLAN :
 ///
 ///  A multi-part reordering plan is derived from an one-part reordering plan
 ///  by splitting the chains into sub-chains as shown below:
