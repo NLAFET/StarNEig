@@ -47,7 +47,7 @@ Please cite the following article when refering to StarNEig:
 
 Please see [publications](PUBLICATIONS.md) and [authors](AUTHORS.md).
 
-## Current status
+## Current status (development series)
 
 The library currently supports only real arithmetic (real input and output
 matrices but real and/or complex eigenvalues and eigenvectors). In addition,
