@@ -383,6 +383,9 @@ starneig_error_t starneig_SEP_DM_ReorderSchur_expert(
 ///
 /// @brief Computes an eigenvector for each selected eigenvalue.
 ///
+/// @param[in] conf
+///         Configuration structure.
+///
 /// @param[in] selected
 ///         The selection array specifying the locations of the selected
 ///         eigenvalues. The number of 1's in the array is the same as the
