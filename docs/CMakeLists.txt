@@ -107,7 +107,7 @@ join_files (
     "${CMAKE_CURRENT_SOURCE_DIR}/../AUTHORS.md"
     "${CMAKE_CURRENT_BINARY_DIR}/docs_generated/_1_authors.md")
 join_files (
-    "${CMAKE_CURRENT_SOURCE_DIR}/../PUBLICATION.md"
+    "${CMAKE_CURRENT_SOURCE_DIR}/../PUBLICATIONS.md"
     "${CMAKE_CURRENT_BINARY_DIR}/docs_generated/_1_authors.md")
 
 #
