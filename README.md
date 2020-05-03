@@ -112,3 +112,52 @@ $ make
 $ make test
 $ sudo make install
 ```
+
+### Example
+
+The following example demonstrates how a dense matrix `A` is reduced to real
+Schur form:
+
+```
+#include <starneig/starneig.h>
+#include <stdlib.h>
+#include <time.h>
+
+int main()
+{
+    int n = 3000;
+    srand((unsigned) time(NULL));
+
+    // generate a random matrix A
+    int ldA = ((n/8)+1)*8;
+    double *A = malloc(n*ldA*sizeof(double));
+    for (int j = 0; j < n; j++)
+        for (int i = 0; i < n; i++)
+            A[j*ldA+i] = C[j*ldC+i] = 2.0*rand()/RAND_MAX - 1.0;
+
+    // generate an identity matrix Q
+    int ldQ = ((n/8)+1)*8;
+    double *Q = malloc(n*ldA*sizeof(double));
+    for (int j = 0; j < n; j++)
+        for (int i = 0; i < n; i++)
+            Q[j*ldQ+i] = i == j ? 1.0 : 0.0;
+
+    // allocate space for the eigenvalues
+    double *real = malloc(n*sizeof(double));
+    double *imag = malloc(n*sizeof(double));
+
+    // initialize the StarNEig library
+    starneig_node_init(-1, -1, STARNEIG_HINT_SM);
+
+    // reduce matrix A to real Schur form S = Q^T A Q
+    starneig_SEP_SM_Reduce(
+        n, A, ldA, Q, ldQ, real, imag, NULL, NULL, NULL, NULL);
+
+    // de-initialize the StarNEig library
+    starneig_node_finalize();
+
+    free(A); free(Q); free(real); free(imag);
+
+    return 0;
+}
+```
