@@ -118,7 +118,7 @@ $ sudo make install
 The following example demonstrates how a dense matrix `A` is reduced to real
 Schur form:
 
-```
+~~~~~~~~~~~~~~~{.c}
 #include <starneig/starneig.h>
 #include <stdlib.h>
 #include <time.h>
@@ -160,4 +160,4 @@ int main()
 
     return 0;
 }
-```
+~~~~~~~~~~~~~~~
