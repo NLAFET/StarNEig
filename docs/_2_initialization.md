@@ -50,6 +50,13 @@ Most interface functions return one of the following values:
 All return values (@ref starneig_error_t) are defined in the
 @ref starneig/error.h header file.
 
+@remark StarNEig supports OpenBLAS, MKL and GotoBLAS. For optimal performance,
+a multi-threaded variant of one of the listed BLAS libraries must be provided.
+StarNEig will automatically set the BLAS library to single-threaded more when
+necessary. If a different BLAS library is provided, then the user is responsible
+for setting the BLAS library to *single-threaded* mode. However, the use of a
+non-supported BLAS library can still impact the performance negatively.
+
 @remark The library may call the `exit()` and `abort()` functions if an
 interface function encounters a fatal error from which it cannot recover.
 
