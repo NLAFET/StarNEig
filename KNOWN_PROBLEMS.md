@@ -18,6 +18,8 @@ STARPU_MINIMUM_AVAILABLE_MEM=10 STARPU_TARGET_AVAILABLE_MEM=15 ...
 
 ### Known compatibility problems
 
+ - It is sometimes necessary to set the `OPENBLAS_NUM_THREADS` environmental
+   variable to `1`: `export OPENBLAS_NUM_THREADS=1`.
  - Some older OpenMPI versions (pre summer 2017, e.g. <= 2.1.1) have a bug that
    might lead to a segmentation fault during a parallel AED.
  - OpenBLAS version 0.3.1 has a bug that might lead to an incorrect result.
