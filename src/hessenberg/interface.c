@@ -40,6 +40,7 @@
 #include "../common/node_internal.h"
 #include "../common/trace.h"
 #include "core.h"
+#include <math.h>
 
 static starneig_error_t hessenberg(
     struct starneig_hessenberg_conf const *_conf,

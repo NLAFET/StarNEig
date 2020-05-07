@@ -46,6 +46,7 @@
 #include "../mpi/utils.h"
 #include "../mpi/node_internal.h"
 #include "../hessenberg/core.h"
+#include <math.h>
 #include <starpu.h>
 #include <starpu_mpi.h>
 
