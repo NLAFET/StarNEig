@@ -25,14 +25,15 @@ jobs:
         run: |
           sudo apt-get install texlive-full doxygen
 
-      - name: Built manual
+      - name: Build manual
         run: |
           echo ${{ env.RELEASE_VERSION }} > version.txt
           mkdir build_docs
-          cd build_docs/
+          (
+            cd build_docs/
             cmake ../docs/
             make
-          cd ../
+          )
           mkdir manual
           cp -r build_docs/html build_docs/starneig_manual.pdf manual/
 
