@@ -89,8 +89,8 @@ Library dependencies:
  - CMake 3.3 or newer
  - Portable Hardware Locality (hwloc)
  - Starpu 1.2 or 1.3
-    - Newer versions require minor changes to `src/CMakeLists.txt`;
-      `SUPPORTED_STARPU`)
+    - Newer versions require the user set the `STARPU_LIBRARIES`,
+      `STARPU_MPI_LIBRARIES` and `STARPU_INCLUDE_PATH` environmental variables.
  - OpenBLAS, MKL, GotoBLAS or single-threaded BLAS library
  - LAPACK
  - MPI (optional)

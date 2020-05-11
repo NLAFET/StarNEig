@@ -423,7 +423,7 @@ endif ()
 # StarPU
 #
 
-find_library_file (STARPU_LIBRARIES_BASE STARPU_BASE_FOUND
+find_library_file (STARPU_LIBRARIES STARPU_FOUND
     starpu-${STARPU_VERSION} "starpu_init" "StarPU base library" FATAL_ERROR)
 
 #
@@ -431,7 +431,7 @@ find_library_file (STARPU_LIBRARIES_BASE STARPU_BASE_FOUND
 #
 
 if (STARPU_USE_MPI)
-    find_library_file (STARPU_LIBRARIES_MPI STARPU_MPI_FOUND
+    find_library_file (STARPU_MPI_LIBRARIES STARPU_MPI_FOUND
         starpumpi-${STARPU_VERSION} "starpu_mpi_init" "StarPU-MPI library"
         FATAL_ERROR)
 endif ()

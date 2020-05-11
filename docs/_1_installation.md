@@ -31,8 +31,8 @@ Library dependencies:
  - CMake 3.3 or newer
  - Portable Hardware Locality (hwloc)
  - Starpu 1.2 or 1.3
-    - Newer versions require minor changes to `src/CMakeLists.txt`;
-      `SUPPORTED_STARPU`)
+    - Newer versions require the user set the `STARPU_LIBRARIES`,
+      `STARPU_MPI_LIBRARIES` and `STARPU_INCLUDE_PATH` environmental variables.
  - OpenBLAS, MKL, GotoBLAS or single-threaded BLAS library
  - LAPACK
  - MPI (optional)
@@ -165,8 +165,8 @@ libraries:
  - `MPI_Fortran_LIBRARIES`: Fortran MPI library.
  - `SCALAPACK_LIBRARIES`: ScaLAPACK library.
  - `BLACS_LIBRARIES`: BLACS library.
- - `STARPU_LIBRARIES_BASE`: StarPU library.
- - `STARPU_LIBRARIES_MPI`: StarPU-MPI library.
+ - `STARPU_LIBRARIES`: StarPU library.
+ - `STARPU_MPI_LIBRARIES`: StarPU-MPI library.
  - `GSL_LIBRARIES`: GNU Scientific Library.
  - `MAGMA_LIBRARIES`: MAGMA library.
  - `MISC_LIBRARIES`: Miscellaneous libraries.
