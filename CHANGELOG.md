@@ -1,10 +1,14 @@
 ## Changelog
 
-### v0.2.0-beta.1:
+### Planned for v0.2.0-beta.1:
  - New experimental Hessenberg reduction code with distributed memory and
    multi-GPU support.
  - Fix a bug that may cause the code to hang in distributed memory  Schur
    reduction.
+ - Remove deprecated interface functions.
+ - Updates to the documentation.
+ - Rename `STARPU_LIBRARIES_BASE` and `STARPU_LIBRARIES_MPI` environmental
+   variables as `STARPU_LIBRARIES` and `STARPU_MPI_LIBRARIES`, respectively.
 
 ### v0.1.0:
  - First stable release of the library.
