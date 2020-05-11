@@ -1,5 +1,10 @@
 ## Changelog
 
+### Planned for v0.1.2
+ - Updates to the documentation.
+ - Rename `STARPU_LIBRARIES_BASE` and `STARPU_LIBRARIES_MPI` environmental
+   variables as `STARPU_LIBRARIES` and `STARPU_MPI_LIBRARIES`, respectively.
+
 ### v0.1.1:
 
  - Fix a bug that may cause the code to hang in distributed memory  Schur
