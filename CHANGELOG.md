@@ -1,6 +1,6 @@
 ## Changelog
 
-### Planned for v0.1.2
+### v0.1.2:
  - Improved performance models.
  - Updates to the documentation.
  - Rename `STARPU_LIBRARIES_BASE` and `STARPU_LIBRARIES_MPI` environmental
