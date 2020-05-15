@@ -31,7 +31,10 @@
 
 project (StarNEig)
 cmake_minimum_required (VERSION 3.3)
-cmake_policy (SET CMP0075 NEW)
+
+if (NOT ${CMAKE_VERSION} VERSION_LESS "3.12.0")
+    cmake_policy (SET CMP0075 NEW)
+endif()
 
 #
 # supporter StarPU versions
@@ -400,7 +403,7 @@ if (STARPU_USE_CUDA)
                 message (STATUS "Switched to ${CUDA_HOST_COMPILER}")
                 set (CUDA_PROPAGATE_HOST_FLAGS OFF)
             else ()
-                message (WARNING "Could not switch to gcc 5/6 series")
+                message (WARNING "Could not switch to gcc 5/6/7 series")
                 set (CUDA_HOST_COMPILER ${OLD_CUDA_HOST_COMPILER})
             endif ()
         endif ()
