@@ -49,6 +49,45 @@
 #include <starpu_mpi.h>
 #endif
 
+#if defined STARNEIG_ENABLE_MRM && \
+(1 < STARPU_MAJOR_VERSION || 2 < STARPU_MINOR_VERSION)
+
+///
+/// @brief Parameters function for push_bulges codelet.
+///
+static void reorder_window_parameters(
+    struct starpu_task *task, double *parameters)
+{
+    struct packing_info packing_info_A, packing_info_B;
+    struct range_packing_info packing_info_selected;
+    int window_size, threshold, swaps;
+    starpu_codelet_unpack_args(task->cl_arg,
+        &packing_info_selected, &packing_info_A, &packing_info_B,
+        &window_size, &threshold, &swaps);
+
+    parameters[0] = packing_info_B.handles != 0 ? 2.0 : 1.0;
+    parameters[1] = packing_info_A.rend - packing_info_A.rbegin;
+    parameters[2] = swaps;
+}
+
+///
+/// @brief Multiple regression performance model for push_bulges codelet.
+///
+static struct starpu_perfmodel reorder_window_pm = {
+    .type = STARPU_MULTIPLE_REGRESSION_BASED,
+    .symbol = "starneig_reorder_window_pm",
+    .parameters = &reorder_window_parameters,
+    .nparameters = 2,
+    .parameters_names = (const char*[]) { "M", "N", "S" },
+    .combinations = (unsigned*[]) {
+        (unsigned[]) { 1U, 2U, 1U },
+        (unsigned[]) { 1U, 2U, 0U }
+    },
+    .ncombinations = 2
+};
+
+#else
+
 ///
 /// @brief Size base function for reorder_window codelet.
 ///
@@ -69,6 +108,14 @@ static size_t reorder_window_size_base(
     else
         return swaps * (packing_info_A.rend - packing_info_A.rbegin);
 }
+
+struct starpu_perfmodel reorder_window_pm = {
+    .type = STARPU_REGRESSION_BASED,
+    .symbol = "starneig_reorder_window_pm",
+    .size_base = &reorder_window_size_base
+};
+
+#endif
 
 ///
 /// @brief reorder_window codelet performs necessary computations inside a
@@ -108,11 +155,7 @@ defined(STARNEIG_ENABLE_CUDA_REORDER_WINDOW)
     .cuda_funcs = { starneig_cuda_reorder_window },
 #endif
     .nbuffers = STARPU_VARIABLE_NBUFFERS,
-    .model = (struct starpu_perfmodel[]) {{
-        .type = STARPU_REGRESSION_BASED,
-        .symbol = "starneig_reorder_window_pm",
-        .size_base = &reorder_window_size_base
-    }}
+    .model = &reorder_window_pm
 };
 
 void starneig_reorder_insert_window(

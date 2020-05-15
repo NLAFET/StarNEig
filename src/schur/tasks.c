@@ -52,6 +52,21 @@
 #endif
 
 ///
+/// @brief Size base function for push_inf_top codelet.
+///
+static size_t push_inf_top_size_base(
+    struct starpu_task *task, unsigned nimpl)
+{
+    double thres_inf;
+    struct packing_info packing_info_A, packing_info_B;
+    int top, bottom;
+    starpu_codelet_unpack_args(task->cl_arg,
+        &thres_inf, &packing_info_A, &packing_info_B, &top, &bottom);
+
+    return packing_info_A.rend - packing_info_A.rbegin;
+}
+
+///
 /// @brief push_inf_top codelet takes a matrix pencil (A,B) and pushes a set of
 /// infinite eigenvalues across a diagonal window. The related orthogonal
 /// transformations are accumulated to local transformation matrices. The
@@ -76,9 +91,84 @@ static struct starpu_codelet push_inf_top_cl = {
     .nbuffers = STARPU_VARIABLE_NBUFFERS,
     .model = (struct starpu_perfmodel[]) {{
         .type = STARPU_REGRESSION_BASED,
-        .symbol = "starneig_schur_push_inf_top_pm"
+        .symbol = "starneig_schur_push_inf_top_pm",
+        .size_base = &push_inf_top_size_base
     }}
 };
+
+////////////////////////////////////////////////////////////////////////////////
+
+#if defined STARNEIG_ENABLE_MRM && \
+(1 < STARPU_MAJOR_VERSION || 2 < STARPU_MINOR_VERSION)
+
+///
+/// @brief Parameters function for push_bulges codelet.
+///
+static void push_bulges_parameters(
+    struct starpu_task *task, double *parameters)
+{
+    double thres_a, thres_b, thres_inf;
+    struct range_packing_info packing_info_shifts_real;
+    struct range_packing_info packing_info_shifts_imag;
+    struct range_packing_info packing_info_aftermath;
+    struct packing_info packing_info_A, packing_info_B;
+    bulge_chasing_mode_t mode;
+    starpu_codelet_unpack_args(task->cl_arg, &thres_a, &thres_b, &thres_inf,
+        &packing_info_shifts_real, &packing_info_shifts_imag,
+        &packing_info_aftermath, &packing_info_A, &packing_info_B, &mode);
+
+    parameters[0] = packing_info_A.rend - packing_info_A.rbegin;
+    parameters[1] =
+        packing_info_shifts_real.end - packing_info_shifts_real.begin;
+}
+
+///
+/// @brief Multiple regression performance model for push_bulges codelet.
+///
+static struct starpu_perfmodel push_bulges_pm = {
+    .type = STARPU_MULTIPLE_REGRESSION_BASED,
+    .symbol = "starneig_push_bulges_pm",
+    .parameters = &push_bulges_parameters,
+    .nparameters = 2,
+    .parameters_names = (const char*[]) { "N", "S" },
+    .combinations = (unsigned*[]) {
+        (unsigned[]) { 2U, 1U },
+        (unsigned[]) { 2U, 0U }
+    },
+    .ncombinations = 2
+};
+
+#else
+
+///
+/// @brief Size base function for push_bulges codelet.
+///
+static size_t push_bulges_size_base(
+    struct starpu_task *task, unsigned nimpl)
+{
+    double thres_a, thres_b, thres_inf;
+    struct range_packing_info packing_info_shifts_real;
+    struct range_packing_info packing_info_shifts_imag;
+    struct range_packing_info packing_info_aftermath;
+    struct packing_info packing_info_A, packing_info_B;
+    bulge_chasing_mode_t mode;
+    starpu_codelet_unpack_args(task->cl_arg, &thres_a, &thres_b, &thres_inf,
+        &packing_info_shifts_real, &packing_info_shifts_imag,
+        &packing_info_aftermath, &packing_info_A, &packing_info_B, &mode);
+
+    return packing_info_A.rend - packing_info_A.rbegin;
+}
+
+///
+/// @brief Linear regression performance model for push_bulges codelet.
+///
+static struct starpu_perfmodel push_bulges_pm = {
+    .type = STARPU_REGRESSION_BASED,
+    .symbol = "starneig_push_bulges_pm",
+    .size_base = &push_bulges_size_base
+};
+
+#endif
 
 ///
 /// @brief push_bulges codelet takes a matrix pencil (A,B) and pushes a set of
@@ -115,11 +205,10 @@ static struct starpu_codelet push_bulges_cl = {
     .cpu_funcs = { starneig_cpu_push_bulges },
     .cpu_funcs_name = { "starneig_cpu_push_bulges" },
     .nbuffers = STARPU_VARIABLE_NBUFFERS,
-    .model = (struct starpu_perfmodel[]) {{
-        .type = STARPU_REGRESSION_BASED,
-        .symbol = "starneig_schur_push_bulges_pm"
-    }}
+    .model = &push_bulges_pm
 };
+
+////////////////////////////////////////////////////////////////////////////////
 
 ///
 /// @brief Size base function for aggressively_deflate codelet.
@@ -170,8 +259,8 @@ static struct starpu_codelet aggressively_deflate_sep_cl = {
     .nbuffers = STARPU_VARIABLE_NBUFFERS,
     .model = (struct starpu_perfmodel[]) {{
         .type = STARPU_REGRESSION_BASED,
-        .size_base = &aggressively_deflate_size_base,
-        .symbol = "starneig_schur_aggressively_deflate_sep_pm"
+        .symbol = "starneig_schur_aggressively_deflate_sep_pm",
+        .size_base = &aggressively_deflate_size_base
     }}
 };
 
@@ -211,10 +300,26 @@ static struct starpu_codelet aggressively_deflate_gep_cl = {
     .nbuffers = STARPU_VARIABLE_NBUFFERS,
     .model = (struct starpu_perfmodel[]) {{
         .type = STARPU_REGRESSION_BASED,
+        .symbol = "starneig_schur_aggressively_deflate_gep_pm",
         .size_base = &aggressively_deflate_size_base,
-        .symbol = "starneig_schur_aggressively_deflate_gep_pm"
     }}
 };
+
+////////////////////////////////////////////////////////////////////////////////
+
+///
+/// @brief Size base function for small_schur codelet.
+///
+static size_t small_schur_size_base(
+    struct starpu_task *task, unsigned nimpl)
+{
+    double thres_a, thres_b, thres_inf;
+    struct packing_info packing_info_A, packing_info_B;
+    starpu_codelet_unpack_args(task->cl_arg,
+        &thres_a, &thres_b, &thres_inf, &packing_info_A, &packing_info_B);
+
+    return packing_info_A.rend - packing_info_A.rbegin;
+}
 
 ///
 /// @brief small_schur codelet takes a matrix pencil (A,B) and reduces a
@@ -229,7 +334,7 @@ static struct starpu_codelet aggressively_deflate_gep_cl = {
 ///   - packing information for the sub-matrix that is part of the matrix B
 ///
 ///  Buffers:
-
+///
 ///   - return status (STARPU_W)
 ///   - local left-hand side transformation matrix (STARPU_W)
 ///   - local right-hand side transformation matrix (STARPU_W, optional)
@@ -244,9 +349,24 @@ static struct starpu_codelet small_schur_cl = {
     .nbuffers = STARPU_VARIABLE_NBUFFERS,
     .model = (struct starpu_perfmodel[]) {{
         .type = STARPU_REGRESSION_BASED,
-        .symbol = "starneig_schur_small_schur_pm"
+        .symbol = "starneig_schur_small_schur_pm",
+        .size_base = &small_schur_size_base
     }}
 };
+
+////////////////////////////////////////////////////////////////////////////////
+
+///
+/// @brief Size base function for small_hessenberg codelet.
+///
+static size_t small_hessenberg_size_base(
+    struct starpu_task *task, unsigned nimpl)
+{
+    struct packing_info packing_info_A, packing_info_B;
+    starpu_codelet_unpack_args(task->cl_arg, &packing_info_A, &packing_info_B);
+
+    return packing_info_A.rend - packing_info_A.rbegin;
+}
 
 ///
 /// @brief small_hessenberg codelet takes a matrix pencil (A,B) and reduces a
@@ -271,7 +391,8 @@ static struct starpu_codelet small_hessenberg_cl = {
     .nbuffers = STARPU_VARIABLE_NBUFFERS,
     .model = (struct starpu_perfmodel[]) {{
         .type = STARPU_REGRESSION_BASED,
-        .symbol = "starneig_schur_small_hessenberg_pm"
+        .symbol = "starneig_schur_small_hessenberg_pm",
+        .size_base = &small_hessenberg_size_base
     }}
 };
 
