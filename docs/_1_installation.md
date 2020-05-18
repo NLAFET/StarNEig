@@ -100,7 +100,7 @@ $ cmake -DCMAKE_INSTALL_PREFIX=/path/to/somewhere/ ../
 components:
 ```
 $ cd path_to_the_top_directory/
-$ mkdir build_doc
+$ mkdir build
 $ cd build/
 $ cmake ../src/
 $ make
