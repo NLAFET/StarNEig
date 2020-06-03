@@ -296,10 +296,10 @@ starneig_distr_matrix_t starneig_distr_matrix_create(
     matrix->cols = cols;
 
     if (row_blksz < 0)
-        row_blksz = MAX(64,
+        row_blksz = MAX(1024,
             divceil(divceil(rows, 4*ceil(sqrt(world_size))), 120)*120);
     if (col_blksz < 0)
-        col_blksz = MAX(64,
+        col_blksz = MAX(1024,
             divceil(divceil(cols, 4*ceil(sqrt(world_size))), 120)*120);
 
     matrix->row_blksz = row_blksz;
