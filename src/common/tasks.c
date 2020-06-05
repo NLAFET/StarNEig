@@ -107,7 +107,7 @@ static size_t left_gemm_update_size_base(
 /// @brief Linear regression performance model for left_gemm_update codelet.
 ///
 static struct starpu_perfmodel left_gemm_update_pm = {
-    .type = STARPU_REGRESSION_BASED,
+    .type = STARPU_NL_REGRESSION_BASED,
     .symbol = "starneig_left_gemm_update_pm",
     .size_base = &left_gemm_update_size_base
 };
@@ -194,7 +194,7 @@ static size_t right_gemm_update_size_base(
 /// @brief Linear regression performance model for right_gemm_update codelet.
 ///
 static struct starpu_perfmodel right_gemm_update_pm = {
-    .type = STARPU_REGRESSION_BASED,
+    .type = STARPU_NL_REGRESSION_BASED,
     .symbol = "starneig_right_gemm_update_pm",
     .size_base = &right_gemm_update_size_base
 };
