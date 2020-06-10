@@ -86,7 +86,7 @@ struct process_args {
     int iteration_limit;                  ///< iteration limit
     parameter_t small_limit;              ///< small QR limit
     parameter_t aed_window_size;          ///< AED window size
-    parameter_t aed_shift_count;          ///< AED shift count
+    parameter_t shift_count;          ///< AED shift count
     parameter_t aed_nibble;               ///< nibble point
     parameter_t aed_parallel_soft_limit;  ///< soft parallel AED limit
     parameter_t aed_parallel_hard_limit;  ///< soft parallel AED limit
