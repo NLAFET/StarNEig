@@ -1,6 +1,7 @@
 ## Changelog
 
 ### Planned for v0.1.3
+ - Improved performance models.
 
 ### v0.1.2
  - Improved performance models.
