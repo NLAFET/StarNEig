@@ -143,11 +143,6 @@ void starneig_hessenberg_init_conf(struct starneig_hessenberg_conf *conf);
 #define STARNEIG_SCHUR_DEFAULT_AED_PARALLEL_HARD_LIMIT -1
 
 ///
-/// @brief Default shift origin.
-///
-#define STARNEIG_SCHUR_DEFAULT_SHIFT_ORIGIN            -1
-
-///
 /// @brief Default shift count.
 ///
 #define STARNEIG_SCHUR_DEFAULT_SHIFT_COUNT             -1
@@ -258,18 +253,6 @@ struct starneig_schur_conf {
     /// implementation will determine a suitable switching point
     /// automatically.
     int aed_parallel_hard_limit;
-
-    /// The QR/QZ algorithm chases a set of \f$3 \times 3\f$ bulges across
-    /// the diagonal of the Hessenberg(-triangular) decomposition. Two shifts
-    /// (eigenvalue estimates) are required to generate each bulge. This
-    /// parameter defines how the shifts are computed. If the parameter is set
-    /// to @ref STARNEIG_SCHUR_AED_SHIFT_ORIGIN, then the implementation
-    /// will use the failed eigenvalue candidates from an AED as shifts. If the
-    /// parameter is set to @ref STARNEIG_SCHUR_SEPARATE_SHIFT_ORIGIN, then the
-    /// implementation will compute the shift separately. If the parameter is
-    /// set to @ref STARNEIG_SCHUR_DEFAULT_SHIFT_ORIGIN, then the implementation
-    /// will determine a suitable shift origin automatically.
-    int shift_origin;
 
     /// The QR/QZ algorithm chases a set of \f$3 \times 3\f$ bulges across
     /// the diagonal of the Hessenberg(-triangular) decomposition. Two shifts
