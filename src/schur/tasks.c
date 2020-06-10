@@ -90,7 +90,7 @@ static struct starpu_codelet push_inf_top_cl = {
     .cpu_funcs_name = { "starneig_cpu_push_inf_top" },
     .nbuffers = STARPU_VARIABLE_NBUFFERS,
     .model = (struct starpu_perfmodel[]) {{
-        .type = STARPU_REGRESSION_BASED,
+        .type = STARPU_NL_REGRESSION_BASED,
         .symbol = "starneig_schur_push_inf_top_pm",
         .size_base = &push_inf_top_size_base
     }}
@@ -163,7 +163,7 @@ static size_t push_bulges_size_base(
 /// @brief Linear regression performance model for push_bulges codelet.
 ///
 static struct starpu_perfmodel push_bulges_pm = {
-    .type = STARPU_REGRESSION_BASED,
+    .type = STARPU_NL_REGRESSION_BASED,
     .symbol = "starneig_push_bulges_pm",
     .size_base = &push_bulges_size_base
 };
