@@ -83,13 +83,13 @@ static size_t prepare_column_size_base(
 ///   - Panel matrix (STARPU_RW, rend-rbegin rows, cend-cbegin columns).
 ///
 static struct starpu_codelet prepare_column_cl = {
-    .name = "starneig_prepare_column",
+    .name = "starneig_hessenberg_prepare_column",
     .cpu_funcs = { starneig_hessenberg_cpu_prepare_column },
     .cpu_funcs_name = { "starneig_hessenberg_cpu_prepare_column" },
     .nbuffers = STARPU_VARIABLE_NBUFFERS,
     .model = (struct starpu_perfmodel[]) {{
-        .type = STARPU_REGRESSION_BASED,
-        .symbol = "starneig_prepare_column_pm",
+        .type = STARPU_NL_REGRESSION_BASED,
+        .symbol = "starneig_hessenberg_prepare_column_pm",
         .size_base = &prepare_column_size_base
     }}
 };
@@ -127,7 +127,7 @@ static size_t compute_column_size_base(
 ///   - Intemediate vector tiles (STARPU_W).
 ///
 static struct starpu_codelet compute_column_cl = {
-    .name = "starneig_compute_column",
+    .name = "starneig_hessenberg_compute_column",
     .cpu_funcs = { starneig_hessenberg_cpu_compute_column },
     .cpu_funcs_name = { "starneig_hessenberg_cpu_compute_column" },
 #ifdef STARNEIG_ENABLE_CUDA
@@ -136,8 +136,8 @@ static struct starpu_codelet compute_column_cl = {
 #endif
     .nbuffers = STARPU_VARIABLE_NBUFFERS,
     .model = (struct starpu_perfmodel[]) {{
-        .type = STARPU_REGRESSION_BASED,
-        .symbol = "starneig_compute_column_pm",
+        .type = STARPU_NL_REGRESSION_BASED,
+        .symbol = "starneig_hessenberg_compute_column_pm",
         .size_base = &compute_column_size_base
     }}
 };
@@ -174,13 +174,13 @@ static size_t finish_column_size_base(
 ///   - Intemediate vector tiles (STARPU_R).
 ///
 static struct starpu_codelet finish_column_cl = {
-    .name = "starneig_finish_column",
+    .name = "starneig_hessenberg_finish_column",
     .cpu_funcs = { starneig_hessenberg_cpu_finish_column },
     .cpu_funcs_name = { "starneig_hessenberg_cpu_finish_column" },
     .nbuffers = STARPU_VARIABLE_NBUFFERS,
     .model = (struct starpu_perfmodel[]) {{
-        .type = STARPU_REGRESSION_BASED,
-        .symbol = "starneig_finish_column_pm",
+        .type = STARPU_NL_REGRESSION_BASED,
+        .symbol = "starneig_hessenberg_finish_column_pm",
         .size_base = &finish_column_size_base
     }}
 };
@@ -211,7 +211,7 @@ static void update_trail_parameters(
 ///
 static struct starpu_perfmodel update_trail_pm = {
     .type = STARPU_MULTIPLE_REGRESSION_BASED,
-    .symbol = "starneig_update_trail_pm",
+    .symbol = "starneig_hessenberg_update_trail_pm",
     .parameters = &update_trail_parameters,
     .nparameters = 3,
     .parameters_names = (const char*[]) { "M", "N", "NB" },
@@ -239,8 +239,8 @@ static size_t update_trail_size_base(
 /// @brief Linear regression performance model for update_trail codelet.
 ///
 static struct starpu_perfmodel update_trail_pm = {
-    .type = STARPU_REGRESSION_BASED,
-    .symbol = "starneig_update_trail_pm",
+    .type = STARPU_NL_REGRESSION_BASED,
+    .symbol = "starneig_hessenberg_update_trail_pm",
     .size_base = &update_trail_size_base
 };
 
@@ -265,7 +265,7 @@ static struct starpu_perfmodel update_trail_pm = {
 ///         in column-major order)
 ///
 static struct starpu_codelet update_trail_cl = {
-    .name = "starneig_update_trail",
+    .name = "starneig_hessenberg_update_trail",
     .cpu_funcs = { starneig_hessenberg_cpu_update_trail },
     .cpu_funcs_name = { "starneig_hessenberg_cpu_update_trail" },
 #ifdef STARNEIG_ENABLE_CUDA
@@ -301,7 +301,7 @@ static void update_right_parameters(
 ///
 static struct starpu_perfmodel update_right_pm = {
     .type = STARPU_MULTIPLE_REGRESSION_BASED,
-    .symbol = "starneig_update_right_pm",
+    .symbol = "starneig_hessenberg_update_right_pm",
     .parameters = &update_right_parameters,
     .nparameters = 3,
     .parameters_names = (const char*[]) { "M", "N", "NB" },
@@ -330,7 +330,7 @@ static size_t update_right_size_base(
 ///
 static struct starpu_perfmodel update_right_pm = {
     .type = STARPU_REGRESSION_BASED,
-    .symbol = "starneig_update_right_pm",
+    .symbol = "starneig_hessenberg_update_right_pm",
     .size_base = &update_right_size_base
 };
 
@@ -352,7 +352,7 @@ static struct starpu_perfmodel update_right_pm = {
 ///         in column-major order)
 ///
 static struct starpu_codelet update_right_cl = {
-    .name = "starneig_update_right",
+    .name = "starneig_hessenberg_update_right",
     .cpu_funcs = { starneig_hessenberg_cpu_update_right },
     .cpu_funcs_name = { "starneig_hessenberg_cpu_update_right" },
 //#ifdef STARNEIG_ENABLE_CUDA
@@ -388,7 +388,7 @@ static void update_left_parameters(
 ///
 static struct starpu_perfmodel update_left_pm = {
     .type = STARPU_MULTIPLE_REGRESSION_BASED,
-    .symbol = "starneig_update_left_pm",
+    .symbol = "starneig_hessenberg_update_left_pm",
     .parameters = &update_left_parameters,
     .nparameters = 3,
     .parameters_names = (const char*[]) { "M", "N", "NB" },
@@ -416,8 +416,8 @@ static size_t update_left_size_base(
 /// @brief Linear regression performance model for update_left codelet.
 ///
 static struct starpu_perfmodel update_left_pm = {
-    .type = STARPU_REGRESSION_BASED,
-    .symbol = "starneig_update_left_pm",
+    .type = STARPU_NL_REGRESSION_BASED,
+    .symbol = "starneig_hessenberg_update_left_pm",
     .size_base = &update_left_size_base
 };
 
@@ -439,7 +439,7 @@ static struct starpu_perfmodel update_left_pm = {
 ///         in column-major order)
 ///
 static struct starpu_codelet update_left_cl = {
-    .name = "starneig_update_left",
+    .name = "starneig_hessenberg_update_left",
     .cpu_funcs = { starneig_hessenberg_cpu_update_left },
     .cpu_funcs_name = { "starneig_hessenberg_cpu_update_left" },
 //#ifdef STARNEIG_ENABLE_CUDA
