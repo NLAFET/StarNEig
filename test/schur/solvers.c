@@ -801,12 +801,12 @@ static void starpu_print_usage(int argc, char * const *argv)
         "  --small-limit [default,(num)] -- Sequential QR switching "
         " point\n"
         "  --aed-window-size [default,(num)] -- AED window size\n"
-        "  --aed-shift-count [default,(num)] -- AED shift count\n"
         "  --aed-nibble [default,(1-99)] -- Nibble point point\n"
         "  --aed-parallel-soft-limit [default,(num)] -- Soft sequential"
         " AED switching point\n"
         "  --aed-parallel-hard-limit [default,(num)] -- Hard sequential"
         " AED switching point\n"
+        "  --shift-count [default,(num)] -- Shift count\n"
         "  --window-size [default,rounded,(num)] -- Window size\n"
         "  --shifts-per-window [default,(num)] -- Shifts per window\n"
         "  --update-width [default,(num)] -- Update task width\n"
@@ -865,10 +865,10 @@ static int starpu_check_args(int argc, char * const *argv, int *argr)
         return -1;
     }
 
-    struct multiarg_t aed_shift_count = read_multiarg(
-        "--aed-shift-count", argc, argv, argr, "default", NULL);
-    if (aed_shift_count.type == MULTIARG_INVALID ||
-    (aed_shift_count.type == MULTIARG_INT && aed_shift_count.int_value < 2)) {
+    struct multiarg_t shift_count = read_multiarg(
+        "--shift-count", argc, argv, argr, "default", NULL);
+    if (shift_count.type == MULTIARG_INVALID ||
+    (shift_count.type == MULTIARG_INT && shift_count.int_value < 2)) {
         fprintf(stderr, "Invalid AED shift count.\n");
         return -1;
     }
@@ -973,10 +973,10 @@ static void starpu_print_args(int argc, char * const *argv)
     print_multiarg("--tile-size", argc, argv, "default", NULL);
     print_multiarg("--small-limit", argc, argv, "default", NULL);
     print_multiarg("--aed-window-size", argc, argv, "default", NULL);
-    print_multiarg("--aed-shift-count", argc, argv, "default", NULL);
     print_multiarg("--aed-nibble", argc, argv, "default", NULL);
     print_multiarg("--aed-parallel-soft-limit", argc, argv, "default", NULL);
     print_multiarg("--aed-parallel-hard-limit", argc, argv, "default", NULL);
+    print_multiarg("--shift-count", argc, argv, "default", NULL);
     print_multiarg("--window-size", argc, argv, "default", "rounded", NULL);
     print_multiarg("--shifts-per-window", argc, argv, "default", NULL);
     print_multiarg("--update-width", argc, argv, "default", NULL);
@@ -1063,11 +1063,6 @@ static int starpu_run(hook_solver_state_t state)
     if (aed_window_size.type == MULTIARG_INT)
         conf.aed_window_size = aed_window_size.int_value;
 
-    struct multiarg_t aed_shift_count = read_multiarg(
-        "--aed-shift-count", argc, argv, NULL, "default", NULL);
-    if (aed_shift_count.type == MULTIARG_INT)
-        conf.aed_shift_count = aed_shift_count.int_value;
-
     struct multiarg_t aed_nibble = read_multiarg(
         "--aed-nibble", argc, argv, NULL, "default", NULL);
     if (aed_nibble.type == MULTIARG_INT)
@@ -1082,6 +1077,11 @@ static int starpu_run(hook_solver_state_t state)
         "--aed-parallel-hard-limit", argc, argv, NULL, "default", NULL);
     if (aed_parallel_hard_limit.type == MULTIARG_INT)
         conf.aed_parallel_hard_limit = aed_parallel_hard_limit.int_value;
+
+    struct multiarg_t shift_count = read_multiarg(
+        "--shift-count", argc, argv, NULL, "default", NULL);
+    if (shift_count.type == MULTIARG_INT)
+        conf.shift_count = shift_count.int_value;
 
     struct multiarg_t window_size = read_multiarg(
         "--window-size", argc, argv, NULL, "default", "rounded", NULL);

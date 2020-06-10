@@ -3078,8 +3078,8 @@ static size_t get_schur_reduction_workspace(
     int begin, int end, int n, int ldQ, int ldZ, int ldA, int ldB)
 {
     const int small_limit = 64;
-    const int aed_shift_count = divceil(0.06*n, 2)*2;
-    const int aed_window_size = MAX(aed_shift_count+2, 0.08*n);
+    const int shift_count = divceil(0.06*n, 2)*2;
+    const int aed_window_size = MAX(shift_count+2, 0.08*n);
 
     if (ldB == 0 || end-begin <= small_limit)
         return get_small_schur_reduction_workspace(
@@ -3190,8 +3190,8 @@ static int perform_schur_reduction(
 {
     const int max_iter = 300;
     const int small_limit = 64;
-    const int aed_shift_count = divceil(0.06*n, 2)*2;
-    const int aed_window_size = MAX(aed_shift_count+2, 0.08*n);
+    const int shift_count = divceil(0.06*n, 2)*2;
+    const int aed_window_size = MAX(shift_count+2, 0.08*n);
 
     if (B == NULL || end-begin <= small_limit)
         return perform_small_schur_reduction(
@@ -3311,13 +3311,13 @@ static int perform_schur_reduction(
 
         // if there is not enough shifts, repeat AED
 
-        if (unconverged < aed_shift_count && 0 < converged)
+        if (unconverged < shift_count && 0 < converged)
             continue;
 
         // push bulges
 
         perform_push_bulges(
-            BULGE_CHASING_MODE_FULL, top, bottom, aed_shift_count, n,
+            BULGE_CHASING_MODE_FULL, top, bottom, shift_count, n,
             ldQ, ldZ, ldA, ldB, lwork, thres_a, thres_b, thres_inf,
             real+aed_begin, imag+aed_begin, Q, Z, A, B, work);
 

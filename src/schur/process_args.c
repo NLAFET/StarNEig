@@ -187,7 +187,7 @@ starneig_error_t starneig_build_process_args_from(
             starneig_get_optimal_aed_size(STARNEIG_MATRIX_M(matrix_a)-1, 6)
     };
 
-    args->aed_shift_count = (parameter_t) {
+    args->shift_count = (parameter_t) {
         .alpha = 0.0,
         .beta =
             starneig_get_optimal_shift_count(STARNEIG_MATRIX_M(matrix_a)-1, 6)
@@ -299,13 +299,13 @@ starneig_error_t starneig_build_process_args(
 
     if (conf == NULL ||
     (conf->aed_window_size == STARNEIG_SCHUR_DEFAULT_AED_WINDOW_SIZE &&
-    conf->aed_shift_count == STARNEIG_SCHUR_DEFAULT_AED_SHIFT_COUNT)) {
+    conf->shift_count == STARNEIG_SCHUR_DEFAULT_SHIFT_COUNT)) {
         args->aed_window_size = (parameter_t) {
             .alpha = 0.0,
             .beta = starneig_get_optimal_aed_size(
                 n, starpu_worker_get_count())
         };
-        args->aed_shift_count = (parameter_t) {
+        args->shift_count = (parameter_t) {
             .alpha = 0.0,
             .beta = starneig_get_optimal_shift_count(
                 n, starpu_worker_get_count())
@@ -313,23 +313,23 @@ starneig_error_t starneig_build_process_args(
     }
     else if (conf->aed_window_size ==
     STARNEIG_SCHUR_DEFAULT_AED_WINDOW_SIZE) {
-        if (2 <= conf->aed_shift_count) {
+        if (2 <= conf->shift_count) {
             args->aed_window_size = (parameter_t)
-                { .alpha = 0.0, .beta = 2*conf->aed_shift_count };
-            args->aed_shift_count = (parameter_t)
-                { .alpha = 0.0, .beta = conf->aed_shift_count };
+                { .alpha = 0.0, .beta = 2*conf->shift_count };
+            args->shift_count = (parameter_t)
+                { .alpha = 0.0, .beta = conf->shift_count };
         }
         else {
             starneig_error("Invalid number of AED shifts. Exiting...");
             return STARNEIG_INVALID_ARGUMENTS;
         }
     }
-    else if (conf->aed_shift_count ==
-    STARNEIG_SCHUR_DEFAULT_AED_SHIFT_COUNT) {
+    else if (conf->shift_count ==
+    STARNEIG_SCHUR_DEFAULT_SHIFT_COUNT) {
         if (4 < conf->aed_window_size) {
             args->aed_window_size = (parameter_t)
                 { .alpha = 0.0, .beta = conf->aed_window_size };
-            args->aed_shift_count = (parameter_t)
+            args->shift_count = (parameter_t)
                 { .alpha = 0.0, .beta = conf->aed_window_size/2 };
         }
         else {
@@ -338,12 +338,12 @@ starneig_error_t starneig_build_process_args(
         }
     }
     else {
-        if (conf->aed_shift_count <= conf->aed_window_size) {
+        if (conf->shift_count <= conf->aed_window_size) {
              args->aed_window_size = (parameter_t)
                 { .alpha = 0.0, .beta = conf->aed_window_size };
-            args->aed_shift_count = (parameter_t)
+            args->shift_count = (parameter_t)
                 { .alpha = 0.0, .beta = MIN(
-                    9*conf->aed_window_size/10, conf->aed_shift_count) };
+                    9*conf->aed_window_size/10, conf->shift_count) };
         }
         else {
             starneig_error(

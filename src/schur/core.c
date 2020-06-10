@@ -571,7 +571,7 @@ static void insert_bulges_fixed(
     int aed_window_size = evaluate_parameter(
         segment->end - segment->begin, args->aed_window_size);
     int requested_shifts = evaluate_parameter(
-        segment->end - segment->begin, args->aed_shift_count);
+        segment->end - segment->begin, args->shift_count);
     int window_size = evaluate_parameter(
         segment->end - segment->begin, args->bulges_window_size);
     int shifts_per_window = evaluate_parameter(
@@ -676,7 +676,7 @@ static void insert_bulges_rounded(
     int aed_window_size = evaluate_parameter(
         segment->end - segment->begin, args->aed_window_size);
     int requested_shifts = evaluate_parameter(
-            segment->end - segment->begin, args->aed_shift_count);
+            segment->end - segment->begin, args->shift_count);
     int shifts_per_window = MIN(
         evaluate_parameter(
                 segment->end - segment->begin, args->bulges_shifts_per_window),
@@ -811,7 +811,7 @@ static enum segment_status perform_deflate_finalize(
     int padded_size = segment->end - segment->aed_begin;
 
     int requested_shifts = MIN(0.30*padded_size, evaluate_parameter(
-        segment->end - segment->begin, args->aed_shift_count));
+        segment->end - segment->begin, args->shift_count));
 
     int nibble = evaluate_parameter(
         segment->end - segment->begin, args->aed_nibble);
@@ -1904,7 +1904,7 @@ static enum segment_status process_segment_new(
     int aed_window_size;
     if (segment->iter == 0)
         aed_window_size = MIN(0.30*segment_size,
-            evaluate_parameter(segment_size, args->aed_shift_count));
+            evaluate_parameter(segment_size, args->shift_count));
     else
         aed_window_size = MIN(0.30*segment_size,
             evaluate_parameter(segment_size, args->aed_window_size));
@@ -2045,7 +2045,7 @@ static enum segment_status process_segment_aed_small(
     int padded_size = segment->end - segment->aed_begin;
 
     int requested_shifts = MIN(0.30*padded_size, evaluate_parameter(
-        segment->end - segment->begin, args->aed_shift_count));
+        segment->end - segment->begin, args->shift_count));
 
     int nibble = evaluate_parameter(
         segment->end - segment->begin, args->aed_nibble);
@@ -2474,7 +2474,7 @@ starneig_error_t starneig_schur_insert_tasks(
     starneig_message("Using AED windows size %d.", (int)
         evaluate_parameter(STARNEIG_MATRIX_N(A), args.aed_window_size));
     starneig_message("Using %d shifts.", (int)
-        evaluate_parameter(STARNEIG_MATRIX_N(A), args.aed_shift_count));
+        evaluate_parameter(STARNEIG_MATRIX_N(A), args.shift_count));
 
     //
     // prepare for the bootstrap process
