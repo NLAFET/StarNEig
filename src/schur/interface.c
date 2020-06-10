@@ -171,12 +171,12 @@ void starneig_schur_init_conf(struct starneig_schur_conf *conf)
     conf->tile_size = STARNEIG_SCHUR_DEFAULT_TILE_SIZE;
     conf->small_limit = STARNEIG_SCHUR_DEFAULT_SMALL_LIMIT;
     conf->aed_window_size = STARNEIG_SCHUR_DEFAULT_AED_WINDOW_SIZE;
-    conf->aed_shift_count = STARNEIG_SCHUR_DEFAULT_AED_SHIFT_COUNT;
     conf->aed_nibble = STARNEIG_SCHUR_DEFAULT_AED_NIBBLE;
     conf->aed_parallel_soft_limit =
         STARNEIG_SCHUR_DEFAULT_AED_PARALLEL_SOFT_LIMIT;
     conf->aed_parallel_hard_limit =
         STARNEIG_SCHUR_DEFAULT_AED_PARALLEL_HARD_LIMIT;
+    conf->shift_count = STARNEIG_SCHUR_DEFAULT_SHIFT_COUNT;
     conf->window_size = STARNEIG_SCHUR_DEFAULT_WINDOW_SIZE;
     conf->shifts_per_window = STARNEIG_SCHUR_DEFAULT_SHIFTS_PER_WINDOW;
     conf->update_width = STARNEIG_SCHUR_DEFAULT_UPDATE_WIDTH;

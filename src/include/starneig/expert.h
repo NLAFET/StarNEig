@@ -128,11 +128,6 @@ void starneig_hessenberg_init_conf(struct starneig_hessenberg_conf *conf);
 #define STARNEIG_SCHUR_DEFAULT_AED_WINDOW_SIZE         -1
 
 ///
-/// @brief Default AED shift count.
-///
-#define STARNEIG_SCHUR_DEFAULT_AED_SHIFT_COUNT         -1
-
-///
 /// @brief Default nibble value.
 ///
 #define STARNEIG_SCHUR_DEFAULT_AED_NIBBLE              -1
@@ -146,6 +141,11 @@ void starneig_hessenberg_init_conf(struct starneig_hessenberg_conf *conf);
 /// @brief Default hard sequential AED limit.
 ///
 #define STARNEIG_SCHUR_DEFAULT_AED_PARALLEL_HARD_LIMIT -1
+
+///
+/// @brief Default shift count.
+///
+#define STARNEIG_SCHUR_DEFAULT_SHIFT_COUNT             -1
 
 ///
 /// @brief Default bulge chasing window size.
@@ -222,14 +222,6 @@ struct starneig_schur_conf {
     /// will determine a suitable AED window size automatically.
     int aed_window_size;
 
-    /// The QR/QZ algorithm chases a set of \f$3 \times 3\f$ bulges across
-    /// the diagonal of the Hessenberg(-triangular) decomposition. Two shifts
-    /// (eigenvalue estimates) are required to generate each bulge. This
-    /// parameter defines the number of shifts to use. If the parameter is set
-    /// to @ref STARNEIG_SCHUR_DEFAULT_AED_SHIFT_COUNT, then the implementation
-    /// will determine a suitable shift count automatically.
-    int aed_shift_count;
-
     /// The implementation relies on a so-called Aggressive Early Deflation
     /// (AED) technique to accelerate the convergence of the algorithm. Each AED
     /// is performed inside a small diagonal window. If the number deflated
@@ -261,6 +253,14 @@ struct starneig_schur_conf {
     /// implementation will determine a suitable switching point
     /// automatically.
     int aed_parallel_hard_limit;
+
+    /// The QR/QZ algorithm chases a set of \f$3 \times 3\f$ bulges across
+    /// the diagonal of the Hessenberg(-triangular) decomposition. Two shifts
+    /// (eigenvalue estimates) are required to generate each bulge. This
+    /// parameter defines the number of shifts to use. If the parameter is set
+    /// to @ref STARNEIG_SCHUR_DEFAULT_SHIFT_COUNT, then the implementation
+    /// will determine a suitable shift count automatically.
+    int shift_count;
 
     /// The QR/QZ algorithm chases a set of \f$3 \times 3\f$ bulges across
     /// the diagonal of the Hessenberg(-triangular) decomposition. The bulges
