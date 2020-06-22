@@ -6,7 +6,7 @@
 ///
 /// @section LICENSE
 ///
-/// Copyright (c) 2019, Umeå Universitet
+/// Copyright (c) 2019-2020, Umeå Universitet
 ///
 /// Redistribution and use in source and binary forms, with or without
 /// modification, are permitted provided that the following conditions are met:
@@ -35,8 +35,8 @@
 /// POSSIBILITY OF SUCH DAMAGE.
 ///
 
-#ifndef STARNEIG_HESSENBERG_TASKS_H
-#define STARNEIG_HESSENBERG_TASKS_H
+#ifndef STARNEIG_HESSENBERG_EXT_TASKS_H
+#define STARNEIG_HESSENBERG_EXT_TASKS_H
 
 #include <starneig_config.h>
 #include <starneig/configuration.h>
