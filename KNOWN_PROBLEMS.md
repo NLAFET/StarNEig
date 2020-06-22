@@ -1,5 +1,7 @@
 ## Known problems
 
+ - The performance of the Hessenberg reduction phase has droped since
+   v0.1-beta2. The problem will be fixed in the next version of the library.
  - If the CUDA support is enabled, then the starneig_SEP_SM_Hessenberg()
    interface function cannot always handle problems that do not fit into GPU's
    memory. The cause of this problem is not known.
