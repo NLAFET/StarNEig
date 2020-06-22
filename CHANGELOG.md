@@ -1,6 +1,8 @@
 ## Changelog
 
-### Planned for v0.1.3
+### Planned for v0.1.4
+
+### v0.1.3
  - Restore older Hessenberg reduction implementation from v0.1-beta2
  - Rename `aed_shift_count` parameter as `shift_count`. Rename the default value
    `STARNEIG_SCHUR_DEFAULT_AED_SHIFT_COUNT` as
