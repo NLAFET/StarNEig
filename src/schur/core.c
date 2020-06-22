@@ -57,7 +57,7 @@
 #include "../common/utils.h"
 #include "../common/tasks.h"
 #include "../common/trace.h"
-#include "../hessenberg/core.h"
+#include "../hessenberg/internal/core.h"
 #include <math.h>
 #include <time.h>
 #ifdef STARNEIG_ENABLE_MPI

@@ -457,6 +457,7 @@ static void starpu_print_usage(int argc, char * const *argv)
         "  --gpus [default,(num)} -- Number of GPUS\n"
         "  --tile-size [default,(num)] -- tile size\n"
         "  --panel-width [default,(num)] -- Panel width\n"
+        "  --parallel-worker-size [default,gpuonly,(num)]\n"
     );
 }
 
@@ -470,6 +471,8 @@ static int starpu_check_args(int argc, char * const *argv, int *argr)
         "--tile-size", argc, argv, argr, "default", NULL);
     struct multiarg_t panel_width = read_multiarg(
         "--panel-width", argc, argv, argr, "default", NULL);
+    struct multiarg_t parallel_worker_size = read_multiarg(
+        "--parallel-worker-size", argc, argv, argr, "default", NULL);
 
     if (arg_cores.type == MULTIARG_INVALID)
         return -1;
@@ -489,6 +492,13 @@ static int starpu_check_args(int argc, char * const *argv, int *argr)
         return -1;
     }
 
+    if (parallel_worker_size.type == MULTIARG_INVALID ||
+    (parallel_worker_size.type == MULTIARG_INVALID &&
+    parallel_worker_size.int_value < 1)) {
+        fprintf(stderr, "Invalid parallel worker size.\n");
+        return -1;
+    }
+
     return 0;
 }
 
@@ -498,6 +508,8 @@ static void starpu_print_args(int argc, char * const *argv)
     print_multiarg("--gpus", argc, argv, "default", NULL);
     print_multiarg("--tile-size", argc, argv, "default", NULL);
     print_multiarg("--panel-width", argc, argv, "default", NULL);
+    print_multiarg(
+        "--parallel-worker-size", argc, argv, "default", NULL);
 }
 
 static hook_solver_state_t starpu_prepare(
@@ -558,11 +570,15 @@ static int starpu_run(hook_solver_state_t state)
         "--tile-size", argc, argv, NULL, "default", NULL);
     struct multiarg_t panel_width = read_multiarg(
         "--panel-width", argc, argv, NULL, "default", NULL);
+    struct multiarg_t parallel_worker_size = read_multiarg(
+        "--parallel-worker-size", argc, argv, NULL, "default", NULL);
 
     if (tile_size.type == MULTIARG_INT)
         conf.tile_size = tile_size.int_value;
     if (panel_width.type == MULTIARG_INT)
         conf.panel_width = panel_width.int_value;
+    if (parallel_worker_size.type == MULTIARG_INT)
+        conf.parallel_worker_size = parallel_worker_size.int_value;
 
     int ret = 0;
 
