@@ -101,7 +101,7 @@ static size_t process_panel_size_base(
 /// @brief Linear regression performance model for process_panel codelet.
 ///
 static struct starpu_perfmodel process_panel_pm = {
-    .type = STARPU_REGRESSION_BASED,
+    .type = STARPU_NL_REGRESSION_BASED,
     .symbol = "starneig_process_panel_pm",
     .size_base = &process_panel_size_base
 };
@@ -223,7 +223,7 @@ static size_t update_trail_size_base(
 /// @brief Linear regression performance model for update_trail codelet.
 ///
 static struct starpu_perfmodel update_trail_pm = {
-    .type = STARPU_REGRESSION_BASED,
+    .type = STARPU_NL_REGRESSION_BASED,
     .symbol = "starneig_update_trail_pm",
     .size_base = &update_trail_size_base
 };
@@ -341,7 +341,7 @@ static size_t update_right_size_base(
 /// @brief Linear regression performance model for update_right codelet.
 ///
 static struct starpu_perfmodel update_right_pm = {
-    .type = STARPU_REGRESSION_BASED,
+    .type = STARPU_NL_REGRESSION_BASED,
     .symbol = "starneig_update_right_pm",
     .size_base = &update_right_size_base
 };
@@ -428,7 +428,7 @@ static size_t update_left_size_base(
 /// @brief Linear regression performance model for update_left codelet.
 ///
 static struct starpu_perfmodel update_left_pm = {
-    .type = STARPU_REGRESSION_BASED,
+    .type = STARPU_NL_REGRESSION_BASED,
     .symbol = "starneig_update_left_pm",
     .size_base = &update_left_size_base
 };
