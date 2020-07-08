@@ -2,10 +2,12 @@
 
 ### Research papers
 
+ - Mirko Myllykoski: *A Task-based Multi-shift QR/QZ Algorithm with Aggressive
+   Early Deflation*, [arXiv:2007.03576](https://arxiv.org/abs/2007.03576)
  - Mirko Myllykoski, Carl Christian Kjelgaard Mikkelsen: *Task-based,
    GPU-accelerated and Robust Library for Solving Dense Nonsymmetric Eigenvalue
-   Problems*, Invited article submitted to Concurrency and Computation: Practice
-   and Experience, [arXiv:2002.05024](https://arxiv.org/abs/2002.05024)
+   Problems*, To appear in Concurrency and Computation: Practice and Experience,
+   doi: [10.1002/cpe.5915](https://doi.org/10.1002/cpe.5915)
  - Mirko Myllykoski, Carl Christian Kjelgaard Mikkelsen: *Introduction to
    StarNEig — A Task-based Library for Solving Nonsymmetric Eigenvalue
    Problems*, In Parallel Processing and Applied Mathematics, 13th International
