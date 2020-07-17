@@ -23,6 +23,7 @@ jobs:
 
       - name: Install dependences
         run: |
+          sudo apt-get update
           sudo apt-get install texlive-full doxygen
 
       - name: Build manual

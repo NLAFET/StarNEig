@@ -22,11 +22,13 @@ jobs:
           persist-credentials: false
 
       - name: Install dependences
-        run: sudo apt-get install texlive-full doxygen
+        run: |
+          sudo apt-get update
+          sudo apt-get install texlive-full doxygen
 
       - name: Build manual
         run: |
-          echo "${{ env.BRANCH_NAME }} branch (${{ env.SHORT_HASH }})" > version.txt
+          echo "${{ env.BRANCH_NAME }} branch @${{ env.SHORT_HASH }}" > version.txt
           mkdir build_docs
           (
             cd build_docs/
@@ -44,4 +46,4 @@ jobs:
           BRANCH: gh-pages
           FOLDER: latest
           TARGET_FOLDER: ${{ env.BRANCH_NAME }}
-          COMMIT_MESSAGE: "Upload ${{ env.SHORT_HASH }} documentation"
+          COMMIT_MESSAGE: "Upload ${{ env.BRANCH_NAME }} documentation @${{ env.SHORT_HASH }}"
