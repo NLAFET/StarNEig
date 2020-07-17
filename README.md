@@ -1,8 +1,5 @@
 # Introduction
 
-![StarNEig tests](https://github.com/NLAFET/StarNEig/workflows/StarNEig%20tests/badge.svg?branch=v0.1)
-![StarNEig manual](https://github.com/NLAFET/StarNEig/workflows/StarNEig%20manual/badge.svg?branch=v0.1) 
-
 StarNEig library aims to provide a complete task-based software stack for
 solving **dense** **nonsymmetric** (generalized) eigenvalue problems. The
 library is built on top of the [StarPU](http://starpu.gforge.inria.fr/)
