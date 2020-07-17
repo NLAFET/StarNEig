@@ -46,4 +46,4 @@ jobs:
           BRANCH: gh-pages
           FOLDER: latest
           TARGET_FOLDER: ${{ env.BRANCH_NAME }}
-          COMMIT_MESSAGE: "Upload ${{ env.BRANCH_NAME }} documentation @${{ env.SHORT_HASH }}"
+          COMMIT_MESSAGE: "Upload ${{ env.BRANCH_NAME }} documentation at ${{ env.SHORT_HASH }}"
