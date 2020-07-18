@@ -47,10 +47,11 @@ Please see [publications](PUBLICATIONS.md) and [authors](AUTHORS.md).
 
 ## Current status (development series)
 
-The development series is under continuous development and considered unstable.
+The development series is under continuous development and considered
+**unstable**.
 
 The library currently supports only real arithmetic (real input and output
-matrices but real and/or complex eigenvalues and eigenvectors). In addition,
+matrices but **real and/or complex** eigenvalues and eigenvectors). In addition,
 some interface functions are implemented as LAPACK and ScaLAPACK wrapper
 functions.
 
