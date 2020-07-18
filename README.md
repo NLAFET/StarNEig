@@ -48,7 +48,7 @@ Please see [publications](PUBLICATIONS.md) and [authors](AUTHORS.md).
 ## Current status (stable series)
 
 The library currently supports only real arithmetic (real input and output
-matrices but real and/or complex eigenvalues and eigenvectors). In addition,
+matrices but **real and/or complex** eigenvalues and eigenvectors). In addition,
 some interface functions are implemented as LAPACK and ScaLAPACK wrapper
 functions.
 
