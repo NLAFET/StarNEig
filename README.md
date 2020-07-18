@@ -48,7 +48,7 @@ Please see [publications](PUBLICATIONS.md) and [authors](AUTHORS.md).
 ## Current status (development series)
 
 The development series is under continuous development and considered
-**unstable**.
+**unstable**. See stable [0.1-series](https://github.com/NLAFET/StarNEig/tree/v0.1).
 
 The library currently supports only real arithmetic (real input and output
 matrices but **real and/or complex** eigenvalues and eigenvectors). In addition,
