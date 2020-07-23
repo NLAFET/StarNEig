@@ -13,37 +13,47 @@ The four main components of the library are:
  - **Schur reduction (QR/QZ algorithm)**: A upper Hessenberg matrix (or a
    Hessenberg-triangular matrix pair) is reduced to (generalized) Schur form.
    The (generalized) eigenvalues can be determined from the diagonal blocks.
- - **Eigenvalue reordering and deflating subspaces**: Reorders a user-selected 
+ - **Eigenvalue reordering and deflating subspaces**: Reorders a user-selected
    set of (generalized) eigenvalues to the upper left corner of an updated
    (generalized) Schur form.
  - **Computation of eigenvectors**: Computes (generalized) eigenvectors for a
    user-selected set of (generalized) eigenvalues.
 
-**A brief summary of the StarNEig library** can be found from a recent poster:
-> *Task-based, GPU-accelerated and Robust Algorithms for Solving Dense
-> Nonsymmetric Eigenvalue Problems*, Swedish eScience Academy, Lund, Sweden,
-> October 15-16, 2019
-> ([download](http://www.nlafet.eu/starneig/escience_poster.pdf))
-
-The library has been developed as a part of the NLAFET project. The project has
-received funding from the European Union’s Horizon 2020 research and innovation
-programme under grant agreement No. 671633. Support has also been received
-from eSSENCE, a collaborative e-Science programme funded by the Swedish
-Government via the Swedish Research Council (VR), and VR Grant E0485301.
-
-The library is published under open-source [BSD 3-Clause license](LICENSE.md).
+The library has been developed as a part of the [NLAFET](https://www.nlafet.eu/)
+project. The project has received funding from the European Union’s Horizon 2020
+research and innovation programme under grant agreement No. 671633. Support has
+also been received from eSSENCE, a collaborative e-Science programme funded by
+the Swedish Government via the Swedish Research Council (VR), and VR Grant
+E0485301. The library is published under open-source
+[BSD 3-Clause license](LICENSE.md).
 
 Please cite the following article when referring to StarNEig:
-> Mirko Myllykoski, Carl Christian Kjelgaard Mikkelsen: *Introduction to
-> StarNEig — A Task-based Library for Solving Nonsymmetric Eigenvalue Problems*,
-> In Parallel Processing and Applied Mathematics, 13th International Conference,
-> PPAM 2019, Bialystok, Poland, September 8–11, 2019, Revised Selected Papers,
-> Part I, Lecture Notes in Computer Science, Vol. 12043, Wyrzykowski R., Deelman
-> E., Dongarra J., Karczewski K. (eds), Springer International Publishing, pp.
-> 70-81, 2020, doi:
-> [10.1007/978-3-030-43229-4_7](https://doi.org/10.1007/978-3-030-43229-4_7)
+> Mirko Myllykoski, Carl Christian Kjelgaard Mikkelsen: *Task-based,
+> GPU-accelerated and Robust Library for Solving Dense Nonsymmetric Eigenvalue
+> Problems*, Concurrency and Computation: Practice and Experience, 2020,
+> doi: [10.1002/cpe.5915](https://doi.org/10.1002/cpe.5915)
 
 Please see [publications](PUBLICATIONS.md) and [authors](AUTHORS.md).
+
+## Performance
+
+Performance comparisons against MAGMA (GPU) and ScaLAPACK (distributed memory),
+and strong scalability on shared and distributed memory machines:
+
+![](docs/figures/performance.png)
+
+Also, see following publications:
+
+ - Mirko Myllykoski: *A Task-based Multi-shift QR/QZ Algorithm with Aggressive
+   Early Deflation*, [arXiv:2007.03576](https://arxiv.org/abs/2007.03576)
+ - Mirko Myllykoski, Carl Christian Kjelgaard Mikkelsen: *Task-based,
+   GPU-accelerated and Robust Library for Solving Dense Nonsymmetric Eigenvalue
+   Problems*, Concurrency and Computation: Practice and Experience, 2020,
+   doi: [10.1002/cpe.5915](https://doi.org/10.1002/cpe.5915)
+ - Mirko Myllykoski, Carl Christian Kjelgaard Mikkelsen, Angelika Schwarz,
+   Bo Kågström: *D2.7 Eigenvalue solvers for nonsymmetric problems*, public
+   NLAFET deliverable, 2019
+   ([download](http://www.nlafet.eu/wp-content/uploads/2019/04/D2.7-EVP-solvers-evaluation-final.pdf))
 
 ## Current status (stable series)
 
