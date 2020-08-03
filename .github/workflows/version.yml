@@ -36,7 +36,7 @@ jobs:
           cmake \
             -DCMAKE_INSTALL_PREFIX=/usr \
             -DCPACK_PACKAGE_FILE_NAME=starneig \
-            -DSTARNEIG_ENABLE_OPTIMIZATION=OFF ../
+            -DSTARNEIG_ENABLE_OPTIMIZATION=OFF ../src/
 
       - name: Build
         run: |
