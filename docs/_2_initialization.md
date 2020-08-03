@@ -1,5 +1,7 @@
 # Initialization and shutdown
 
+## Header files
+
 The initialization and shutdown interface functions can be found from the
 @ref starneig/node.h header file. The library provides separate header files for
 shared memory (@ref starneig/sep_sm.h, @ref starneig/gep_sm.h) and distributed
@@ -13,6 +15,8 @@ Certain header files and interface functions exist only when the library
 is compiled with MPI and ScaLAPACK / BLACS support. The configuration of the
 installed library can be found from the @ref starneig/configuration.h header
 file. See module @ref starneig_conf for further information.
+
+## Library initialization
 
 Each node must call the starneig_node_init() interface function to initialize
 the library and the starneig_node_finalize() interface function to shutdown the
@@ -40,6 +44,8 @@ starneig_node_init(-1, -1, STARNEIG_DEFAULT);
 This tells the library to use all available CPU cores and GPUs. See module
 @ref starneig_node for further information.
 
+## Error handling
+
 Most interface functions return one of the following values:
 
  - @ref STARNEIG_SUCCESS (0): The interface function was executed successfully.
@@ -50,19 +56,47 @@ Most interface functions return one of the following values:
 All return values (@ref starneig_error_t) are defined in the
 @ref starneig/error.h header file.
 
-@remark StarNEig supports OpenBLAS, MKL and GotoBLAS. For optimal performance,
-a multi-threaded variant of one of the listed BLAS libraries must be provided.
-StarNEig will automatically set the BLAS library to single-threaded more when
-necessary. If a different BLAS library is provided, then the user is responsible
-for setting the BLAS library to *single-threaded* mode. However, the use of a
-non-supported BLAS library can still impact the performance negatively.
-
 @remark The library may call the `exit()` and `abort()` functions if an
 interface function encounters a fatal error from which it cannot recover.
 
-@remark The StarPU performance models must be calibrated before the software can
+## Performance models
+
+The StarPU performance models must be calibrated before the software can
 function efficiently on heterogeneous platforms (CPUs + GPUs). The calibration
 is triggered automatically if the models are not calibrated well enough for a
 given problem size. This may impact the execution time negatively during the
 first run. Please see the StarPU handbook for further information:
 http://starpu.gforge.inria.fr/doc/html/Scheduling.html
+
+## Compilation and linking
+
+For linking, both the `starneig` library and the `starneig-pdgghrd` library must
+be linked:
+```
+$ gcc -o my_program my_program.c -lstarneig -lstarneig-pdgghrd
+```
+
+StarNEig provides a pkg-config file to ease the configuration. A user may
+integrate it to their `Makefile`:
+```
+CFLAGS  += $$(pkg-config --cflags starneig)
+LDLIBS  += $$(pkg-config --libs starneig)
+
+%.o: %.c
+	$(CC) -c -o $@ $< $(CFLAGS)
+
+my_program: my_program.c
+	$(CC) -o $@ $^ $(LDLIBS)
+```
+Or their `CMakeLists.txt` file:
+```
+find_package(PkgConfig REQUIRED)
+pkg_search_module(STARNEIG REQUIRED starneig)
+
+include_directories (${STARNEIG_INCLUDE_DIRS})
+link_directories (${STARNEIG_LIBRARY_DIRS})
+set (CMAKE_C_FLAGS "${STARNEIG_C_FLAGS} ${CMAKE_C_FLAGS}")
+
+add_executable (my_program my_program.c)
+target_link_libraries (my_program ${STARNEIG_LIBRARIES})
+```

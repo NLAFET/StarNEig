@@ -45,10 +45,17 @@ Test program and example code dependencies:
  - GNU Scientific Library (optional)
  - MAGMA (optional)
 
-### StarPU 1.3.3 installation
+@attention StarNEig supports OpenBLAS, MKL and GotoBLAS. For optimal
+performance, a multi-threaded variant of one of the listed BLAS libraries must
+be provided. StarNEig will automatically set the BLAS library to single-threaded
+more when necessary. If a different BLAS library is provided, then the user is
+responsible for setting the BLAS library to *single-threaded* mode. However, the
+use of a non-supported BLAS library can still impact the performance negatively.
 
- 1. Download StarPU 1.3.3 (or newer) from http://starpu.gforge.inria.fr/files/
- 2. Unzip the package and create/enter directory `starpu-1.3.3/build`
+### StarPU 1.3.4 installation
+
+ 1. Download StarPU 1.3.4 (or newer) from http://starpu.gforge.inria.fr/files/
+ 2. Unzip the package and create/enter directory `starpu-1.3.4/build`
  3. Configure: `$ ../configure`
  4. Compile: `$ make`
  5. Install: `$ sudo make install`
