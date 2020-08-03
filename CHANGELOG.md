@@ -1,6 +1,7 @@
 ## Changelog
 
-### Planned for v0.1.4
+### v0.1.4
+ - Add deb packages
 
 ### v0.1.3
  - Restore older Hessenberg reduction implementation from v0.1-beta2
