@@ -31,12 +31,13 @@
 
 prefix=@PKGCONFIG_DEST_DIR@
 exec_prefix=${prefix}
-libdir=${prefix}/lib
-includedir=${prefix}/include
+libdir=${prefix}/@CMAKE_INSTALL_LIBDIR@
+includedir=${prefix}/@CMAKE_INSTALL_INCLUDEDIR@
 
 Name: libstarneig
 Description: StarNEig library.
-Version: @STARNEIG_VERSION@
+URL: https://nlafet.github.io/StarNEig/
+Version: @STARNEIG_VERSION_RAW@
 
 Libs: -L${libdir} @PKGCONFIG_LIBS@ @PKGCONFIG_PRIVATE_LIBS@
 Cflags: -I${includedir} @PKGCONFIG_INCLUDES@ @PKGCONFIG_FLAGS@
