@@ -101,6 +101,6 @@ jobs:
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           file: manual/starneig_manual.pdf
-          asset_name: StarNEig-${{ env.RELEASE_VERSION }}.pdf
+          asset_name: StarNEig-${{ env.RELEASE_VERSION }}-users-guide.pdf
           tag: ${{ github.ref }}
           overwrite: true
