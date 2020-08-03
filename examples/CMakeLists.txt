@@ -29,8 +29,12 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
+project (StarNEig)
 cmake_minimum_required (VERSION 3.3)
 enable_language (C)
+
+include (CheckSymbolExists)
+
 
 #
 # StarNEig library
