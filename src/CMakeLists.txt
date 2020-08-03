@@ -672,6 +672,6 @@ set (CPACK_RESOURCE_FILE_README "${CMAKE_CURRENT_SOURCE_DIR}/../README.md")
 set (CPACK_PACKAGING_INSTALL_PREFIX ${CMAKE_INSTALL_PREFIX})
 
 set (CPACK_DEBIAN_PACKAGE_DEPENDS
-    "libopenmpi-dev, libscalapack-openmpi-dev, libstarpu-dev")
+    "gfortran, libopenblas-dev, libopenmpi-dev, libscalapack-openmpi-dev, libstarpu-dev")
 
 include (CPack)
