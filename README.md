@@ -84,8 +84,9 @@ Please see [changelog](CHANGELOG.md) and [known problems](KNOWN_PROBLEMS.md).
 
 ## Documentation:
 
-HTML and PDF documentation can be found from https://nlafet.github.io/StarNEig
-and under [releases](https://github.com/NLAFET/StarNEig/releases).
+The StarNEig User's Guide is available in both HTML and PDF formats at
+https://nlafet.github.io/StarNEig. The PDF version is also available under
+[releases](https://github.com/NLAFET/StarNEig/releases).
 
 ## Quickstart guide
 
