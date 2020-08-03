@@ -127,8 +127,9 @@ $ cmake -DCUDA_HOST_COMPILER=/usr/bin/gcc-5 -DCUDA_PROPAGATE_HOST_FLAGS=OFF ../
 
 List of StarNEig library specific configuration options:
 
- - `STARNEIG_ENABLE_OPTIMIZATION`: Enables compiler optimizations (`ON` by
+ - `STARNEIG_ENABLE_OPTIMIZATION`: Enables extra compiler optimizations (`ON` by
    default).
+    - Can break portability.
 
  - `STARNEIG_ENABLE_EXAMPLES`: Enables examples (`OFF` by default).
  - `STARNEIG_ENABLE_DOCS`: Enables documentation generation (`OFF` by default).
