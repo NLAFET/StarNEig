@@ -33,7 +33,10 @@ jobs:
         run: |
           mkdir build
           cd build/
-          cmake -DCMAKE_INSTALL_PREFIX=/usr -DCPACK_PACKAGE_FILE_NAME=starneig ../
+          cmake \
+            -DCMAKE_INSTALL_PREFIX=/usr \
+            -DCPACK_PACKAGE_FILE_NAME=starneig \
+            -DSTARNEIG_ENABLE_OPTIMIZATION=OFF ../
 
       - name: Build
         run: |
