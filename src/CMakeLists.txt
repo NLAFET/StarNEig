@@ -182,14 +182,6 @@ if (NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
     endif ()
 endif ()
 
-if (STARNEIG_ENABLE_OPTIMIZATION AND CMAKE_C_COMPILER_ID STREQUAL "GNU")
-    if (NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
-        enable_c_compiler_flag_if_supported ("-march=native")
-        enable_c_compiler_flag_if_supported ("-O2")
-        enable_c_compiler_flag_if_supported ("--tree-vectorize")
-    endif ()
-endif ()
-
 if (CMAKE_C_COMPILER_ID STREQUAL "GNU")
     find_library_file (
         MATH_LIBRARIES MATH_FOUND m "sqrt" "Standard math library" FATAL_ERROR)
