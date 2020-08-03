@@ -46,7 +46,7 @@ set (SUPPORTED_STARPU 1.3 1.2)
 # options
 #
 
-option (STARNEIG_ENABLE_OPTIMIZATION "Enable compiler optimizations" ON)
+option (STARNEIG_ENABLE_OPTIMIZATION "Enable extra compiler optimizations" ON)
 
 option (STARNEIG_DISABLE_MPI "Disable MPI support" OFF)
 option (STARNEIG_DISABLE_CUDA "Disable CUDA support" OFF)
