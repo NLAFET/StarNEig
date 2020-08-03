@@ -6,6 +6,54 @@ on:
       - 'v*'
 
 jobs:
+
+  package:
+    name: Publish for ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-18.04
+          - os: ubuntu-20.04
+
+    steps:
+      - name: Get the version
+        run: echo ::set-env name=RELEASE_VERSION::${GITHUB_REF#refs/*/}
+
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Install dependences
+        run: |
+          sudo apt-get update
+          sudo apt-get install gfortran libopenblas-dev libopenmpi-dev \
+            libscalapack-openmpi-dev libstarpu-dev libgsl-dev
+
+      - name: Configure
+        run: |
+          mkdir build
+          cd build/
+          cmake -DCMAKE_INSTALL_PREFIX=/usr -DCPACK_PACKAGE_FILE_NAME=starneig ../
+
+      - name: Build
+        run: |
+          cd build/
+          make
+
+      - name: Create package
+        run: |
+          cd build/
+          cpack
+
+      - name: Upload package to release
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: build/starneig.deb
+          asset_name: StarNEig-${{ env.RELEASE_VERSION }}-${{ matrix.os }}.deb
+          tag: ${{ github.ref }}
+          overwrite: true
+
   deploy-manual:
     runs-on: ubuntu-latest
     steps:
