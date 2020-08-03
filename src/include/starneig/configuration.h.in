@@ -52,6 +52,21 @@ extern "C" {
 ///
 
 ///
+/// @brief StarNEig major version.
+///
+#define STARNEIG_VERSION_MAJOR @STARNEIG_VERSION_MAJOR@
+
+///
+/// @brief StarNEig minor version.
+///
+#define STARNEIG_VERSION_MINOR @STARNEIG_VERSION_MINOR@
+
+///
+/// @brief StarNEig patch level.
+///
+#define STARNEIG_VERSION_PATCH @STARNEIG_VERSION_PATCH@
+
+///
 /// @brief MPI support enabled.
 ///
 /// Defined if the library was compiled with MPI support.
