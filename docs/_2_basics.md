@@ -1,11 +1,11 @@
-# Initialization and shutdown
+# Basic usage
 
 ## Header files
 
-The initialization and shutdown interface functions can be found from the
-@ref starneig/node.h header file. The library provides separate header files for
-shared memory (@ref starneig/sep_sm.h, @ref starneig/gep_sm.h) and distributed
-memory (@ref starneig/sep_dm.h, @ref starneig/gep_dm.h).  However, a user may
+The principal interface functions can be found from the @ref starneig/node.h
+header file. The library provides separate header files for shared memory
+(@ref starneig/sep_sm.h, @ref starneig/gep_sm.h) and distributed memory
+(@ref starneig/sep_dm.h, @ref starneig/gep_dm.h). In most cases, a user can
 simply include all header files as follows:
 @code{.c}
 #include <starneig/starneig.h>
@@ -41,8 +41,9 @@ A node can also be configured with default values:
 @code{.c}
 starneig_node_init(-1, -1, STARNEIG_DEFAULT);
 @endcode
-This tells the library to use all available CPU cores and GPUs. See module
-@ref starneig_node for further information.
+This tells the library to use all available CPU cores and GPUs.
+
+See module @ref starneig_node for further information.
 
 ## Error handling
 
@@ -70,13 +71,13 @@ http://starpu.gforge.inria.fr/doc/html/Scheduling.html
 
 ## Compilation and linking
 
-For linking, both the `starneig` library and the `starneig-pdgghrd` library must
-be linked:
+During compilation, the `starneig` library library must be linked with the
+user's software:
 ```
-$ gcc -o my_program my_program.c -lstarneig -lstarneig-pdgghrd
+$ gcc -o my_program my_program.c -lstarneig
 ```
 
-StarNEig provides a pkg-config file to ease the configuration. A user may
+StarNEig provides a pkg-config file for easing the compilation. A user may
 integrate it to their `Makefile`:
 ```
 CFLAGS  += $$(pkg-config --cflags starneig)
