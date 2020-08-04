@@ -314,6 +314,7 @@ static void node_configure(
 
     conf.ncpus = MAX(1, cpu_workers);
     conf.ncuda = state.used_gpus;
+    conf.nopencl = 0;
 
 //#if 1 < STARPU_MAJOR_VERSION || 2 < STARPU_MINOR_VERSION
     if (getenv("STARPU_WORKERS_CPUID") == NULL)
