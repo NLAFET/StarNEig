@@ -1,6 +1,6 @@
 # Installation
 
-The prebuild Ubuntu packages are available for under
+The prebuild Ubuntu packages are available under
 [releases](https://github.com/NLAFET/StarNEig/releases) and can be installed
 with the following command:
 ```
