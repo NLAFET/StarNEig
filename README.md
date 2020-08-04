@@ -117,6 +117,16 @@ Test program and example code dependencies:
 
 ### Configure, build and install
 
+The prebuild Ubuntu packages are available under
+[releases](https://github.com/NLAFET/StarNEig/releases) and can be installed
+with the following command:
+```
+$ sudo dpkg -i StarNEig-v0.xx.yy-ubuntu-vv.uu.deb
+```
+These packages rely on mainstream StarPU packages and do not necessary provide
+full functionality. For full functionality, it is recommended that StarNEig
+(and StarPU) are compiled from the source code, see instructions below.
+
 Execute in the same directory as this `README.md` file:
 ```
 $ mkdir build
