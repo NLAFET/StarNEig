@@ -1,31 +1,16 @@
 # Installation
 
-## Documentation
-
-This User's Guide is available in both HTML and PDF formats at
-https://nlafet.github.io/StarNEig. The PDF version is also available under
-[releases](https://github.com/NLAFET/StarNEig/releases).
-
-The User's Guide can be generated independently from the rest of the library.
-
-Documentation dependencies:
-
- - CMake 3.3 or newer
- - Doxygen
- - Latex + pdflatex
-
-It is recommended that a user builds the documentation in a separate build
-directory:
+The prebuild Ubuntu packages are available for under
+[releases](https://github.com/NLAFET/StarNEig/releases) and can be installed
+with the following command:
 ```
-$ cd path_to_the_top_directory/
-$ mkdir build_doc
-$ cd build_doc/
-$ cmake ../doc/
-$ make
+$ sudo dpkg -i StarNEig-v0.xx.yy-ubuntu-vv.uu.deb
 ```
+These packages rely on mainstream StarPU packages and do not necessary provide
+full functionality.
 
-The PDF documentation is copied to `build_doc/starneig_manual.pdf` and the HTML
-documentation is available at `build_doc/html` directory.
+For full functionality, it is recommended that StarNEig (and StarPU) are
+compiled from the source code, see instructions below.
 
 ## Dependencies
 
@@ -110,9 +95,8 @@ $ cmake -DCMAKE_INSTALL_PREFIX=/path/to/somewhere/ ../
 @remark The library can be compiled separately from the other software
 components:
 ```
-$ cd path_to_the_top_directory/
-$ mkdir build
-$ cd build/
+$ mkdir build-src
+$ cd build-src/
 $ cmake ../src/
 $ make
 ```
@@ -203,7 +187,8 @@ the used libraries:
 
 ## Compile
 
-The library (and other components) are compiled with the `make` command:
+The library (and other software components) are compiled with the `make`
+command:
 ```
 $ make
 ...
@@ -243,4 +228,3 @@ The library and the related header files are installed by executing:
 ```
 $ sudo make install
 ```
-This also installs the `starneig.pc` configuration file.

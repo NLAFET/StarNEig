@@ -4,13 +4,14 @@ The StarNEig User's Guide is available in both HTML and PDF formats at
 https://nlafet.github.io/StarNEig. The PDF version is also available under
 [releases](https://github.com/NLAFET/StarNEig/releases).
 
-The User's Guide can be generated independently from the rest of the library.
+The latest version of the User's Guide can be generated independently from the
+rest of the library, see instructions below.
 
 Dependencies:
 
  - CMake 3.3 or newer
  - Doxygen
- - Latex + pdflatex
+ - Latex installation with pdflatex
 
 It is recommended that a user builds the documentation in a separate build
 directory:
@@ -22,4 +23,4 @@ $ make
 ```
 
 The PDF documentation is copied to `build-doc/starneig_manual.pdf` and the HTML
-documentation is available at `build-doc/html` directory.
+documentation is available under the `build-doc/html` directory.
