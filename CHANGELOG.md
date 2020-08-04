@@ -7,12 +7,14 @@
    reduction.
  - Remove deprecated interface functions.
  - Improved performance models.
- - Updates to the documentation.
+ - Disable OpenCL workers.
  - Rename `aed_shift_count` parameter as `shift_count`. Rename the default value
    `STARNEIG_SCHUR_DEFAULT_AED_SHIFT_COUNT` as
    `STARNEIG_SCHUR_DEFAULT_SHIFT_COUNT`.
  - Rename `STARPU_LIBRARIES_BASE` and `STARPU_LIBRARIES_MPI` environmental
    variables as `STARPU_LIBRARIES` and `STARPU_MPI_LIBRARIES`, respectively.
+ - Updates to the documentation.
+ - Add `deb` packages.
 
 ### v0.1.0:
  - First stable release of the library.
