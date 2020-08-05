@@ -69,7 +69,7 @@ Standard eigenvalue problems:
 
 | Component             |  Shared memory  | Distributed memory |      CUDA      |
 |-----------------------|:---------------:|:------------------:|:--------------:|
-| Hessenberg reduction  |  **Complete**   |   *Experimental*   | *Experimental* |
+| Hessenberg reduction  |  **Complete**   |     Incomplete     |   Incomplete   |
 | Schur reduction       |  **Complete**   |    **Complete**    | *Experimental* |
 | Eigenvalue reordering |  **Complete**   |    **Complete**    | *Experimental* |
 | Eigenvectors          |  **Complete**   |        ---         |      ---       |
