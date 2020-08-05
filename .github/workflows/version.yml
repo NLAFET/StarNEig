@@ -26,6 +26,7 @@ jobs:
       - name: Install dependences
         run: |
           sudo apt-get update
+          sudo apt-get upgrade
           sudo apt-get install gfortran libopenblas-dev libopenmpi-dev \
             libscalapack-openmpi-dev libstarpu-dev libgsl-dev
 
