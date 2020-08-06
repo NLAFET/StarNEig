@@ -245,10 +245,33 @@ if (NOT MKL_SET_NUM_THREADS_LOCAL_FOUND)
     endif ()
 endif ()
 
-find_header_file (BLAS_INCLUDE_PATH cblas.h "BLAS include path" FATAL_ERROR)
+if (NOT MKL_SET_NUM_THREADS_LOCAL_FOUND AND
+NOT OPENBLAS_SET_NUM_THREADS_FOUND AND NOT GOTO_SET_NUM_THREADS_FOUND)
+    message (WARNING "No supported BLAS library detected.")
+endif ()
 
 if (MKL_SET_NUM_THREADS_LOCAL_FOUND)
     find_header_file (MKL_INCLUDE_PATH mkl.h "MKL include path" FATAL_ERROR)
+endif ()
+
+find_header_file (BLAS_INCLUDE_PATH cblas.h "BLAS include path" FATAL_ERROR)
+
+if (OPENBLAS_SET_NUM_THREADS_FOUND)
+    check_symbol_exists (
+        openblas_set_num_threads cblas.h OPENBLAS_SET_NUM_THREADS_IN_HEADER)
+    if (NOT OPENBLAS_SET_NUM_THREADS_IN_HEADER)
+        message (
+            FATAL_ERROR "openblas_set_num_threads is not defined in cblas.h")
+    endif ()
+endif ()
+
+if (GOTO_SET_NUM_THREADS_FOUND)
+    check_symbol_exists (
+        goto_set_num_threads cblas.h GOTO_SET_NUM_THREADS_IN_HEADER)
+    if (NOT GOTO_SET_NUM_THREADS_IN_HEADER)
+        message (
+            FATAL_ERROR "goto_set_num_threads is not defined in cblas.h")
+    endif ()
 endif ()
 
 #
