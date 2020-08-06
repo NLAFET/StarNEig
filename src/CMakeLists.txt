@@ -681,25 +681,25 @@ install (FILES ${CMAKE_CURRENT_BINARY_DIR}/starneig.pc
     DESTINATION "${INSTALL_PKGCONFIG_DIR}")
 
 #
-# DEB package
+# Packaging
 #
-
-set (CPACK_GENERATOR "DEB")
 
 set (CPACK_PACKAGE_VERSION_MAJOR ${STARNEIG_VERSION_MAJOR})
 set (CPACK_PACKAGE_VERSION_MINOR ${STARNEIG_VERSION_MINOR})
 set (CPACK_PACKAGE_VERSION_PATCH ${STARNEIG_VERSION_PATCH})
 
+set (CPACK_PACKAGE_DESCRIPTION_SUMMARY
+    "A Task-based Library for Solving Dense Nonsymmetric Eigenvalue Problems")
+set (CPACK_PACKAGE_HOMEPAGE_URL "https://nlafet.github.io/StarNEig/")
+
 set (CPACK_DEBIAN_PACKAGE_MAINTAINER "Mirko Myllykoski")
 set (CPACK_DEBIAN_PACKAGE_HOMEPAGE "https://nlafet.github.io/StarNEig/")
-set (CPACK_DEBIAN_PACKAGE_DESCRIPTION
-    "A Task-based Library for Solving Dense Nonsymmetric Eigenvalue Problems")
+set (CPACK_DEBIAN_PACKAGE_DEPENDS
+    "gfortran, libopenblas-dev, libopenmpi-dev, libscalapack-openmpi-dev, 
+    libstarpu-dev")
 
 set (CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/../LICENSE.md")
 set (CPACK_RESOURCE_FILE_README "${CMAKE_CURRENT_SOURCE_DIR}/../README.md")
 set (CPACK_PACKAGING_INSTALL_PREFIX ${CMAKE_INSTALL_PREFIX})
-
-set (CPACK_DEBIAN_PACKAGE_DEPENDS
-    "gfortran, libopenblas-dev, libopenmpi-dev, libscalapack-openmpi-dev, libstarpu-dev")
 
 include (CPack)
