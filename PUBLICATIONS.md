@@ -6,7 +6,7 @@
    Early Deflation*, [arXiv:2007.03576](https://arxiv.org/abs/2007.03576)
  - Mirko Myllykoski, Carl Christian Kjelgaard Mikkelsen: *Task-based,
    GPU-accelerated and Robust Library for Solving Dense Nonsymmetric Eigenvalue
-   Problems*, To appear in Concurrency and Computation: Practice and Experience,
+   Problems*, Concurrency and Computation: Practice and Experience, 2020,
    doi: [10.1002/cpe.5915](https://doi.org/10.1002/cpe.5915)
  - Mirko Myllykoski, Carl Christian Kjelgaard Mikkelsen: *Introduction to
    StarNEig — A Task-based Library for Solving Nonsymmetric Eigenvalue
