@@ -1,0 +1,106 @@
+\form#0:$A$
+\form#1:$Q$
+\form#2:$H$
+\form#3:$Q * U$
+\form#4:$S$
+\form#5:$\hat{S}$
+\form#6:$2 \times 2$
+\form#7:$X$
+\form#8:$n$
+\form#9:$B$
+\form#10:$Z$
+\form#11:$T$
+\form#12:$Q * U_1$
+\form#13:$Z * U_2$
+\form#14:$\hat{T}$
+\form#15:$\alpha$
+\form#16:$\beta$
+\form#17:$3 \times 3$
+\form#18:$\times$
+\form#19:$u |H|_F$
+\form#20:$u$
+\form#21:$|H|_F$
+\form#22:$R$
+\form#23:$u |R|_F$
+\form#24:$|R|_F$
+\form#25:$n \times n$
+\form#26:$\lambda_i \in \mathbb C$
+\form#27:$0 \neq v_i \in \mathbb C^{n}$
+\form#28:\[ A v_i = \lambda_i v_i, \text{ for } i = 1, 2, \dots, n. \]
+\form#29:$\text{det}(A - \lambda I) = 0$
+\form#30:$\lambda_{i} = \lambda_{j}$
+\form#31:$i \neq j$
+\form#32:\[ A = Q_{1} H Q_{1}^{H}, \]
+\form#33:$Q_{1}$
+\form#34:$\mathcal{O}(n^3)$
+\form#35:$\mathcal{O}(n^2)$
+\form#36:\[ H = Q_{2} S Q_{2}^H, \]
+\form#37:$Q_{2}$
+\form#38:$\lambda_i = s_{ii}$
+\form#39:\[ H = Q_{2} S Q_{2}^T, \]
+\form#40:$1\times 1$
+\form#41:$1 \times 1$
+\form#42:$m \leq n$
+\form#43:$Q_{3}$
+\form#44:\[ S = Q_{3} \begin{bmatrix} \hat S_{11} & \hat S_{12} \\ 0 & \hat S_{22} \end{bmatrix} Q_{3}^{H} \]
+\form#45:$m \times m$
+\form#46:$\hat S_{11}$
+\form#47:$m$
+\form#48:$\lambda_{i}$
+\form#49:$i = 1, 2, \ldots, m$
+\form#50:$A = Q S Q^{H}$
+\form#51:$v_{i} \neq 0$
+\form#52:$A v_{i} = \lambda_{i} v_{i}$
+\form#53:$w_{i}$
+\form#54:$A - \lambda B$
+\form#55:$A, B \in \mathbb{C}^{n \times n}$
+\form#56:\[ A v_{i} = \lambda_{i} B v_{i}, \text{ for } i = 1, 2, \dots, n. \]
+\form#57:$\text{det}(A - \lambda B) = 0$
+\form#58:\[ A v = \lambda B v \Leftrightarrow (B^{-1} A) v = \lambda v. \]
+\form#59:$(A, B)$
+\form#60:\[ A = Q_{1} H Z_{1}^{H}, \quad B = Q_{1} Y Z_{1}^{H}, \]
+\form#61:$Q_{1}, Z_{1}$
+\form#62:$Y$
+\form#63:$H - \lambda Y$
+\form#64:\[ H = Q_{2} S Z_{2}^H, \quad Y = Q_{2} T Z_{2}^{H}, \]
+\form#65:$Q_{2}, Z_{2}$
+\form#66:$S, T$
+\form#67:$(s_{ii}, t_{ii})$
+\form#68:$\lambda_i = s_{ii} / t_{ii}$
+\form#69:$t_{ii} \neq 0$
+\form#70:$s_{ii} \neq 0$
+\form#71:$t_{ii} = 0$
+\form#72:$\lambda_{i} = \infty$
+\form#73:$(S,T)$
+\form#74:$s_{ii} = 0$
+\form#75:$i$
+\form#76:\[ H = Q_{2} S Z_{2}^T, \quad Y = Q_{2} T Z_{2}^{T}, \]
+\form#77:$S - \lambda T$
+\form#78:$Z_{3}$
+\form#79:\[ S - \lambda T = Q_{3} \begin{bmatrix} \hat S_{11} - \lambda \hat T_{11} & \hat S_{12} - \lambda \hat T_{12} \\ 0 & \hat S_{22} - \lambda \hat T_{22} \end{bmatrix} Z_{3}^{H} \]
+\form#80:$\hat S_{11} - \lambda \hat T_{11}$
+\form#81:$A - \lambda B = Q (S - \lambda T) Z^{H}$
+\form#82:$A v_{i} = \lambda_{i} B v_{i}$
+\form#83:$S - \lambda_{i} T$
+\form#84:$m \times n$
+\form#85:$bm \times bn$
+\form#86:\[ A = U * H * U^T, \]
+\form#87:$U$
+\form#88:\[ Q \gets Q * U. \]
+\form#89:\[ A = Q * H * Q^T, \]
+\form#90:\[ A = Q * ( U * S * U^T ) * Q^T \]
+\form#91:\[ A = Q * S * Q^T \]
+\form#92:\[ A = Q * ( U * \hat{S} * U^T ) * Q^T. \]
+\form#93:\[ A = U * S * U^T, \]
+\form#94:$(A,B)$
+\form#95:\[ (A,B) = U_1 * (H,T) * U_2^T, \]
+\form#96:$U_1$
+\form#97:$U_2$
+\form#98:\[ Q \gets Q * U_1 \text{ and } Z \gets Z * U_2. \]
+\form#99:\[ (A,B) = Q * (H,T) * Z^T \]
+\form#100:\[ (A,B) = Q * ( U_1 * (S,\hat{T}) * U_2^T ) * Z^T, \]
+\form#101:$(\alpha,\beta)$
+\form#102:$\alpha/\beta$
+\form#103:\[ (A,B) = Q * (S,T) * Z^T \]
+\form#104:\[ (A,B) = Q * ( U_1 * (\hat{S},\hat{T}) * U_2^T ) * Z^T. \]
+\form#105:\[ (A,B) = U_1 * (S,T) * U_2^T, \]

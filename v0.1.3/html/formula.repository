@@ -1,0 +1,76 @@
+\form#0:$A$
+\form#1:$Q$
+\form#2:$H$
+\form#3:$Q * U$
+\form#4:$S$
+\form#5:$\hat{S}$
+\form#6:$2 \times 2$
+\form#7:$X$
+\form#8:$n$
+\form#9:$B$
+\form#10:$Z$
+\form#11:$R$
+\form#12:$Q * U_1$
+\form#13:$Z * U_2$
+\form#14:$T$
+\form#15:$\alpha$
+\form#16:$\beta$
+\form#17:$\hat{T}$
+\form#18:$\times$
+\form#19:$3 \times 3$
+\form#20:$u |H|_F$
+\form#21:$u$
+\form#22:$|H|_F$
+\form#23:$u |R|_F$
+\form#24:$|R|_F$
+\form#25:$m \times n$
+\form#26:$bm \times bn$
+\form#27:$n \times n$
+\form#28:$A \in \mathbb R^{n \times n}$
+\form#29:$\lambda_i \in \mathbb C$
+\form#30:$0 \neq v_i \in \mathbb C^{n}$
+\form#31:\[ A v_i = \lambda_i v_i, \text{ for } i = 1, 2, \dots, n. \]
+\form#32:$\text{det}(A - \lambda I) = 0$
+\form#33:$\lambda_{i} = \lambda_{j}$
+\form#34:$i \neq j$
+\form#35:\[ A = U * H * U^T, \]
+\form#36:$U$
+\form#37:\[ Q \gets Q * U. \]
+\form#38:$\mathcal{O}(n^3)$
+\form#39:$\mathcal{O}(n^2)$
+\form#40:\[ A = Q * H * Q^T, \]
+\form#41:\[ A = Q * ( U * S * U^T ) * Q^T \]
+\form#42:$1 \times 1$
+\form#43:\[ A = Q * S * Q^T \]
+\form#44:\[ A = Q * \left( U * \begin{bmatrix} \hat S_{11} & \hat S_{12} \\ 0 & \hat S_{22} \end{bmatrix} * U^T \right) * Q^T, \]
+\form#45:$\hat S_{11}$
+\form#46:\[ A = U * S * U^T. \]
+\form#47:$m \leq n$
+\form#48:$\lambda_{i}$
+\form#49:$i = 1, 2, \ldots, m$
+\form#50:$A = Q S Q^{H}$
+\form#51:$v_{i} \neq 0$
+\form#52:$A v_{i} = \lambda_{i} v_{i}$
+\form#53:$w_{i}$
+\form#54:$(A, B)$
+\form#55:$A, B \in \mathbb{R}^{n \times n}$
+\form#56:\[ A v_{i} = \lambda_{i} B v_{i}, \text{ for } i = 1, 2, \dots, n. \]
+\form#57:$\text{det}(A - \lambda B) = 0$
+\form#58:\[ A v = \lambda B v \Leftrightarrow (B^{-1} A) v = \lambda v. \]
+\form#59:$(A,B)$
+\form#60:\[ (A,B) = U_1 * (H,R) * U_2^T, \]
+\form#61:$U_1$
+\form#62:$U_2$
+\form#63:\[ Q \gets Q * U_1 \text{ and } Z \gets Z * U_2. \]
+\form#64:\[ (A,B) = Q * (H,R) * Z^T \]
+\form#65:\[ (A,B) = Q * ( U_1 * (S,T) * U_2^T ) * Z^T, \]
+\form#66:$(S,T)$
+\form#67:$(\alpha,\beta)$
+\form#68:$\alpha/\beta$
+\form#69:\[ (A,B) = Q * (S,T) * Z^T \]
+\form#70:\[ (A,B) = Q * \left( U_1 * \left ( \begin{bmatrix} \hat S_{11} & \hat S_{12} \\ 0 & \hat S_{22} \end{bmatrix}, \begin{bmatrix} \hat T_{11} & \hat T_{12} \\ 0 & \hat T_{22} \end{bmatrix} \right) * U_2^T \right) * Z^T. \]
+\form#71:$(\hat S_{11},\hat T_{11})$
+\form#72:\[ (A,B) = U_1 * (S,T) * U_2^T. \]
+\form#73:$(A, B) = Q (S, T) Z^{H}$
+\form#74:$A v_{i} = \lambda_{i} B v_{i}$
+\form#75:$S - \lambda_{i} T$
