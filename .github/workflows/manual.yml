@@ -28,7 +28,7 @@ jobs:
 
       - name: Build manual
         run: |
-          echo "${{ env.BRANCH_NAME }} branch @${{ env.SHORT_HASH }}" > version.txt
+          echo "${{ env.BRANCH_NAME }} branch" > version.txt
           mkdir build_docs
           (
             cd build_docs/
