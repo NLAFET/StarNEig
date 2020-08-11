@@ -88,7 +88,19 @@ The StarNEig User's Guide is available in both HTML and PDF formats at
 https://nlafet.github.io/StarNEig. The PDF version is also available under
 [releases](https://github.com/NLAFET/StarNEig/releases).
 
-## Quickstart guide
+## Installation
+
+Prebuild Ubuntu packages (18.04 and 20.04) are available under
+[releases](https://github.com/NLAFET/StarNEig/releases) and can be installed
+with the following command:
+```
+$ sudo apt install ./StarNEig-v0.xx.yy-ubuntu-vv.uu.deb
+```
+
+These packages rely on mainstream StarPU packages and do not necessary provide
+full functionality. For full functionality, it is recommended that StarNEig
+(and StarPU) are compiled from the source code, see below and/or the StarNEig
+User's Guide.
 
 ### Dependencies
 
@@ -114,17 +126,7 @@ Test program and example code dependencies:
 
 ### Configure, build and install
 
-The prebuild Ubuntu packages are available under
-[releases](https://github.com/NLAFET/StarNEig/releases) and can be installed
-with the following command:
-```
-$ sudo apt install ./StarNEig-v0.xx.yy-ubuntu-vv.uu.deb
-```
-These packages rely on mainstream StarPU packages and do not necessary provide
-full functionality. For full functionality, it is recommended that StarNEig
-(and StarPU) are compiled from the source code.
-
-To compile and install StarNEig, execute in the same directory as this
+To compile, validate and install StarNEig, execute in the same directory as this
 `README.md` file:
 ```
 $ mkdir build
@@ -135,12 +137,13 @@ $ make test
 $ sudo make install
 ```
 
-### Example
+## Example
 
 The following example demonstrates how a dense matrix `A` is reduced to real
 Schur form:
 
 ~~~~~~~~~~~~~~~{.c}
+// my_program.c
 #include <starneig/starneig.h>
 #include <stdlib.h>
 #include <time.h>
@@ -183,3 +186,12 @@ int main()
     return 0;
 }
 ~~~~~~~~~~~~~~~
+
+Compile:
+```
+$ gcc -o my_program my_program.c -lstarneig
+```
+or:
+```
+$ gcc -o my_program my_program.c $(pkg-config --cflags starneig) $(pkg-config --libs starneig)
+```
