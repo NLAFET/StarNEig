@@ -2,6 +2,7 @@
 !/.github/
 !/docs/
 !/examples/
+!/figures/
 !/misc/
 !/src/
 !/test/
@@ -13,7 +14,6 @@
 !/CONTRIBUTING.md
 !/KNOWN_PROBLEMS.md
 !/LICENSE.md
-!/performance.png
 !/PUBLICATIONS.md
 !/README.md
 !/version.txt
