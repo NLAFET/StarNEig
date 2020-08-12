@@ -84,20 +84,6 @@ configure_file (
     "${CMAKE_CURRENT_BINARY_DIR}/include/starneig/starneig.h" @ONLY)
 
 #
-# prepare figures
-#
-
-file (GLOB_RECURSE FIGURES
-    "${CMAKE_CURRENT_SOURCE_DIR}/../figures/*")
-
-foreach (FILE_PATH ${FIGURES})
-    get_filename_component (FILE_NAME ${FILE_PATH} NAME)
-    configure_file (
-        ${FILE_PATH} "${CMAKE_CURRENT_BINARY_DIR}/docs_generated/figures/${FILE_NAME}"
-        COPYONLY)
-endforeach ()
-
-#
 # prepare dynamic documentation
 #
 
