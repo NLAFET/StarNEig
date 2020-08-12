@@ -29,8 +29,8 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
+project (StarNEig LANGUAGES C)
 cmake_minimum_required (VERSION 3.3)
-enable_language (C)
 
 #
 # StarNEig library

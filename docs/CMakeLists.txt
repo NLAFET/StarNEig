@@ -29,7 +29,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-project (StarNEig)
+project (StarNEig LANGUAGES NONE)
 cmake_minimum_required (VERSION 3.3)
 
 #
