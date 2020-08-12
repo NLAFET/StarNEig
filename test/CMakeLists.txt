@@ -29,7 +29,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-project (StarNEig)
+project (StarNEig LANGUAGES C)
 cmake_minimum_required (VERSION 3.3)
 
 #
@@ -38,12 +38,6 @@ cmake_minimum_required (VERSION 3.3)
 
 option (STARNEIG_ENABLE_FULL_TESTS "Enable additional tests" OFF)
 option (STARNEIG_ENABLE_REFERENCE "Enable reference solvers" OFF)
-
-#
-# languages
-#
-
-enable_language (C)
 
 #
 # includes

@@ -29,9 +29,8 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-project (StarNEig)
+project (StarNEig LANGUAGES Fortran)
 cmake_minimum_required (VERSION 3.3)
-enable_language (Fortran)
 
 include (CheckFortranCompilerFlag)
 

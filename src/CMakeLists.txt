@@ -29,7 +29,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-project (StarNEig)
+project (StarNEig LANGUAGES C Fortran)
 cmake_minimum_required (VERSION 3.3)
 
 if (NOT ${CMAKE_VERSION} VERSION_LESS "3.12.0")
@@ -65,12 +65,6 @@ option (STARNEIG_ENABLE_CUDA_REORDER_WINDOW
     "Enable CUDA-based reorder_window codelet" OFF)
 option (STARNEIG_ENABLE_INTEGER_SCALING
     "Enable integer-based scaling factors" ON)
-
-#
-# languages
-#
-
-enable_language (C Fortran)
 
 #
 # includes
@@ -695,7 +689,7 @@ set (CPACK_PACKAGE_HOMEPAGE_URL "https://nlafet.github.io/StarNEig/")
 set (CPACK_DEBIAN_PACKAGE_MAINTAINER "Mirko Myllykoski")
 set (CPACK_DEBIAN_PACKAGE_HOMEPAGE "https://nlafet.github.io/StarNEig/")
 set (CPACK_DEBIAN_PACKAGE_DEPENDS
-    "gfortran, libopenblas-dev, libopenmpi-dev, libscalapack-openmpi-dev, 
+    "gfortran, libopenblas-dev, libopenmpi-dev, libscalapack-openmpi-dev,
     libstarpu-dev")
 
 set (CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/../LICENSE.md")
