@@ -32,6 +32,9 @@
 project (StarNEig LANGUAGES C)
 cmake_minimum_required (VERSION 3.3)
 
+include (CheckSymbolExists)
+
+
 #
 # StarNEig library
 #
