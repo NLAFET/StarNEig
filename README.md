@@ -40,7 +40,7 @@ Please see [publications](PUBLICATIONS.md) and [authors](AUTHORS.md).
 Performance comparisons against MAGMA (GPU) and ScaLAPACK (distributed memory),
 and strong scalability on shared and distributed memory machines:
 
-![](performance.png)
+![](docs/figures/performance.png)
 
 Also, see following publications:
 
