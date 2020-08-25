@@ -26,8 +26,8 @@ also been received from eSSENCE, a collaborative e-Science programme funded by
 the Swedish Government via the Swedish Research Council (VR), and VR Grant
 E0485301. The development and performance evaluations were performed on
 resources provided by the Swedish National Infrastructure for Computing (SNIC)
-at HPC2N partially funded by the Swedish Research Council through grant
-agreement no. 2016-07213. The library is published under open-source
+at HPC2N partially funded by VR through grant agreement No. 2016-07213. The
+library is published under open-source BSD 3-Clause
 [BSD 3-Clause license](LICENSE.md).
 
 Please cite the following article when referring to StarNEig:
