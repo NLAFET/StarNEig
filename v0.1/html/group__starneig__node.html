@@ -122,6 +122,9 @@ Library initialization flags</h2></td></tr>
 typedef unsigned&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__starneig__node.html#gaa5d6a2a74203916ba3f5ffc26e45df1e">starneig_flag_t</a></td></tr>
 <tr class="memdesc:gaa5d6a2a74203916ba3f5ffc26e45df1e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Library initialization flag data type. <br /></td></tr>
 <tr class="separator:gaa5d6a2a74203916ba3f5ffc26e45df1e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gab90bed6cebfd3e80b0cdd89a3d5465eb"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__starneig__node.html#gab90bed6cebfd3e80b0cdd89a3d5465eb">STARNEIG_USE_ALL</a>&#160;&#160;&#160;-1</td></tr>
+<tr class="memdesc:gab90bed6cebfd3e80b0cdd89a3d5465eb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Use all resources.  <a href="#gab90bed6cebfd3e80b0cdd89a3d5465eb">More...</a><br /></td></tr>
+<tr class="separator:gab90bed6cebfd3e80b0cdd89a3d5465eb"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga996dca874100130dfb4f748cdb52cb75"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__starneig__node.html#ga996dca874100130dfb4f748cdb52cb75">STARNEIG_DEFAULT</a>&#160;&#160;&#160;0x0</td></tr>
 <tr class="memdesc:ga996dca874100130dfb4f748cdb52cb75"><td class="mdescLeft">&#160;</td><td class="mdescRight">Default mode.  <a href="#ga996dca874100130dfb4f748cdb52cb75">More...</a><br /></td></tr>
 <tr class="separator:ga996dca874100130dfb4f748cdb52cb75"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -162,6 +165,24 @@ Pinned host memory</h2></td></tr>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <p>Interface to configure the intra-node execution environment. </p>
 <h2 class="groupheader">Macro Definition Documentation</h2>
+<a id="gab90bed6cebfd3e80b0cdd89a3d5465eb"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gab90bed6cebfd3e80b0cdd89a3d5465eb">&#9670;&nbsp;</a></span>STARNEIG_USE_ALL</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define STARNEIG_USE_ALL&#160;&#160;&#160;-1</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Use all resources. </p>
+<p>Tells StarNEig to use all available CPU cores / GPUs. </p>
+<dl><dt><b>Examples: </b></dt><dd><a class="el" href="gep_dm_full_chain_8c-example.html#a1">gep_dm_full_chain.c</a>, <a class="el" href="gep_sm_eigenvectors_8c-example.html#a1">gep_sm_eigenvectors.c</a>, <a class="el" href="gep_sm_full_chain_8c-example.html#a1">gep_sm_full_chain.c</a>, <a class="el" href="sep_dm_full_chain_8c-example.html#a1">sep_dm_full_chain.c</a>, <a class="el" href="sep_sm_eigenvectors_8c-example.html#a1">sep_sm_eigenvectors.c</a>, and <a class="el" href="sep_sm_full_chain_8c-example.html#a1">sep_sm_full_chain.c</a>.</dd>
+</dl>
+</div>
+</div>
 <a id="ga996dca874100130dfb4f748cdb52cb75"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ga996dca874100130dfb4f748cdb52cb75">&#9670;&nbsp;</a></span>STARNEIG_DEFAULT</h2>
 
@@ -193,7 +214,7 @@ Pinned host memory</h2></td></tr>
 
 <p>Shared memory mode. </p>
 <p>Initializes the library for shared memory computation. The library will automatically reconfigure itself for distributed memory computation if necessary </p>
-<dl><dt><b>Examples: </b></dt><dd><a class="el" href="gep_sm_eigenvectors_8c-example.html#a1">gep_sm_eigenvectors.c</a>, <a class="el" href="gep_sm_full_chain_8c-example.html#a1">gep_sm_full_chain.c</a>, <a class="el" href="sep_sm_eigenvectors_8c-example.html#a1">sep_sm_eigenvectors.c</a>, and <a class="el" href="sep_sm_full_chain_8c-example.html#a1">sep_sm_full_chain.c</a>.</dd>
+<dl><dt><b>Examples: </b></dt><dd><a class="el" href="gep_sm_eigenvectors_8c-example.html#a2">gep_sm_eigenvectors.c</a>, <a class="el" href="gep_sm_full_chain_8c-example.html#a2">gep_sm_full_chain.c</a>, <a class="el" href="sep_sm_eigenvectors_8c-example.html#a2">sep_sm_eigenvectors.c</a>, and <a class="el" href="sep_sm_full_chain_8c-example.html#a2">sep_sm_full_chain.c</a>.</dd>
 </dl>
 </div>
 </div>
@@ -211,7 +232,7 @@ Pinned host memory</h2></td></tr>
 
 <p>Distributed memory mode. </p>
 <p>Initializes the library for distributed memory computation. The library will automatically reconfigure itself for shared memory computation if necessary </p>
-<dl><dt><b>Examples: </b></dt><dd><a class="el" href="sep_dm_full_chain_8c-example.html#a1">sep_dm_full_chain.c</a>.</dd>
+<dl><dt><b>Examples: </b></dt><dd><a class="el" href="sep_dm_full_chain_8c-example.html#a2">sep_dm_full_chain.c</a>.</dd>
 </dl>
 </div>
 </div>
@@ -247,7 +268,7 @@ Pinned host memory</h2></td></tr>
 
 <p>Awake worker mode. </p>
 <p>Keeps the StarPU worker threads awake between interface function calls. Improves the performance in certain situations but can interfere with other software. </p>
-<dl><dt><b>Examples: </b></dt><dd><a class="el" href="gep_sm_full_chain_8c-example.html#a2">gep_sm_full_chain.c</a>.</dd>
+<dl><dt><b>Examples: </b></dt><dd><a class="el" href="gep_sm_full_chain_8c-example.html#a3">gep_sm_full_chain.c</a>.</dd>
 </dl>
 </div>
 </div>
@@ -282,7 +303,7 @@ Pinned host memory</h2></td></tr>
 
 <p>Fast distributed memory mode. </p>
 <p>Keeps the worker threads and StarPU-MPI communication thread awake between interface function calls. Improves the performance in certain situations but can interfere with other software. </p>
-<dl><dt><b>Examples: </b></dt><dd><a class="el" href="gep_dm_full_chain_8c-example.html#a1">gep_dm_full_chain.c</a>.</dd>
+<dl><dt><b>Examples: </b></dt><dd><a class="el" href="gep_dm_full_chain_8c-example.html#a2">gep_dm_full_chain.c</a>.</dd>
 </dl>
 </div>
 </div>
@@ -357,8 +378,8 @@ Pinned host memory</h2></td></tr>
 <p>The interface function initializes StarPU (and cuBLAS) and pauses all worker The <code>cores</code> argument specifies the <b>total number of used CPU cores</b>. In distributed memory mode, one CPU core is automatically allocated for the StarPU-MPI communication thread. One or more CPU cores are automatically allocated for GPU devices.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramdir">[in]</td><td class="paramname">cores</td><td>The number of cores (threads) to use per MPI rank. Can be set to -1 in which case the library determines the value.</td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">gpus</td><td>The number of GPUs to use per MPI rank. Can be set to -1 in which case the library determines the value.</td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">cores</td><td>The number of cores (threads) to use per MPI rank. Can be set to STARNEIG_USE_ALL in which case the library uses all available cores.</td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">gpus</td><td>The number of GPUs to use per MPI rank. Can be set to STARNEIG_USE_ALL in which case the library uses all available GPUs.</td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">flags</td><td>Initialization flags. </td></tr>
   </table>
   </dd>
