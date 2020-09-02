@@ -175,7 +175,7 @@ int main()
     double *imag = malloc(n*sizeof(double));
 
     // initialize the StarNEig library
-    starneig_node_init(-1, -1, STARNEIG_HINT_SM);
+    starneig_node_init(STARNEIG_USE_ALL, STARNEIG_USE_ALL, STARNEIG_HINT_SM);
 
     // reduce matrix A to real Schur form S = Q^T A Q
     starneig_SEP_SM_Reduce(
