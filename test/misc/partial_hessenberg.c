@@ -129,11 +129,11 @@ int partial_hessenberg_run(
     struct multiarg_t panel_width = read_multiarg(
         "--panel-width", argc, argv, NULL, "default", NULL);
 
-    int cores = -1;
+    int cores = STARNEIG_USE_ALL;
     if (arg_cores.type == MULTIARG_INT)
         cores = arg_cores.int_value;
 
-    int gpus = -1;
+    int gpus = STARNEIG_USE_ALL;
     if (arg_gpus.type == MULTIARG_INT)
         gpus = arg_gpus.int_value;
 
