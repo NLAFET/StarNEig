@@ -1,5 +1,6 @@
 var group__starneig__node =
 [
+    [ "STARNEIG_USE_ALL", "group__starneig__node.html#gab90bed6cebfd3e80b0cdd89a3d5465eb", null ],
     [ "STARNEIG_DEFAULT", "group__starneig__node.html#ga996dca874100130dfb4f748cdb52cb75", null ],
     [ "STARNEIG_HINT_SM", "group__starneig__node.html#ga696b10750293e8b49bda0c205ed0882e", null ],
     [ "STARNEIG_HINT_DM", "group__starneig__node.html#ga3c59d6d34eba90c254f4e34e44700ab4", null ],
