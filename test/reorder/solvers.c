@@ -852,11 +852,11 @@ static hook_solver_state_t starpu_prepare(
     struct multiarg_t arg_gpus = read_multiarg(
         "--gpus", argc, argv, NULL, "default", NULL);
 
-    int cores = -1;
+    int cores = STARNEIG_USE_ALL;
     if (arg_cores.type == MULTIARG_INT)
         cores = arg_cores.int_value;
 
-    int gpus = -1;
+    int gpus = STARNEIG_USE_ALL;
     if (arg_gpus.type == MULTIARG_INT)
         gpus = arg_gpus.int_value;
 
@@ -1046,11 +1046,11 @@ static hook_solver_state_t starpu_simple_prepare(
     struct multiarg_t arg_gpus = read_multiarg(
         "--gpus", argc, argv, NULL, "default", NULL);
 
-    int cores = -1;
+    int cores = STARNEIG_USE_ALL;
     if (arg_cores.type == MULTIARG_INT)
         cores = arg_cores.int_value;
 
-    int gpus = -1;
+    int gpus = STARNEIG_USE_ALL;
     if (arg_gpus.type == MULTIARG_INT)
         gpus = arg_gpus.int_value;
 

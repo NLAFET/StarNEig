@@ -251,8 +251,8 @@ static struct hook_data_env* starpu_initializer_init(
 
 #ifdef STARNEIG_ENABLE_BLACS
     if (format == HOOK_DATA_FORMAT_PENCIL_BLACS) {
-        starneig_node_init(
-            threads_get_workers(), -1, STARNEIG_HINT_DM | STARNEIG_FXT_DISABLE);
+        starneig_node_init(threads_get_workers(), STARNEIG_USE_ALL,
+            STARNEIG_HINT_DM | STARNEIG_FXT_DISABLE);
 
         if (generalized) {
             starneig_GEP_DM_HessenbergTriangular(
@@ -284,8 +284,8 @@ static struct hook_data_env* starpu_initializer_init(
 #endif
 
     if (format == HOOK_DATA_FORMAT_PENCIL_LOCAL) {
-        starneig_node_init(
-            threads_get_workers(), -1, STARNEIG_HINT_SM | STARNEIG_FXT_DISABLE);
+        starneig_node_init(threads_get_workers(), STARNEIG_USE_ALL,
+            STARNEIG_HINT_SM | STARNEIG_FXT_DISABLE);
 
         if (generalized) {
             starneig_GEP_SM_HessenbergTriangular(LOCAL_MATRIX_N(pencil->mat_a),
