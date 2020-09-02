@@ -39,7 +39,7 @@ argument can provide additional configuration information.
 
 A node can also be configured with default values:
 @code{.c}
-starneig_node_init(-1, -1, STARNEIG_DEFAULT);
+starneig_node_init(STARNEIG_USE_ALL, STARNEIG_USE_ALL, STARNEIG_DEFAULT);
 @endcode
 This tells the library to use all available CPU cores and GPUs.
 

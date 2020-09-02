@@ -83,11 +83,11 @@ int main()
     double *imag = malloc(n*sizeof(double));
     int *select = malloc(n*sizeof(int));
 
-    // Initialize the StarNEig library using a default number of CPU cores and
+    // Initialize the StarNEig library using all available CPU cores and
     // GPUs. The STARNEIG_HINT_SM flag indicates that the library should
     // initialize itself for shared memory computations.
 
-    starneig_node_init(-1, -1, STARNEIG_HINT_SM);
+    starneig_node_init(STARNEIG_USE_ALL, STARNEIG_USE_ALL, STARNEIG_HINT_SM);
 
     // reduce the full matrix matrix A to Schur form (skip reordering)
 

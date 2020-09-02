@@ -65,6 +65,13 @@ extern "C" {
 ///
 
 ///
+/// @brief Use all resources.
+///
+/// Tells StarNEig to use all available CPU cores / GPUs.
+///
+#define STARNEIG_USE_ALL                -1
+
+///
 /// @brief Library initialization flag data type.
 ///
 typedef unsigned starneig_flag_t;
@@ -158,12 +165,12 @@ typedef unsigned starneig_flag_t;
 /// allocated for GPU devices.
 ///
 /// @param[in] cores
-///         The number of cores (threads) to use per MPI rank. Can be set to -1
-///         in which case the library determines the value.
+///         The number of cores (threads) to use per MPI rank. Can be set to
+///         STARNEIG_USE_ALL in which case the library uses all available cores.
 ///
 /// @param[in] gpus
-///         The number of GPUs to use per MPI rank. Can be set to -1
-///         in which case the library determines the value.
+///         The number of GPUs to use per MPI rank. Can be set to
+///         STARNEIG_USE_ALL in which case the library uses all available GPUs.
 ///
 /// @param[in] flags
 ///         Initialization flags.

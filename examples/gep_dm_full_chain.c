@@ -116,13 +116,13 @@ int main(int argc, char **argv)
     double *beta = malloc(n*sizeof(double));
     int *select = malloc(n*sizeof(int));
 
-    // Initialize the StarNEig library using a default number of CPU cores and
+    // Initialize the StarNEig library using all available CPU cores and
     // GPUs. The STARNEIG_FAST_DM flag indicates that the library should
     // initialize itself for distributed memory computations and keep StarPU
     // worker threads and StarPU-MPI communication thread awake between
     // interface function calls.
 
-    starneig_node_init(-1, -1, STARNEIG_FAST_DM);
+    starneig_node_init(STARNEIG_USE_ALL, STARNEIG_USE_ALL, STARNEIG_FAST_DM);
 
     // create a two-dimensional block cyclic distribution with column-major
     // ordering
