@@ -1,7 +1,8 @@
 ## Changelog
 
 ### Planned for v0.1.5
- - Disable OpenCL workers.
+ - Disable OpenCL workers during initialization.
+ - Add `STARNEIG_USE_ALL`.
 
 ### v0.1.4
  - Add deb packages.
