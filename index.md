@@ -89,6 +89,10 @@ The stable 0.1-series is recommended for most users:
     [html](https://nlafet.github.io/StarNEig/v0.1/html/)
     )
  - [Releases](https://github.com/NLAFET/StarNEig/releases/):
+   - [Version 0.1.5](https://github.com/NLAFET/StarNEig/releases/tag/v0.1.5) (
+     [pdf](https://nlafet.github.io/StarNEig/v0.1.5/starneig_manual.pdf),
+     [html](https://nlafet.github.io/StarNEig/v0.1.5/html/)
+     )
    - [Version 0.1.4](https://github.com/NLAFET/StarNEig/releases/tag/v0.1.4) (
      [pdf](https://nlafet.github.io/StarNEig/v0.1.4/starneig_manual.pdf),
      [html](https://nlafet.github.io/StarNEig/v0.1.4/html/)
