@@ -1,6 +1,7 @@
 ## Changelog
+### Planned for v0.1.6
 
-### Planned for v0.1.5
+### v0.1.5
  - Disable OpenCL workers during initialization.
  - Add `STARNEIG_USE_ALL`.
 
