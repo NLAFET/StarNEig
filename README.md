@@ -164,7 +164,7 @@ int main()
     double *A = malloc(n*ldA*sizeof(double));
     for (int j = 0; j < n; j++)
         for (int i = 0; i < n; i++)
-            A[j*ldA+i] = C[j*ldC+i] = 2.0*rand()/RAND_MAX - 1.0;
+            A[j*ldA+i] = 2.0*rand()/RAND_MAX - 1.0;
 
     // generate an identity matrix Q
     int ldQ = ((n/8)+1)*8;
