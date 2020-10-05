@@ -93,17 +93,21 @@ https://nlafet.github.io/StarNEig. The PDF version is also available under
 
 ## Installation
 
-Prebuild Ubuntu packages (18.04 and 20.04) are available under
+Prebuild binary packages (Ubuntu 18.04 and Ubuntu 20.04) are available under
 [releases](https://github.com/NLAFET/StarNEig/releases) and can be installed
 with the following command:
+
 ```
 $ sudo apt install ./StarNEig-v0.xx.yy-ubuntu-vv.uu.deb
 ```
 
-These packages rely on mainstream StarPU packages and do not necessary provide
-full functionality. For full functionality, it is recommended that StarNEig
-(and StarPU) are compiled from the source code, see below and/or the StarNEig
-User's Guide.
+The binary packages rely on mainstream StarPU packages and do not necessary
+provide full functionality.
+
+For full functionality, it is recommended that StarNEig (and StarPU) are
+compiled from the source code, see below and/or the StarNEig User's Guide.
+Please consider using one of the tested
+[release](https://github.com/NLAFET/StarNEig/releases) versions.
 
 ### Dependencies
 
