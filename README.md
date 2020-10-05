@@ -110,7 +110,7 @@ provide full functionality.
 For full functionality, it is recommended that StarNEig (and StarPU) are
 compiled from the source code, see below and/or the StarNEig User's Guide.
 Please consider using the stable 0.1 series; preferably one of the tested
-[releases](https://github.com/NLAFET/StarNEig/releases) versions.
+[release](https://github.com/NLAFET/StarNEig/releases) versions.
 
 ### Dependencies
 
