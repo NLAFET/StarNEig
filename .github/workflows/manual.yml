@@ -11,10 +11,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Get the branch name
-        run: echo ::set-env name=BRANCH_NAME::${GITHUB_REF#refs/*/}
+        run: echo "BRANCH_NAME=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
 
       - name: Get the short hash
-        run: echo ::set-env name=SHORT_HASH::${GITHUB_SHA:0:8}
+        run: echo "SHORT_HASH=${GITHUB_SHA:0:8}" >> $GITHUB_ENV
 
       - name: Checkout
         uses: actions/checkout@v2
