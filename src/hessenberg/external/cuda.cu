@@ -43,6 +43,8 @@
 #include <starpu.h>
 #include <starpu_cublas_v2.h>
 
+#define TILED_MATRIX_WG 32
+
 static __constant__ __device__ double _one = 1.0;
 static __constant__ __device__ double _m_one = -1.0;
 static __constant__ __device__ double _zero = 0.0;
@@ -67,7 +69,7 @@ static __global__ void _tiled_matrix_vector(
     struct tile_addr const * __restrict__ tiles, double const * __restrict__ x,
     double * __restrict__ y)
 {
-    extern __shared__ double s[];
+    __shared__ double tmp[TILED_MATRIX_WG][TILED_MATRIX_WG+1];
 
     int idx = blockIdx.x*blockDim.x + threadIdx.x;
     int tid = (rbegin + idx) / bm;              // tile row index
@@ -100,16 +102,21 @@ static __global__ void _tiled_matrix_vector(
     }
 
     // store partial sums to the shared memory
-    if (0 < threadIdx.y)
-        s[(threadIdx.y-1)*blockDim.x+threadIdx.x] = v;
+    tmp[threadIdx.x][threadIdx.y] = v;
      __syncthreads();
 
-    // sum partial sums together and store the final result
-    if (threadIdx.y == 0 && idx < rend - rbegin) {
-        for (int i = 0; i < blockDim.y-1; i++)
-            v += s[i*blockDim.x+threadIdx.x];
-        y[idx] = v;
+    // sum together the partial sums
+    int active = TILED_MATRIX_WG/2;
+    while (0 < active) {
+        if (threadIdx.x < active)
+            tmp[threadIdx.y][threadIdx.x] +=
+                tmp[threadIdx.y][threadIdx.x + active];
+        active /= 2;
+        __syncthreads();
     }
+
+    if (threadIdx.y == 0 && idx < rend - rbegin)
+        y[idx] = tmp[threadIdx.x][0];
 }
 
 ///
@@ -130,11 +137,10 @@ static void tiled_matrix_vector(
     struct packing_info const *packing_info,
     struct tile_addr const *tiles, double const *x, double *y)
 {
-    dim3 threads(32,32);
+    dim3 threads(TILED_MATRIX_WG, TILED_MATRIX_WG);
     dim3 blocks(divceil(rend-rbegin, threads.x));
-    size_t shared_size = threads.x*(threads.y-1)*sizeof(double);
 
-    _tiled_matrix_vector<<<blocks, threads, shared_size, stream>>>(
+    _tiled_matrix_vector<<<blocks, threads, 0, stream>>>(
         packing_info->rbegin+rbegin, packing_info->rbegin+rend,
         packing_info->cbegin+cbegin, packing_info->cbegin+cend,
         packing_info->bm, packing_info->bn, tiles, x, y);
