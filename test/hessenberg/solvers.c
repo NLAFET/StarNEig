@@ -457,7 +457,7 @@ static void starpu_print_usage(int argc, char * const *argv)
         "  --gpus [default,(num)} -- Number of GPUS\n"
         "  --tile-size [default,(num)] -- tile size\n"
         "  --panel-width [default,(num)] -- Panel width\n"
-        "  --parallel-worker-size [default,gpuonly,(num)]\n"
+        "  --parallel-worker-size [default,(num)]\n"
     );
 }
 
