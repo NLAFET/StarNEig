@@ -1,5 +1,7 @@
 ## Changelog
+
 ### Planned for v0.1.6
+ - Minor improvements to the Hessenberg reduction step
 
 ### v0.1.5
  - Disable OpenCL workers during initialization.
