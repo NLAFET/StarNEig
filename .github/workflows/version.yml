@@ -59,7 +59,7 @@ jobs:
           overwrite: true
 
   deploy-manual:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-18.04
     steps:
       - uses: hecrj/setup-rust-action@v1
         with:
