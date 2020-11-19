@@ -12,7 +12,7 @@ var group__starneig__dm__blacs =
       [ "lld", "group__starneig__dm__blacs.html#aadc9cd51ae228a2eb1243ab810167964", null ]
     ] ],
     [ "starneig_blacs_context_t", "group__starneig__dm__blacs.html#ga2610a78a74c6216e26c710b0d319edcd", null ],
-    [ "starneig_blacs_descr_t", "group__starneig__dm__blacs.html#gabcf5b33ca3e471ca6ffe50e6c1e8e790", null ],
+    [ "starneig_blacs_descr_t", "group__starneig__dm__blacs.html#ga741ddf1e6fb545cb7cc7bcdc558cd60e", null ],
     [ "starneig_distr_to_blacs_context", "group__starneig__dm__blacs.html#ga358e78f5506447151ab45ffea61bc2a2", null ],
     [ "starneig_blacs_context_to_distr", "group__starneig__dm__blacs.html#ga1f0b0bcb78e17be5921edeb10213be43", null ],
     [ "starneig_distr_is_blacs_compatible", "group__starneig__dm__blacs.html#ga2a0b88ee59ea34b1cc25ab97f640b61a", null ],
