@@ -55,29 +55,6 @@ Also, see following publications:
    NLAFET deliverable, 2019
    ([download](D2.7-EVP-solvers-evaluation-final.pdf))
 
-## Authors
-
-StarNEig has been developed at the Department of Computing Science of Umeå
-University, Sweden.The following people have contributed to the library:
-
- - Angelika Schwarz
-    - Standard eigenvectors
- - Bo Kågström
-    - Coordinator and scientific director for the NLAFET project
-    - Documentation
- - Carl Christian Kjelgaard Mikkelsen
-    - Generalized eigenvectors
- - Lars Karlsson
-    - Miscellaneous user interface functions
-    - Documentation
- - Mirko Myllykoski
-    - Hessenberg reduction
-    - Schur reduction (standard and generalized)
-    - Eigenvalue reordering (standard and generalized)
-    - Miscellaneous user interface functions
-    - Test program
-    - Documentation
-
 ## Current status
 
 The stable 0.1-series currently supports only real arithmetic (real input and
@@ -102,6 +79,29 @@ Generalized eigenvalue problems:
 | **Schur**        |   *Complete*    |     *Complete*     | *Experimental* |
 | **Reordering**   |   *Complete*    |     *Complete*     | *Experimental* |
 | **Eigenvectors** |   *Complete*    |        ---         |      ---       |
+
+## Authors
+
+StarNEig has been developed at the Department of Computing Science of Umeå
+University, Sweden.The following people have contributed to the library:
+
+ - Angelika Schwarz
+    - Standard eigenvectors
+ - Bo Kågström
+    - Coordinator and scientific director for the NLAFET project
+    - Documentation
+ - Carl Christian Kjelgaard Mikkelsen
+    - Generalized eigenvectors
+ - Lars Karlsson
+    - Miscellaneous application programming interface functions
+    - Documentation
+ - Mirko Myllykoski
+    - Hessenberg reduction
+    - Schur reduction (standard and generalized)
+    - Eigenvalue reordering (standard and generalized)
+    - Application programming interface
+    - Test program
+    - Documentation
 
 ## Download and documentation
 
