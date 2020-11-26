@@ -27,7 +27,7 @@ the Swedish Government via the Swedish Research Council (VR), and VR Grant
 E0485301. The development and performance evaluations were performed on
 resources provided by the Swedish National Infrastructure for Computing (SNIC)
 at HPC2N partially funded by VR through grant agreement No. 2016-07213. The 
-library is published under open-source BSD 3-Clause license.
+library is published under the open-source BSD 3-Clause license.
 
 Please cite the following article when referring to StarNEig:
 > Mirko Myllykoski, Carl Christian Kjelgaard Mikkelsen: *Task-based,
@@ -54,6 +54,29 @@ Also, see following publications:
    Bo Kågström: *D2.7 Eigenvalue solvers for nonsymmetric problems*, public
    NLAFET deliverable, 2019
    ([download](D2.7-EVP-solvers-evaluation-final.pdf))
+
+## Authors
+
+StarNEig has been developed at the Department of Computing Science of Umeå
+University, Sweden.The following people have contributed to the library:
+
+ - Angelika Schwarz
+    - Standard eigenvectors
+ - Bo Kågström
+    - Coordinator and scientific director for the NLAFET project
+    - Documentation
+ - Carl Christian Kjelgaard Mikkelsen
+    - Generalized eigenvectors
+ - Lars Karlsson
+    - Miscellaneous user interface functions
+    - Documentation
+ - Mirko Myllykoski
+    - Hessenberg reduction
+    - Schur reduction (standard and generalized)
+    - Eigenvalue reordering (standard and generalized)
+    - Miscellaneous user interface functions
+    - Test program
+    - Documentation
 
 ## Current status
 
@@ -149,4 +172,3 @@ The development series is under continuous development and considered
     [pdf](https://nlafet.github.io/StarNEig/master/starneig_manual.pdf),
     [html](https://nlafet.github.io/StarNEig/master/html/)
     )
-
