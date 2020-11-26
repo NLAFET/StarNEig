@@ -93,7 +93,7 @@ University, Sweden.The following people have contributed to the library:
  - Carl Christian Kjelgaard Mikkelsen
     - Generalized eigenvectors
  - Lars Karlsson
-    - Miscellaneous application programming interface functions
+    - Application programming interface
     - Documentation
  - Mirko Myllykoski
     - Hessenberg reduction
