@@ -86,7 +86,7 @@ StarNEig has been developed at the Department of Computing Science of Umeå
 University, Sweden. The following people have contributed to the library:
 
  - Angelika Schwarz (standard eigenvectors)
- - Bo Kågström (coordinator and scientific director for the NLAFET project,  
+ - Bo Kågström (coordinator and scientific director for the NLAFET project,
    documentation)
  - Carl Christian Kjelgaard Mikkelsen (generalized eigenvectors)
  - Lars Karlsson (API, documentation)
