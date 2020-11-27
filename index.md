@@ -83,25 +83,15 @@ Generalized eigenvalue problems:
 ## Authors
 
 StarNEig has been developed at the Department of Computing Science of Umeå
-University, Sweden.The following people have contributed to the library:
+University, Sweden. The following people have contributed to the library:
 
- - Angelika Schwarz
-    - Standard eigenvectors
- - Bo Kågström
-    - Coordinator and scientific director for the NLAFET project
-    - Documentation
- - Carl Christian Kjelgaard Mikkelsen
-    - Generalized eigenvectors
- - Lars Karlsson
-    - Application programming interface
-    - Documentation
- - Mirko Myllykoski
-    - Hessenberg reduction
-    - Schur reduction (standard and generalized)
-    - Eigenvalue reordering (standard and generalized)
-    - Application programming interface
-    - Test program
-    - Documentation
+ - Angelika Schwarz (standard eigenvectors)
+ - Bo Kågström (coordinator and scientific director for the NLAFET project,  
+   documentation)
+ - Carl Christian Kjelgaard Mikkelsen (generalized eigenvectors)
+ - Lars Karlsson (API, documentation)
+ - Mirko Myllykoski (Hessenberg reduction, Schur reduction, eigenvalue
+   reordering, API, test program, documentation)
 
 ## Download and documentation
 
