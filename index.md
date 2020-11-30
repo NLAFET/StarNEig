@@ -93,6 +93,16 @@ University, Sweden. The following people have contributed to the library:
  - Mirko Myllykoski (Hessenberg reduction, Schur reduction, eigenvalue
    reordering, API, test program, documentation)
 
+## Youtube videos
+
+### Hessenberg reduction
+
+[![Task-based Hessenberg reduction](http://img.youtube.com/vi/QgycQIn1q_o/0.jpg)](http://www.youtube.com/watch?v=QgycQIn1q_o "Task-based Hessenberg reduction")
+
+### Schur reduction
+
+[![Task-based Schur reduction](http://img.youtube.com/vi/VPHL0m2tmgI/0.jpg)](http://www.youtube.com/watch?v=VPHL0m2tmgI "Task-based Schur reduction")
+
 ## Download and documentation
 
 The stable 0.1-series is recommended for most users:
