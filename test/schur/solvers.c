@@ -1115,7 +1115,7 @@ static int starpu_run(hook_solver_state_t state)
         if (strcmp("lapack", left_threshold.str_value) == 0)
             conf.left_threshold = STARNEIG_SCHUR_LAPACK_THRESHOLD;
     }
-    if (left_threshold.type == MULTIARG_INT)
+    if (left_threshold.type == MULTIARG_FLOAT)
         conf.left_threshold = left_threshold.double_value;
 
     struct multiarg_t right_threshold = read_multiarg(
@@ -1127,7 +1127,7 @@ static int starpu_run(hook_solver_state_t state)
         if (strcmp("lapack", right_threshold.str_value) == 0)
             conf.right_threshold = STARNEIG_SCHUR_LAPACK_THRESHOLD;
     }
-    if (right_threshold.type == MULTIARG_INT)
+    if (right_threshold.type == MULTIARG_FLOAT)
         conf.right_threshold = right_threshold.double_value;
 
     struct multiarg_t inf_threshold = read_multiarg(
@@ -1136,7 +1136,7 @@ static int starpu_run(hook_solver_state_t state)
         if (strcmp("norm", inf_threshold.str_value) == 0)
             conf.inf_threshold = STARNEIG_SCHUR_NORM_STABLE_THRESHOLD;
     }
-    if (inf_threshold.type == MULTIARG_INT)
+    if (inf_threshold.type == MULTIARG_FLOAT)
         conf.inf_threshold = inf_threshold.double_value;
 
     int ret = 0;
