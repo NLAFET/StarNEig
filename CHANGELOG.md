@@ -1,6 +1,9 @@
 ## Changelog
 
-### Planned for v0.1.6
+### v0.1.7
+ - Fix a compile error with GCC 10
+
+### v0.1.6
  - Minor improvements to the Hessenberg reduction step
 
 ### v0.1.5
