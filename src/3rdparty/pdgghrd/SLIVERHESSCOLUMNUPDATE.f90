@@ -57,8 +57,8 @@ subroutine sliverhesscolumnupdate(m, n, A, iA, jA, descA &
 
 
   logical :: terminate
-  double precision :: tmp, tmp2
-
+  double precision ::  tmp2
+  double precision, dimension(1) :: tmp
 
   ! LOCAL ARRAYS
 
