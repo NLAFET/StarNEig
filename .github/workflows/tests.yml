@@ -39,7 +39,6 @@ jobs:
       - name: Test
         run: |
           cd build/
-          echo "localhost slots=4" >> /etc/openmpi/openmpi-default-hostfile
           CTEST_OUTPUT_ON_FAILURE=1 \
           OPENBLAS_NUM_THREADS=1 \
           OMPI_ALLOW_RUN_AS_ROOT=1 \
