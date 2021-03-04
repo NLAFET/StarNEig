@@ -108,7 +108,11 @@ $(document).ready(function(){initNavTree('index.html',''); initResizable(); });
 </blockquote>
 <p>Please see publications and authors.</p>
 <h1>Performance</h1>
-<p>Performance comparisons against MAGMA (GPU) and ScaLAPACK (distributed memory), and strong scalability on shared and distributed memory machines:</p>
+<p>Performance comparison against LAPACK (with parallel BLAS) using 25 CPU cores and a Nvidia V100 GPU:</p>
+<div class="image">
+<img src="performance_lapack.png" alt=""/>
+</div>
+   <p>Performance comparisons against MAGMA (Nvidia V100 GPU) and ScaLAPACK (distributed memory), and strong scalability on shared and distributed memory machines:</p>
 <div class="image">
 <img src="performance.png" alt=""/>
 </div>
