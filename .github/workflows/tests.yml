@@ -27,6 +27,7 @@ jobs:
 
       - name: Configure
         run: |
+          sed -i -e 's/mpirun/mpirun --oversubscribe/g' test/CMakeLists.txt
           mkdir build
           cd build/
           cmake ../
