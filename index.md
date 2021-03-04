@@ -37,8 +37,14 @@ Please cite the following article when referring to StarNEig:
 
 ## Performance
 
-Performance comparisons against MAGMA (GPU) and ScaLAPACK (distributed memory),
-and strong scalability on shared and distributed memory machines:
+Performance comparison against LAPACK (with parallel BLAS) using 25 CPU cores
+and a Nvidia V100 GPU:
+
+![Performance comparison against LAPACK](figures/performance_lapack.png)
+
+Performance comparisons against MAGMA (Nvidia V100 GPU) and ScaLAPACK
+(distributed memory), and strong scalability on shared and distributed memory
+machines:
 
 ![Performance comparisons](figures/performance.png)
 
