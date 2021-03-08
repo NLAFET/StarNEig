@@ -93,13 +93,15 @@ Generalized eigenvalue problems:
 
 Please see [changelog](CHANGELOG.md) and [known problems](KNOWN_PROBLEMS.md).
 
-## Documentation:
+## Documentation
 
 The StarNEig User's Guide is available in both HTML and PDF formats at
 https://nlafet.github.io/StarNEig. The PDF version is also available under
 [releases](https://github.com/NLAFET/StarNEig/releases).
 
-## Installation
+## Quickstart guide
+
+### Installation
 
 Prebuild binary packages (Ubuntu 18.04 and Ubuntu 20.04) are available under
 [releases](https://github.com/NLAFET/StarNEig/releases) and can be installed
@@ -117,7 +119,7 @@ compiled from the source code, see below and/or the StarNEig User's Guide.
 Please consider using the stable 0.1 series; preferably one of the tested
 [release](https://github.com/NLAFET/StarNEig/releases) versions.
 
-### Dependencies
+#### Dependencies
 
 Library dependencies:
 
@@ -139,7 +141,7 @@ Test program and example code dependencies:
  - GNU Scientific Library (optional)
  - MAGMA (optional)
 
-### Configure, build and install
+#### Configure, build and install
 
 To compile, validate and install StarNEig, execute in the same directory as this
 `README.md` file:
@@ -152,7 +154,7 @@ $ make test
 $ sudo make install
 ```
 
-## Example
+### Example
 
 The following example demonstrates how a dense matrix `A` is reduced to real
 Schur form:
