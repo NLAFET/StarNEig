@@ -37,8 +37,8 @@ Please cite the following article when referring to StarNEig:
 
 ## Performance
 
-Performance comparison against LAPACK (with parallel BLAS) using 25 CPU cores
-and a Nvidia V100 GPU:
+Performance [comparison](https://doi.org/10.13140/RG.2.2.14812.92801)
+against LAPACK (with parallel BLAS) using 25 CPU cores and a Nvidia V100 GPU:
 
 ![Performance comparison against LAPACK](figures/performance_lapack.png)
 
