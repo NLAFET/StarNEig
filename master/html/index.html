@@ -108,7 +108,7 @@ $(document).ready(function(){initNavTree('index.html',''); initResizable(); });
 </blockquote>
 <p>Please see publications and authors.</p>
 <h1>Performance</h1>
-<p>Performance comparison against LAPACK (with parallel BLAS) using 25 CPU cores and a Nvidia V100 GPU:</p>
+<p>Performance <a href="https://doi.org/10.13140/RG.2.2.14812.92801">comparison</a> against LAPACK (with parallel BLAS) using 25 CPU cores and a Nvidia V100 GPU:</p>
 <div class="image">
 <img src="performance_lapack.png" alt=""/>
 </div>
@@ -152,14 +152,15 @@ $(document).ready(function(){initNavTree('index.html',''); initResizable(); });
 <td class="markdownTableBodyNone">Eigenvectors </td><td class="markdownTableBodyCenter"><b>Complete</b> </td><td class="markdownTableBodyCenter">&mdash; </td><td class="markdownTableBodyCenter">&mdash;  </td></tr>
 </table>
 <p>Please see changelog and known problems.</p>
-<h1>Documentation:</h1>
+<h1>Documentation</h1>
 <p>The StarNEig User's Guide is available in both HTML and PDF formats at <a href="https://nlafet.github.io/StarNEig">https://nlafet.github.io/StarNEig</a>. The PDF version is also available under <a href="https://github.com/NLAFET/StarNEig/releases">releases</a>.</p>
-<h1>Installation</h1>
+<h1>Quickstart guide</h1>
+<h2>Installation</h2>
 <p>Prebuild binary packages (Ubuntu 18.04 and Ubuntu 20.04) are available under <a href="https://github.com/NLAFET/StarNEig/releases">releases</a> and can be installed with the following command:</p>
 <div class="fragment"><div class="line">$ sudo apt install ./StarNEig-v0.xx.yy-ubuntu-vv.uu.deb</div>
 </div><!-- fragment --><p>The binary packages rely on mainstream StarPU packages and do not necessary provide full functionality.</p>
 <p>For full functionality, it is recommended that StarNEig (and StarPU) are compiled from the source code, see below and/or the StarNEig User's Guide. Please consider using the stable 0.1 series; preferably one of the tested <a href="https://github.com/NLAFET/StarNEig/releases">release</a> versions.</p>
-<h2>Dependencies</h2>
+<h3>Dependencies</h3>
 <p>Library dependencies:</p>
 <ul>
 <li>Linux</li>
@@ -181,14 +182,14 @@ $(document).ready(function(){initNavTree('index.html',''); initResizable(); });
 <li>GNU Scientific Library (optional)</li>
 <li>MAGMA (optional)</li>
 </ul>
-<h2>Configure, build and install</h2>
+<h3>Configure, build and install</h3>
 <p>To compile, validate and install StarNEig, execute in the same directory as this <code>README.md</code> file: </p><div class="fragment"><div class="line">$ mkdir build</div>
 <div class="line">$ cd build/</div>
 <div class="line">$ cmake ../</div>
 <div class="line">$ make</div>
 <div class="line">$ make test</div>
 <div class="line">$ sudo make install</div>
-</div><!-- fragment --><h1>Example</h1>
+</div><!-- fragment --><h2>Example</h2>
 <p>The following example demonstrates how a dense matrix <code>A</code> is reduced to real Schur form:</p>
 <div class="fragment"><div class="line"><span class="comment">// my_program.c</span></div>
 <div class="line"><span class="preprocessor">#include &lt;<a class="code" href="starneig_8h.html">starneig/starneig.h</a>&gt;</span></div>
