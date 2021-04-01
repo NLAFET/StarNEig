@@ -39,8 +39,8 @@ Please see [publications](PUBLICATIONS.md) and [authors](AUTHORS.md).
 
 ## Performance
 
-Performance comparison against LAPACK (with parallel BLAS) using 25 CPU cores
-and a Nvidia V100 GPU:
+Performance [comparison](https://doi.org/10.13140/RG.2.2.14812.92801)
+against LAPACK (with parallel BLAS) using 25 CPU cores and a Nvidia V100 GPU:
 
 ![](docs/figures/performance_lapack.png)
 
