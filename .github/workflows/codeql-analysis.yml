@@ -13,10 +13,13 @@ name: "StarNEig CodeQL"
 
 on:
   push:
-    branches: [ master ]
+    branches:
+      - 'master'
+      - 'v*'
   pull_request:
-    # The branches below must be a subset of the branches above
-    branches: [ master ]
+    branches:
+      - 'master'
+      - 'v*'
   schedule:
     - cron: '40 16 * * 6'
 
@@ -52,14 +55,14 @@ jobs:
         sudo apt-get update
         sudo apt-get install gfortran libopenblas-dev libopenmpi-dev \
           libscalapack-openmpi-dev libstarpu-dev libgsl-dev
- 
+
     - name: Configure
       run: |
         sed -i -e 's/mpirun/mpirun --oversubscribe/g' test/CMakeLists.txt
         mkdir build
         cd build/
         cmake ../
-  
+
     - name: Build
       run: |
         cd build/
