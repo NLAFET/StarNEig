@@ -30,10 +30,10 @@ at HPC2N partially funded by VR through grant agreement No. 2016-07213. The
 library is published under open-source [BSD 3-Clause license](LICENSE.md).
 
 Please cite the following article when referring to StarNEig:
-> Mirko Myllykoski, Carl Christian Kjelgaard Mikkelsen: *Task-based,
+> Mirko Myllykoski, Carl Christian Kjelgaard Mikkelsen: *Task-based, 
 > GPU-accelerated and Robust Library for Solving Dense Nonsymmetric Eigenvalue
-> Problems*, Concurrency and Computation: Practice and Experience, 2020,
-> doi: [10.1002/cpe.5915](https://doi.org/10.1002/cpe.5915)
+> Problems*, Concurrency and Computation: Practice and Experience, 33 (11),
+> 2021 (online since 2020; e5915), doi: [10.1002/cpe.5915](https://doi.org/10.1002/cpe.5915)
 
 Please see [publications](PUBLICATIONS.md) and [authors](AUTHORS.md).
 
@@ -52,12 +52,13 @@ machines:
 
 Also, see following publications:
 
- - Mirko Myllykoski: *A Task-based Multi-shift QR/QZ Algorithm with Aggressive
-   Early Deflation*, [arXiv:2007.03576](https://arxiv.org/abs/2007.03576)
- - Mirko Myllykoski, Carl Christian Kjelgaard Mikkelsen: *Task-based,
+ - Mirko Myllykoski: *Algorithm 1019: A Task-based Multi-shift QR/QZ Algorithm
+   with Aggressive Early Deflation*, ACM Transactions on Mathematical Software,
+   48 (1), Article 11, pp. 1-36, 2022 (online since 2021), doi: [10.1145/3495005](https://doi.org/10.1145/3495005)
+ - Mirko Myllykoski, Carl Christian Kjelgaard Mikkelsen: *Task-based, 
    GPU-accelerated and Robust Library for Solving Dense Nonsymmetric Eigenvalue
-   Problems*, Concurrency and Computation: Practice and Experience, 2020,
-   doi: [10.1002/cpe.5915](https://doi.org/10.1002/cpe.5915)
+   Problems*, Concurrency and Computation: Practice and Experience, 33 (11),
+   2021 (online since 2020; e5915), doi: [10.1002/cpe.5915](https://doi.org/10.1002/cpe.5915)
  - Mirko Myllykoski, Carl Christian Kjelgaard Mikkelsen, Angelika Schwarz,
    Bo Kågström: *D2.7 Eigenvalue solvers for nonsymmetric problems*, public
    NLAFET deliverable, 2019
