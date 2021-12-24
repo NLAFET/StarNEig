@@ -30,8 +30,8 @@ jobs:
       - name: Install dependences
         run: |
           apt-get update
-          apt-get upgrade
-          apt-get install gfortran libopenblas-dev libopenmpi-dev \
+          apt-get -y upgrade
+          apt-get -y install gfortran libopenblas-dev libopenmpi-dev \
             libscalapack-openmpi-dev libstarpu-dev libgsl-dev
 
       - name: Configure
