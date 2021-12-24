@@ -104,9 +104,8 @@ https://nlafet.github.io/StarNEig. The PDF version is also available under
 
 ### Installation
 
-Prebuild binary packages (Ubuntu 18.04 and Ubuntu 20.04) are available under
-[releases](https://github.com/NLAFET/StarNEig/releases) and can be installed
-with the following command:
+Prebuild binary packages are available under [releases](https://github.com/NLAFET/StarNEig/releases)
+and can be installed with the following command:
 
 ```
 $ sudo apt install ./StarNEig-v0.xx.yy-ubuntu-vv.uu.deb
