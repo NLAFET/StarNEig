@@ -2,12 +2,13 @@
 
 ### Research papers
 
- - Mirko Myllykoski: *A Task-based Multi-shift QR/QZ Algorithm with Aggressive
-   Early Deflation*, [arXiv:2007.03576](https://arxiv.org/abs/2007.03576)
- - Mirko Myllykoski, Carl Christian Kjelgaard Mikkelsen: *Task-based,
+ - Mirko Myllykoski: *Algorithm 1019: A Task-based Multi-shift QR/QZ Algorithm
+   with Aggressive Early Deflation*, ACM Transactions on Mathematical Software,
+   48 (1), Article 11, pp. 1-36, 2022 (online since 2021), doi: [10.1145/3495005](https://doi.org/10.1145/3495005)
+ - Mirko Myllykoski, Carl Christian Kjelgaard Mikkelsen: *Task-based, 
    GPU-accelerated and Robust Library for Solving Dense Nonsymmetric Eigenvalue
-   Problems*, Concurrency and Computation: Practice and Experience, 2020,
-   doi: [10.1002/cpe.5915](https://doi.org/10.1002/cpe.5915)
+   Problems*, Concurrency and Computation: Practice and Experience, 33 (11),
+   2021 (online since 2020; e5915), doi: [10.1002/cpe.5915](https://doi.org/10.1002/cpe.5915)
  - Mirko Myllykoski, Carl Christian Kjelgaard Mikkelsen: *Introduction to
    StarNEig — A Task-based Library for Solving Nonsymmetric Eigenvalue
    Problems*, In Parallel Processing and Applied Mathematics, 13th International
@@ -49,6 +50,9 @@
 
 ### Reports, deliverables etc
 
+ - Angelika Schwarz: *Improving the efficiency of eigenvector-related computations*,
+   Doctoral thesis, Department of computing science, Umeå University, ISSN 0348-0542,
+   2021
  - Angelika Schwarz, Carl Christian Kjelgaard Mikkelsen, Lars Karlsson: *Robust
    Parallel Eigenvector Computation For the Non-Symmetric Eigenvalue Problem*,
    Report UMINF 20.02, Department of Computing Science, Umeå University,
