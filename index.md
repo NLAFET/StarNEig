@@ -119,6 +119,7 @@ The stable 0.1-series is recommended for most users:
      [pdf](https://nlafet.github.io/StarNEig/v0.1.8/starneig_manual.pdf),
      [html](https://nlafet.github.io/StarNEig/v0.1.8/html/)
      )
+     **NEW!** Prebuild packages for Ubuntu 18.04, 20.04, 21.04 and 21.10.
    - [Version 0.1.7](https://github.com/NLAFET/StarNEig/releases/tag/v0.1.7) (
      [pdf](https://nlafet.github.io/StarNEig/v0.1.7/starneig_manual.pdf),
      [html](https://nlafet.github.io/StarNEig/v0.1.7/html/)
