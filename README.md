@@ -30,10 +30,10 @@ at HPC2N partially funded by VR through grant agreement No. 2016-07213. The
 library is published under open-source [BSD 3-Clause license](LICENSE.md).
 
 Please cite the following article when referring to StarNEig:
-> Mirko Myllykoski, Carl Christian Kjelgaard Mikkelsen: *Task-based,
+> Mirko Myllykoski, Carl Christian Kjelgaard Mikkelsen: *Task-based, 
 > GPU-accelerated and Robust Library for Solving Dense Nonsymmetric Eigenvalue
-> Problems*, Concurrency and Computation: Practice and Experience, 2020,
-> doi: [10.1002/cpe.5915](https://doi.org/10.1002/cpe.5915)
+> Problems*, Concurrency and Computation: Practice and Experience, 33 (11),
+> 2021 (online since 2020; e5915), doi: [10.1002/cpe.5915](https://doi.org/10.1002/cpe.5915)
 
 Please see [publications](PUBLICATIONS.md) and [authors](AUTHORS.md).
 
