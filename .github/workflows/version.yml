@@ -8,17 +8,21 @@ on:
 jobs:
 
   package:
-    name: Publish for ${{ matrix.container }}
+    name: Publish for ${{ matrix.version }}
     runs-on: ubuntu-latest
     container: 
       image: ${{ matrix.container }}
     strategy:
       matrix:
         include:
-          - container: ubuntu:18.04
-          - container: ubuntu:20.04
-          - container: ubuntu:21.04
-          - container: ubuntu:21.10
+          - version: ubuntu-18.04
+            container: ubuntu:18.04
+          - version: ubuntu-20.04
+            container: ubuntu:20.04
+          - version: ubuntu-21.04
+            container: ubuntu:21.04
+          - version: ubuntu-21.10
+            container: ubuntu:21.10
 
     steps:
       - name: Get the version
@@ -29,9 +33,10 @@ jobs:
 
       - name: Install dependences
         run: |
+          export DEBIAN_FRONTEND='noninteractive'
           apt-get update
           apt-get -y upgrade
-          apt-get -y install gfortran libopenblas-dev libopenmpi-dev \
+          apt-get -y install cmake gfortran libopenblas-dev libopenmpi-dev \
             libscalapack-openmpi-dev libstarpu-dev libgsl-dev
 
       - name: Configure
@@ -58,7 +63,7 @@ jobs:
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           file: build/starneig.deb
-          asset_name: StarNEig-${{ env.RELEASE_VERSION }}-${{ matrix.os }}.deb
+          asset_name: StarNEig-${{ env.RELEASE_VERSION }}-${{ matrix.version }}.deb
           tag: ${{ github.ref }}
           overwrite: true
 
@@ -79,8 +84,8 @@ jobs:
 
       - name: Install dependences
         run: |
-          apt-get update
-          apt-get install texlive-full doxygen
+          sudo apt-get update
+          sudo apt-get install texlive-full doxygen
 
       - name: Build manual
         run: |
