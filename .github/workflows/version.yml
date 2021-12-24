@@ -29,9 +29,9 @@ jobs:
 
       - name: Install dependences
         run: |
-          sudo apt-get update
-          sudo apt-get upgrade
-          sudo apt-get install gfortran libopenblas-dev libopenmpi-dev \
+          apt-get update
+          apt-get upgrade
+          apt-get install gfortran libopenblas-dev libopenmpi-dev \
             libscalapack-openmpi-dev libstarpu-dev libgsl-dev
 
       - name: Configure
@@ -79,8 +79,8 @@ jobs:
 
       - name: Install dependences
         run: |
-          sudo apt-get update
-          sudo apt-get install texlive-full doxygen
+          apt-get update
+          apt-get install texlive-full doxygen
 
       - name: Build manual
         run: |
