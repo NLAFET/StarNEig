@@ -8,13 +8,17 @@ on:
 jobs:
 
   package:
-    name: Publish for ${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
+    name: Publish for ${{ matrix.container }}
+    runs-on: ubuntu-latest
+    container: 
+      image: ${{ matrix.container }}
     strategy:
       matrix:
         include:
-          - os: ubuntu-18.04
-          - os: ubuntu-20.04
+          - container: ubuntu:18.04
+          - container: ubuntu:20.04
+          - container: ubuntu:21.04
+          - container: ubuntu:21.10
 
     steps:
       - name: Get the version
