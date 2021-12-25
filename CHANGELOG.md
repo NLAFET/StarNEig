@@ -1,5 +1,9 @@
 ## Changelog
 
+### v0.1.8
+
+ - Add more DEB packages
+
 ### v0.1.7
  - Fix a compile error with GCC 10
 
