@@ -102,9 +102,11 @@ void * alloc_matrix(
     if (pinning)
         cudaHostAlloc(&ptr, n*(*ld)*elemsize, cudaHostRegisterPortable);
     else
+#endif
+#ifdef ALIGNED_ALLOC_FOUND
         ptr = aligned_alloc(64, n*(*ld)*elemsize);
 #else
-    ptr = aligned_alloc(64, n*(*ld)*elemsize);
+        ptr = malloc(n*(*ld)*elemsize);
 #endif
     return ptr;
 }
