@@ -40,6 +40,7 @@
 #cmakedefine MKL_SET_NUM_THREADS_LOCAL_FOUND
 #cmakedefine OPENBLAS_SET_NUM_THREADS_FOUND
 #cmakedefine GOTO_SET_NUM_THREADS_FOUND
+#cmakedefine ALIGNED_ALLOC_FOUND
 
 #cmakedefine PDGEHRD_FOUND
 #cmakedefine PDORMHR_FOUND
