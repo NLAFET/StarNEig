@@ -279,6 +279,8 @@ if (STARNEIG_ENABLE_BLACS AND STARNEIG_ENABLE_REFERENCE)
     endif ()
 endif ()
 
+CHECK_FUNCTION_EXISTS (aligned_alloc ALIGNED_ALLOC_FOUND)
+
 #
 # configuration file
 #
